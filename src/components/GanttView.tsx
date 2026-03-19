@@ -1,473 +1,380 @@
 'use client';
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { AppData, GanttPhase, GanttSubPhase, GANTT_COLORS, Project } from '@/types';
+import { useState } from 'react';
+import { AppData, GanttPhase, GanttSubphase } from '@/types';
 import { v4 as uuid } from 'uuid';
 
-interface Props { data: AppData; }
+interface Props { data: AppData; updateData: (d: AppData) => void; }
 
-const DAY_PX = 28; // pixels per day
+const PHASE_COLORS = ['#6366f1','#10b981','#f59e0b','#ef4444','#8b5cf6','#06b6d4','#f97316','#ec4899'];
+const DAY_PX = 26;
 
-function addDays(date: string, days: number): string {
-  const d = new Date(date);
+function addDays(dateStr: string, days: number): string {
+  const d = new Date(dateStr);
   d.setDate(d.getDate() + days);
   return d.toISOString().slice(0, 10);
 }
-
-function diffDays(a: string, b: string): number {
+function daysBetween(a: string, b: string): number {
   return Math.round((new Date(b).getTime() - new Date(a).getTime()) / 86400000);
 }
-
-function formatDate(d: string) {
-  return new Date(d).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' });
+function fmt(d: string) {
+  return new Date(d).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: '2-digit' });
 }
 
-// Cascade dependency shifts
-function cascadePhases(phases: GanttPhase[]): GanttPhase[] {
-  const sorted = [...phases].sort((a, b) => a.order - b.order);
-  const resolved: GanttPhase[] = [];
-  for (let phase of sorted) {
-    if (phase.dependsOn) {
-      const dep = resolved.find(p => p.id === phase.dependsOn);
-      if (dep) {
-        const depEnd = addDays(dep.startDate, dep.duration);
-        if (phase.startDate < depEnd) {
-          phase = { ...phase, startDate: depEnd };
-        }
-      }
-    }
-    // Cascade subphases
-    const subs = [...phase.subPhases].sort((a, b) => a.order - b.order);
-    const resolvedSubs: GanttSubPhase[] = [];
-    for (const sub of subs) {
-      let s = { ...sub };
-      if (s.dependsOn) {
-        const dep = resolvedSubs.find(x => x.id === s.dependsOn);
-        if (dep) {
-          const depEnd = addDays(dep.startDate, dep.duration);
-          if (s.startDate < depEnd) s = { ...s, startDate: depEnd };
-        }
-      }
-      resolvedSubs.push(s);
-    }
-    resolved.push({ ...phase, subPhases: resolvedSubs });
+function propagateDeps(phases: GanttPhase[]): GanttPhase[] {
+  const map: Record<string, GanttPhase> = {};
+  const result = phases.map(p => ({ ...p, subphases: p.subphases.map(s => ({ ...s })) }));
+  result.forEach(p => { map[p.id] = p; });
+  const visited = new Set<string>();
+  const order: string[] = [];
+  function visit(id: string) {
+    if (visited.has(id)) return;
+    visited.add(id);
+    if (map[id]?.dependsOn) visit(map[id].dependsOn!);
+    order.push(id);
   }
-  return resolved;
+  result.forEach(p => visit(p.id));
+  order.forEach(id => {
+    const p = map[id];
+    if (!p) return;
+    if (p.dependsOn && map[p.dependsOn]) {
+      const dep = map[p.dependsOn];
+      p.startDate = addDays(dep.startDate, dep.duration);
+    }
+    const sm: Record<string, GanttSubphase> = {};
+    p.subphases.forEach(s => { sm[s.id] = s; });
+    const sv = new Set<string>(); const so: string[] = [];
+    function vs(sid: string) { if (sv.has(sid)) return; sv.add(sid); if (sm[sid]?.dependsOn) vs(sm[sid].dependsOn!); so.push(sid); }
+    p.subphases.forEach(s => vs(s.id));
+    so.forEach(sid => {
+      const s = sm[sid]; if (!s) return;
+      if (s.dependsOn && sm[s.dependsOn]) s.startDate = addDays(sm[s.dependsOn].startDate, sm[s.dependsOn].duration);
+    });
+  });
+  return result;
 }
 
-export default function GanttView({ data }: Props) {
-  const [selectedProject, setSelectedProject] = useState<string>(data.projects[0]?.id ?? '');
-  const [ganttData, setGanttData] = useState<Record<string, GanttPhase[]>>({});
-  const [editingPhase, setEditingPhase] = useState<GanttPhase | null>(null);
-  const [editingSub, setEditingSub] = useState<{ sub: GanttSubPhase; phaseId: string } | null>(null);
+function getRange(phases: GanttPhase[], extra?: string | null) {
+  if (!phases.length) return null;
+  const all = phases.flatMap(p => [p.startDate, addDays(p.startDate, p.duration)]);
+  if (extra) all.push(extra);
+  return { start: all.reduce((a,b)=>a<b?a:b), end: all.reduce((a,b)=>a>b?a:b) };
+}
+
+export default function GanttView({ data, updateData }: Props) {
+  const [selProj, setSelProj] = useState(data.projects[0]?.id ?? '');
+  const [editPhase, setEditPhase] = useState<GanttPhase | null>(null);
+  const [editSub, setEditSub] = useState<{ sub: GanttSubphase; phase: GanttPhase } | null>(null);
+  const [addSubPhase, setAddSubPhase] = useState<GanttPhase | null>(null);
   const [isNew, setIsNew] = useState(false);
-  const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
-  const scrollRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    fetch('/api/gantt').then(r => r.json()).then(setGanttData).catch(() => {});
-  }, []);
+  const project = data.projects.find(p => p.id === selProj);
+  const rawPhases = data.ganttPhases.filter(p => p.projectId === selProj);
+  const phases = propagateDeps(rawPhases);
 
-  const save = useCallback(async (newData: Record<string, GanttPhase[]>) => {
-    setGanttData(newData);
-    await fetch('/api/gantt', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(newData) });
-  }, []);
+  const savePhases = (next: GanttPhase[]) => {
+    const others = data.ganttPhases.filter(p => p.projectId !== selProj);
+    updateData({ ...data, ganttPhases: [...others, ...propagateDeps(next)] });
+  };
 
-  const project = data.projects.find(p => p.id === selectedProject);
-  const rawPhases = ganttData[selectedProject] ?? [];
-  const phases = cascadePhases(rawPhases);
+  const range = getRange(phases, project?.goLive);
+  const ganttEnd = phases.length ? phases.flatMap(p => [addDays(p.startDate, p.duration)]).reduce((a,b)=>a>b?a:b) : null;
+  const goLive = project?.goLive ?? null;
+  const overdue = ganttEnd && goLive && ganttEnd > goLive;
 
-  // Compute gantt range
-  const allDates = phases.flatMap(p => [
-    p.startDate, addDays(p.startDate, p.duration),
-    ...p.subPhases.flatMap(s => [s.startDate, addDays(s.startDate, s.duration)])
-  ]);
-  const today = new Date().toISOString().slice(0, 10);
-  const ganttStart = allDates.length ? allDates.reduce((a, b) => a < b ? a : b) : today;
-  const ganttEnd = allDates.length ? allDates.reduce((a, b) => a > b ? a : b) : addDays(today, 90);
-  // Pad
-  const viewStart = addDays(ganttStart, -7);
-  const viewEnd = addDays(ganttEnd, 14);
-  const totalDays = diffDays(viewStart, viewEnd);
+  // ── Chart
+  const minDate = range?.start ?? new Date().toISOString().slice(0,10);
+  const maxDate = range?.end ?? addDays(minDate, 90);
+  const totalDays = Math.max(daysBetween(minDate, maxDate) + 14, 60);
+  const chartW = totalDays * DAY_PX;
+  const LEFT_W = 260;
+  const today = new Date().toISOString().slice(0,10);
+  const todayX = daysBetween(minDate, today) * DAY_PX;
+  const goLiveX = goLive ? daysBetween(minDate, goLive) * DAY_PX : null;
 
-  // Build month headers
-  const months: { label: string; days: number; start: string }[] = [];
-  let cur = new Date(viewStart);
-  const endD = new Date(viewEnd);
-  while (cur < endD) {
-    const y = cur.getFullYear(), m = cur.getMonth();
-    const monthEnd = new Date(y, m + 1, 1);
-    const days = Math.min(Math.round((Math.min(monthEnd.getTime(), endD.getTime()) - cur.getTime()) / 86400000), totalDays);
-    months.push({ label: cur.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }), days, start: cur.toISOString().slice(0, 10) });
-    cur = monthEnd;
+  // Month headers
+  const months: { label: string; left: number; width: number }[] = [];
+  let cur = new Date(minDate); cur.setDate(1);
+  while (cur.toISOString().slice(0,10) <= addDays(minDate, totalDays)) {
+    const mEnd = new Date(cur.getFullYear(), cur.getMonth()+1, 0);
+    const left = Math.max(0, daysBetween(minDate, cur.toISOString().slice(0,10))) * DAY_PX;
+    const right = Math.min(totalDays, daysBetween(minDate, mEnd.toISOString().slice(0,10))) * DAY_PX;
+    months.push({ label: cur.toLocaleDateString('fr-FR',{month:'short',year:'2-digit'}), left, width: right - left });
+    cur.setMonth(cur.getMonth()+1);
   }
-
-  const todayOffset = Math.max(0, diffDays(viewStart, today));
-  const LEFT_COL = 240;
-
-  function barLeft(date: string) { return Math.max(0, diffDays(viewStart, date)) * DAY_PX; }
-  function barWidth(dur: number) { return Math.max(2, dur) * DAY_PX; }
-
-  // Project date vs gantt validation
-  const ganttProjectEnd = phases.length ? phases.reduce((acc, p) => {
-    const end = addDays(p.startDate, p.duration);
-    return end > acc ? end : acc;
-  }, '') : '';
-  const projectGoLive = project?.goLive ?? null;
-  const dateWarning = ganttProjectEnd && projectGoLive && ganttProjectEnd > projectGoLive;
-
-  // ─── PHASE CRUD ───
-  const addPhase = () => {
-    const lastPhase = phases[phases.length - 1];
-    const start = lastPhase ? addDays(lastPhase.startDate, lastPhase.duration) : (project?.startDate ?? today);
-    const newPhase: GanttPhase = {
-      id: uuid(), projectId: selectedProject, name: 'Nouvelle phase',
-      startDate: start, duration: 14,
-      color: GANTT_COLORS[phases.length % GANTT_COLORS.length],
-      dependsOn: lastPhase ? lastPhase.id : null,
-      order: phases.length, subPhases: [],
-    };
-    setEditingPhase(newPhase); setIsNew(true);
-  };
-
-  const savePhase = () => {
-    if (!editingPhase) return;
-    const existing = rawPhases.filter(p => p.id !== editingPhase.id);
-    const updated = [...existing, editingPhase].sort((a, b) => a.order - b.order);
-    save({ ...ganttData, [selectedProject]: updated });
-    setEditingPhase(null);
-  };
-
-  const deletePhase = (id: string) => {
-    if (!confirm('Supprimer cette phase ?')) return;
-    const updated = rawPhases.filter(p => p.id !== id).map(p => ({
-      ...p, dependsOn: p.dependsOn === id ? null : p.dependsOn
-    }));
-    save({ ...ganttData, [selectedProject]: updated });
-  };
-
-  // ─── SUBPHASE CRUD ───
-  const addSubPhase = (phaseId: string) => {
-    const phase = phases.find(p => p.id === phaseId)!;
-    const lastSub = phase.subPhases[phase.subPhases.length - 1];
-    const start = lastSub ? addDays(lastSub.startDate, lastSub.duration) : phase.startDate;
-    const newSub: GanttSubPhase = {
-      id: uuid(), phaseId, name: 'Nouvelle sous-phase',
-      startDate: start, duration: 7,
-      dependsOn: lastSub ? lastSub.id : null, order: phase.subPhases.length,
-    };
-    setEditingSub({ sub: newSub, phaseId }); setIsNew(true);
-  };
-
-  const saveSubPhase = () => {
-    if (!editingSub) return;
-    const { sub, phaseId } = editingSub;
-    const updated = rawPhases.map(p => {
-      if (p.id !== phaseId) return p;
-      const subs = p.subPhases.filter(s => s.id !== sub.id);
-      return { ...p, subPhases: [...subs, sub].sort((a, b) => a.order - b.order) };
-    });
-    save({ ...ganttData, [selectedProject]: updated });
-    setEditingSub(null);
-  };
-
-  const deleteSubPhase = (phaseId: string, subId: string) => {
-    if (!confirm('Supprimer cette sous-phase ?')) return;
-    const updated = rawPhases.map(p => {
-      if (p.id !== phaseId) return p;
-      return { ...p, subPhases: p.subPhases.filter(s => s.id !== subId).map(s => ({ ...s, dependsOn: s.dependsOn === subId ? null : s.dependsOn })) };
-    });
-    save({ ...ganttData, [selectedProject]: updated });
-  };
-
-  const toggleCollapse = (id: string) => {
-    const next = new Set(collapsed);
-    next.has(id) ? next.delete(id) : next.add(id);
-    setCollapsed(next);
-  };
-
-  const totalWidth = totalDays * DAY_PX;
 
   return (
-    <div className="animate-in" style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 48px)' }}>
-      {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+    <div className="animate-in">
+      <div className="page-header">
         <div>
-          <h1 style={{ fontSize: 22, fontWeight: 800, letterSpacing: '-0.03em' }}>Planning Gantt</h1>
-          <p style={{ color: 'var(--text-muted)', fontSize: 13, marginTop: 3 }}>Phases et jalons par projet</p>
+          <h1 className="page-title">Planning Gantt</h1>
+          <p className="page-subtitle">Phases et sous-phases avec dépendances et propagation automatique</p>
         </div>
-        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-          <select className="input" value={selectedProject} onChange={e => setSelectedProject(e.target.value)} style={{ maxWidth: 300, fontWeight: 600 }}>
-            {data.projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-          </select>
-          <button className="btn btn-primary" onClick={addPhase}>+ Phase</button>
-        </div>
+        <button className="btn btn-primary" onClick={() => {
+          setEditPhase({ id: uuid(), projectId: selProj, name: '', startDate: new Date().toISOString().slice(0,10), duration: 30, color: PHASE_COLORS[phases.length % PHASE_COLORS.length], dependsOn: null, subphases: [] } as unknown as GanttPhase);
+          setIsNew(true);
+        }}>+ Nouvelle phase</button>
       </div>
 
-      {/* Date warning */}
-      {dateWarning && (
-        <div style={{ background: 'var(--warning-subtle)', border: '1px solid var(--warning)', borderRadius: 'var(--radius-sm)', padding: '10px 14px', marginBottom: 14, fontSize: 13, color: 'var(--warning)', display: 'flex', gap: 8, alignItems: 'center' }}>
-          ⚠ La fin du Gantt ({formatDate(ganttProjectEnd)}) dépasse le Go-Live projet ({formatDate(projectGoLive!)}). Pensez à ajuster les dates dans le portefeuille.
-        </div>
-      )}
+      {/* Project selector */}
+      <div style={{ display: 'flex', gap: 10, marginBottom: 18, alignItems: 'center', flexWrap: 'wrap' }}>
+        <select className="input" value={selProj} onChange={e => setSelProj(e.target.value)} style={{ maxWidth: 340, fontWeight: 600 }}>
+          {data.projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+        </select>
+        {project?.startDate && <span className="badge badge-blue">Début : {fmt(project.startDate)}</span>}
+        {goLive && <span className="badge badge-purple">Go-Live : {fmt(goLive)}</span>}
+        <span className="badge badge-gray">{phases.length} phase{phases.length !== 1 ? 's' : ''} · {phases.reduce((s,p)=>s+p.subphases.length,0)} sous-phases</span>
+      </div>
 
-      {/* Info bar */}
-      {project && (
-        <div style={{ display: 'flex', gap: 14, marginBottom: 16, flexWrap: 'wrap' }}>
+      {/* Coherence alert */}
+      {overdue && <div style={{ marginBottom: 14, padding: '12px 16px', background: 'var(--danger-subtle)', border: '1px solid var(--danger)', borderRadius: 'var(--radius-sm)', color: 'var(--danger)', fontSize: 13, fontWeight: 500, display:'flex', gap:10, alignItems:'center' }}>
+        <span style={{fontSize:20}}>⚠</span>
+        <div><strong>Fin du planning ({fmt(ganttEnd!)}) dépasse le Go-Live projet ({fmt(goLive!)})</strong><br/><span style={{fontSize:12,opacity:0.8}}>Ajustez les durées des phases ou mettez à jour le Go-Live dans le portefeuille.</span></div>
+      </div>}
+      {!overdue && ganttEnd && goLive && <div style={{ marginBottom: 14, padding: '10px 16px', background: 'var(--success-subtle)', border: '1px solid var(--success)', borderRadius: 'var(--radius-sm)', color: 'var(--success)', fontSize: 13, fontWeight: 600, display:'flex', gap:8, alignItems:'center' }}>
+        ✓ Planning cohérent — fin Gantt : {fmt(ganttEnd)} ≤ Go-Live : {fmt(goLive)}
+      </div>}
+
+      {/* KPI row */}
+      {phases.length > 0 && range && (
+        <div style={{ display: 'flex', gap: 12, marginBottom: 18, flexWrap: 'wrap' }}>
           {[
-            { label: 'Démarrage projet', value: project.startDate ? formatDate(project.startDate) : '—', color: 'var(--accent2)' },
-            { label: 'Go-Live prévu', value: project.goLive ? formatDate(project.goLive) : '—', color: 'var(--success)' },
-            { label: 'Fin Gantt calculée', value: ganttProjectEnd ? formatDate(ganttProjectEnd) : '—', color: dateWarning ? 'var(--danger)' : 'var(--text-muted)' },
-            { label: 'Phases', value: String(phases.length), color: 'var(--accent)' },
-            { label: 'Sous-phases', value: String(phases.reduce((s, p) => s + p.subPhases.length, 0)), color: 'var(--purple)' },
-          ].map(item => (
-            <div key={item.label} className="card" style={{ padding: '10px 16px', display: 'flex', flexDirection: 'column', gap: 2, minWidth: 120 }}>
-              <div style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{item.label}</div>
-              <div style={{ fontWeight: 700, color: item.color, fontFamily: 'JetBrains Mono', fontSize: 14 }}>{item.value}</div>
+            { label: 'Début', value: fmt(range.start) },
+            { label: 'Fin prévue', value: fmt(ganttEnd!), danger: !!overdue },
+            { label: 'Durée', value: `${daysBetween(range.start, ganttEnd!)}j` },
+            { label: 'Phases', value: phases.length },
+            { label: 'Sous-phases', value: phases.reduce((s,p)=>s+p.subphases.length,0) },
+          ].map(k => (
+            <div key={k.label} className="card" style={{ padding: '10px 18px', minWidth: 110 }}>
+              <div style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--text-faint)', marginBottom: 4 }}>{k.label}</div>
+              <div style={{ fontWeight: 800, fontSize: 15, color: k.danger ? 'var(--danger)' : 'var(--text)' }}>{k.value}</div>
             </div>
           ))}
         </div>
       )}
 
-      {/* Gantt chart */}
-      <div className="card" style={{ padding: 0, overflow: 'hidden', flex: 1, display: 'flex', flexDirection: 'column' }}>
-        {/* Fixed header row */}
-        <div style={{ display: 'flex', borderBottom: '2px solid var(--border)', background: 'var(--bg3)', flexShrink: 0 }}>
-          <div style={{ width: LEFT_COL, minWidth: LEFT_COL, padding: '10px 16px', fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.07em', borderRight: '1px solid var(--border)', flexShrink: 0 }}>
-            Phase / Sous-phase
-          </div>
-          <div style={{ overflow: 'hidden', flex: 1 }}>
-            <div ref={scrollRef} style={{ overflowX: 'scroll', display: 'flex' }}
-              onScroll={e => {
-                const ganttBody = document.getElementById('gantt-body-scroll');
-                if (ganttBody) ganttBody.scrollLeft = (e.target as HTMLElement).scrollLeft;
-              }}
-            >
-              <div style={{ display: 'flex', width: totalWidth, flexShrink: 0 }}>
-                {months.map((m, i) => (
-                  <div key={i} className="gantt-header-cell" style={{ width: m.days * DAY_PX }}>
-                    {m.label}
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
+      {/* Gantt grid */}
+      {phases.length === 0 ? (
+        <div className="card" style={{ textAlign:'center', padding:60, color:'var(--text-faint)' }}>
+          <div style={{fontSize:48,marginBottom:12}}>📅</div>
+          <div style={{fontWeight:700,fontSize:16,color:'var(--text-muted)',marginBottom:6}}>Aucune phase définie</div>
+          <div style={{fontSize:13}}>Cliquez sur "+ Nouvelle phase" pour démarrer le planning</div>
         </div>
-
-        {/* Scrollable body */}
-        <div style={{ flex: 1, overflow: 'auto', display: 'flex' }}>
-          {/* Left labels */}
-          <div style={{ width: LEFT_COL, minWidth: LEFT_COL, flexShrink: 0, borderRight: '1px solid var(--border)' }}>
-            {phases.length === 0 && (
-              <div style={{ padding: 32, textAlign: 'center', color: 'var(--text-faint)', fontSize: 13 }}>
-                Aucune phase — cliquez "+ Phase"
-              </div>
-            )}
-            {phases.map(phase => (
-              <div key={phase.id}>
-                {/* Phase label */}
-                <div className="gantt-row" style={{ paddingLeft: 8, gap: 6, background: 'var(--bg2)' }}>
-                  <button onClick={() => toggleCollapse(phase.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', fontSize: 12, padding: '2px 4px', flexShrink: 0 }}>
-                    {collapsed.has(phase.id) ? '▶' : '▼'}
-                  </button>
-                  <div style={{ width: 12, height: 12, borderRadius: 3, background: phase.color, flexShrink: 0 }} />
-                  <div style={{ flex: 1, overflow: 'hidden' }}>
-                    <div style={{ fontWeight: 700, fontSize: 12, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'var(--text)' }}>{phase.name}</div>
-                    <div style={{ fontSize: 10, color: 'var(--text-muted)' }}>{formatDate(phase.startDate)} · {phase.duration}j</div>
-                  </div>
-                  <div style={{ display: 'flex', gap: 2, flexShrink: 0 }}>
-                    <button className="btn btn-ghost btn-sm btn-icon" title="Ajouter sous-phase" onClick={() => { addSubPhase(phase.id); }} style={{ fontSize: 12 }}>+</button>
-                    <button className="btn btn-ghost btn-sm btn-icon" title="Éditer" onClick={() => { setEditingPhase({ ...phase }); setIsNew(false); }} style={{ fontSize: 11 }}>✎</button>
-                    <button className="btn btn-danger btn-sm btn-icon" title="Supprimer" onClick={() => deletePhase(phase.id)} style={{ fontSize: 11 }}>✕</button>
-                  </div>
+      ) : (
+        <div style={{ border:'1px solid var(--border)', borderRadius:'var(--radius)', overflow:'hidden', background:'var(--bg2)', boxShadow:'var(--shadow-sm)' }}>
+          <div style={{ overflowX:'auto' }}>
+            <div style={{ display:'flex', minWidth: LEFT_W + chartW }}>
+              {/* Labels */}
+              <div style={{ width:LEFT_W, minWidth:LEFT_W, borderRight:'1px solid var(--border)', flexShrink:0 }}>
+                <div style={{ height:40, background:'var(--bg3)', borderBottom:'1px solid var(--border)', display:'flex', alignItems:'center', padding:'0 16px' }}>
+                  <span style={{ fontSize:11, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.07em', color:'var(--text-faint)' }}>Structure</span>
                 </div>
-                {/* Subphase labels */}
-                {!collapsed.has(phase.id) && phase.subPhases.map(sub => (
-                  <div key={sub.id} className="gantt-row-sub" style={{ paddingLeft: 36, gap: 6 }}>
-                    <div style={{ width: 8, height: 8, borderRadius: 2, background: phase.color, opacity: 0.6, flexShrink: 0 }} />
-                    <div style={{ flex: 1, overflow: 'hidden' }}>
-                      <div style={{ fontWeight: 500, fontSize: 11.5, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'var(--text-muted)' }}>{sub.name}</div>
-                      <div style={{ fontSize: 10, color: 'var(--text-faint)' }}>{formatDate(sub.startDate)} · {sub.duration}j</div>
-                    </div>
-                    <div style={{ display: 'flex', gap: 2, flexShrink: 0 }}>
-                      <button className="btn btn-ghost btn-sm btn-icon" onClick={() => { setEditingSub({ sub: { ...sub }, phaseId: phase.id }); setIsNew(false); }} style={{ fontSize: 11 }}>✎</button>
-                      <button className="btn btn-danger btn-sm btn-icon" onClick={() => deleteSubPhase(phase.id, sub.id)} style={{ fontSize: 11 }}>✕</button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ))}
-          </div>
-
-          {/* Right: bars */}
-          <div id="gantt-body-scroll" style={{ flex: 1, overflowX: 'scroll', overflowY: 'hidden' }}>
-            <div style={{ width: totalWidth, position: 'relative', minHeight: '100%' }}>
-              {/* Today line */}
-              <div className="gantt-today" style={{ left: todayOffset * DAY_PX }} />
-
-              {/* Weekend shading + grid lines */}
-              {Array.from({ length: totalDays }).map((_, i) => {
-                const d = new Date(viewStart);
-                d.setDate(d.getDate() + i);
-                const dow = d.getDay();
-                return (dow === 0 || dow === 6) ? (
-                  <div key={i} style={{ position: 'absolute', top: 0, bottom: 0, left: i * DAY_PX, width: DAY_PX, background: 'rgba(255,255,255,0.015)', pointerEvents: 'none' }} />
-                ) : null;
-              })}
-
-              {phases.map(phase => (
-                <div key={phase.id}>
-                  {/* Phase bar */}
-                  <div className="gantt-row">
-                    <div
-                      className="gantt-bar"
-                      style={{ left: barLeft(phase.startDate), width: barWidth(phase.duration), background: phase.color }}
-                      title={`${phase.name} — ${formatDate(phase.startDate)} → ${formatDate(addDays(phase.startDate, phase.duration))} (${phase.duration}j)`}
-                      onClick={() => { setEditingPhase({ ...phase }); setIsNew(false); }}
-                    >
-                      {phase.name}
-                    </div>
-                    {/* Dependency arrow */}
-                    {phase.dependsOn && (() => {
-                      const dep = phases.find(p => p.id === phase.dependsOn);
-                      if (!dep) return null;
-                      const x1 = barLeft(dep.startDate) + barWidth(dep.duration);
-                      const x2 = barLeft(phase.startDate);
-                      if (x2 <= x1) return null;
-                      return (
-                        <svg style={{ position: 'absolute', top: 0, left: 0, width: totalWidth, height: 44, pointerEvents: 'none', zIndex: 4 }}>
-                          <defs><marker id={`arrow-${phase.id}`} markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="var(--text-faint)" /></marker></defs>
-                          <line x1={x1} y1={22} x2={x2 - 4} y2={22} stroke="var(--text-faint)" strokeWidth="1.5" strokeDasharray="4,3" markerEnd={`url(#arrow-${phase.id})`} />
-                        </svg>
-                      );
-                    })()}
-                  </div>
-                  {/* Subphase bars */}
-                  {!collapsed.has(phase.id) && phase.subPhases.map(sub => (
-                    <div key={sub.id} className="gantt-row-sub">
-                      <div
-                        className="gantt-bar gantt-bar-sub"
-                        style={{ left: barLeft(sub.startDate), width: barWidth(sub.duration), background: phase.color }}
-                        title={`${sub.name} — ${formatDate(sub.startDate)} → ${formatDate(addDays(sub.startDate, sub.duration))} (${sub.duration}j)`}
-                        onClick={() => { setEditingSub({ sub: { ...sub }, phaseId: phase.id }); setIsNew(false); }}
-                      >
-                        {barWidth(sub.duration) > 60 ? sub.name : ''}
+                {phases.map(ph => (
+                  <div key={ph.id}>
+                    <div style={{ height:40, borderBottom:'1px solid var(--border)', display:'flex', alignItems:'center', padding:'0 8px', gap:6, background:'var(--bg2)' }}>
+                      <button onClick={() => {
+                        const updated = phases.map(p => p.id === ph.id ? {...p, collapsed:!p.collapsed} : p);
+                        savePhases(updated);
+                      }} style={{background:'none',border:'none',cursor:'pointer',fontSize:10,color:'var(--text-faint)',width:16,flexShrink:0}}>
+                        {ph.collapsed ? '▶' : '▼'}
+                      </button>
+                      <div style={{width:10,height:10,borderRadius:3,background:ph.color||'#6366f1',flexShrink:0}}/>
+                      <span style={{fontWeight:700,fontSize:12,flex:1,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{ph.name}</span>
+                      <div style={{display:'flex',gap:2,flexShrink:0}}>
+                        <button className="btn-icon" style={{width:22,height:22,fontSize:11}} onClick={()=>{setAddSubPhase(ph);setIsNew(true);}} title="+ Sous-phase">＋</button>
+                        <button className="btn-icon" style={{width:22,height:22,fontSize:11}} onClick={()=>{setEditPhase({...ph});setIsNew(false);}}>✎</button>
+                        <button className="btn-icon" style={{width:22,height:22,fontSize:11,color:'var(--danger)'}} onClick={()=>{if(!confirm('Supprimer cette phase ?'))return; savePhases(phases.filter(p=>p.id!==ph.id).map(p=>p.dependsOn===ph.id?{...p,dependsOn:null}:p));}}>✕</button>
                       </div>
                     </div>
+                    {!ph.collapsed && ph.subphases.map(sub => (
+                      <div key={sub.id} style={{ height:34, borderBottom:'1px solid var(--border)', background:'var(--bg3)', display:'flex', alignItems:'center', padding:'0 8px 0 30px', gap:6 }}>
+                        <div style={{width:7,height:7,borderRadius:2,background:ph.color||'#10b981',opacity:0.6,flexShrink:0}}/>
+                        <span style={{fontSize:12,flex:1,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',color:'var(--text-muted)'}}>{sub.name}</span>
+                        <div style={{display:'flex',gap:2,flexShrink:0}}>
+                          <button className="btn-icon" style={{width:20,height:20,fontSize:10}} onClick={()=>{setEditSub({sub:{...sub},phase:ph});setIsNew(false);}}>✎</button>
+                          <button className="btn-icon" style={{width:20,height:20,fontSize:10,color:'var(--danger)'}} onClick={()=>{const updated=phases.map(p=>p.id===ph.id?{...p,subphases:p.subphases.filter(s=>s.id!==sub.id)}:p);savePhases(updated);}}>✕</button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ))}
+              </div>
+
+              {/* Chart */}
+              <div style={{ flex:1, position:'relative', minWidth: chartW }}>
+                {/* Month headers */}
+                <div style={{ height:40, background:'var(--bg3)', borderBottom:'1px solid var(--border)', position:'relative' }}>
+                  {months.map((m,i) => (
+                    <div key={i} style={{ position:'absolute', left:m.left, width:m.width, height:'100%', display:'flex', alignItems:'center', justifyContent:'center', borderRight:'1px solid var(--border)', fontSize:11, fontWeight:700, color:'var(--text-muted)', textTransform:'capitalize' }}>{m.label}</div>
                   ))}
                 </div>
-              ))}
+
+                {/* Bars area */}
+                <div style={{ position:'relative', width:chartW }}>
+                  {/* Grid lines */}
+                  {months.map((m,i) => <div key={i} style={{ position:'absolute', left:m.left, top:0, bottom:0, width:1, background:'var(--border)', zIndex:1 }}/>)}
+
+                  {/* Today */}
+                  {todayX>=0 && todayX<=chartW && <div style={{ position:'absolute', left:todayX, top:0, bottom:0, width:2, background:'var(--accent)', opacity:0.7, zIndex:6 }}>
+                    <div style={{ position:'absolute', top:2, left:3, background:'var(--accent)', color:'#fff', fontSize:9, fontWeight:700, padding:'2px 5px', borderRadius:4, whiteSpace:'nowrap' }}>Aujourd'hui</div>
+                  </div>}
+
+                  {/* Go-live */}
+                  {goLiveX!=null && goLiveX>=0 && goLiveX<=chartW+200 && <div style={{ position:'absolute', left:goLiveX, top:0, bottom:0, width:2, background:overdue?'var(--danger)':'var(--success)', opacity:0.85, zIndex:6 }}>
+                    <div style={{ position:'absolute', top:2, left:3, background:overdue?'var(--danger)':'var(--success)', color:'#fff', fontSize:9, fontWeight:700, padding:'2px 5px', borderRadius:4, whiteSpace:'nowrap' }}>Go-Live</div>
+                  </div>}
+
+                  {phases.map(ph => {
+                    const px = daysBetween(minDate, ph.startDate)*DAY_PX;
+                    const pw = Math.max(ph.duration*DAY_PX, 16);
+                    return (
+                      <div key={ph.id}>
+                        {/* Phase row */}
+                        <div style={{ position:'relative', height:40, borderBottom:'1px solid var(--border)' }}>
+                          <div style={{ position:'absolute', top:7, left:px, width:pw, height:26, borderRadius:6, background:ph.color||'#6366f1', cursor:'pointer', display:'flex', alignItems:'center', padding:'0 8px', zIndex:3, boxShadow:'0 2px 8px rgba(0,0,0,0.15)', transition:'opacity 0.15s' }}
+                            onClick={()=>{setEditPhase({...ph});setIsNew(false);}}
+                            title={`${ph.name} — ${fmt(ph.startDate)} → ${fmt(addDays(ph.startDate,ph.duration))} (${ph.duration}j)`}>
+                            {pw>60 && <span style={{fontSize:11,fontWeight:700,color:'#fff',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{ph.name}</span>}
+                          </div>
+                        </div>
+                        {/* Subphase rows */}
+                        {!ph.collapsed && ph.subphases.map(sub => {
+                          const sx = daysBetween(minDate, sub.startDate)*DAY_PX;
+                          const sw = Math.max(sub.duration*DAY_PX, 10);
+                          return (
+                            <div key={sub.id} style={{ position:'relative', height:34, borderBottom:'1px solid var(--border)', background:'var(--bg3)' }}>
+                              <div style={{ position:'absolute', top:6, left:sx, width:sw, height:22, borderRadius:5, background:ph.color||'#10b981', opacity:0.72, cursor:'pointer', display:'flex', alignItems:'center', padding:'0 6px', zIndex:3, transition:'opacity 0.15s' }}
+                                onClick={()=>{setEditSub({sub:{...sub},phase:ph});setIsNew(false);}}
+                                title={`${sub.name} — ${fmt(sub.startDate)} → ${fmt(addDays(sub.startDate,sub.duration))} (${sub.duration}j)`}>
+                                {sw>44 && <span style={{fontSize:10,fontWeight:600,color:'#fff',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{sub.name}</span>}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Phase Modal */}
+      {editPhase && (
+        <div className="modal-overlay" onClick={()=>{setEditPhase(null);setIsNew(false);}}>
+          <div className="modal" style={{maxWidth:520}} onClick={e=>e.stopPropagation()}>
+            <div style={{padding:'20px 24px',borderBottom:'1px solid var(--border)',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+              <span style={{fontWeight:700,fontSize:15}}>{isNew?'Nouvelle phase':'Modifier la phase'}</span>
+              <button className="btn-icon" onClick={()=>{setEditPhase(null);setIsNew(false);}}>✕</button>
+            </div>
+            <div style={{padding:24,display:'flex',flexDirection:'column',gap:16}}>
+              <div>
+                <label style={{fontSize:12,color:'var(--text-muted)',fontWeight:600,display:'block',marginBottom:6}}>Nom de la phase *</label>
+                <input className="input" value={editPhase.name} onChange={e=>setEditPhase({...editPhase,name:e.target.value})} placeholder="Ex: Cadrage & Discovery"/>
+              </div>
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:14}}>
+                <div>
+                  <label style={{fontSize:12,color:'var(--text-muted)',fontWeight:600,display:'block',marginBottom:6}}>Date de début</label>
+                  <input type="date" className="input" value={editPhase.startDate} onChange={e=>setEditPhase({...editPhase,startDate:e.target.value})} disabled={!!editPhase.dependsOn} style={{opacity:editPhase.dependsOn?0.5:1}}/>
+                  {editPhase.dependsOn && <div style={{fontSize:11,color:'var(--text-faint)',marginTop:4}}>Calculée automatiquement</div>}
+                </div>
+                <div>
+                  <label style={{fontSize:12,color:'var(--text-muted)',fontWeight:600,display:'block',marginBottom:6}}>Durée (jours)</label>
+                  <input type="number" min={1} className="input" value={editPhase.duration} onChange={e=>setEditPhase({...editPhase,duration:parseInt(e.target.value)||1})}/>
+                </div>
+              </div>
+              <div>
+                <label style={{fontSize:12,color:'var(--text-muted)',fontWeight:600,display:'block',marginBottom:6}}>Dépend de (commence après…)</label>
+                <select className="input" value={editPhase.dependsOn??''} onChange={e=>setEditPhase({...editPhase,dependsOn:e.target.value||null})}>
+                  <option value="">Aucune dépendance</option>
+                  {phases.filter(p=>p.id!==editPhase.id).map(p=><option key={p.id} value={p.id}>{p.name}</option>)}
+                </select>
+              </div>
+              <div>
+                <label style={{fontSize:12,color:'var(--text-muted)',fontWeight:600,display:'block',marginBottom:8}}>Couleur</label>
+                <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+                  {PHASE_COLORS.map(c=><button key={c} onClick={()=>setEditPhase({...editPhase,color:c})} style={{width:28,height:28,borderRadius:6,border:editPhase.color===c?'3px solid var(--text)':'2px solid transparent',background:c,cursor:'pointer'}}/>)}
+                </div>
+              </div>
+            </div>
+            <div style={{padding:'16px 24px',borderTop:'1px solid var(--border)',display:'flex',justifyContent:'flex-end',gap:10}}>
+              <button className="btn btn-ghost" onClick={()=>{setEditPhase(null);setIsNew(false);}}>Annuler</button>
+              <button className="btn btn-primary" disabled={!editPhase.name} onClick={()=>{
+                const exist = phases.find(p=>p.id===editPhase.id);
+                const updated = exist ? phases.map(p=>p.id===editPhase.id?editPhase:p) : [...phases,editPhase];
+                savePhases(updated); setEditPhase(null); setIsNew(false);
+              }}>Enregistrer</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Subphase Modal */}
+      {(editSub || addSubPhase) && (() => {
+        const parentPhase = editSub?.phase ?? addSubPhase!;
+        const subForm: GanttSubphase = editSub?.sub ?? { id:uuid(), phaseId:parentPhase.id, name:'', startDate:parentPhase.startDate, duration:14, dependsOn:null };
+        return (
+          <div className="modal-overlay" onClick={()=>{setEditSub(null);setAddSubPhase(null);}}>
+            <div className="modal" style={{maxWidth:480}} onClick={e=>e.stopPropagation()}>
+              <div style={{padding:'20px 24px',borderBottom:'1px solid var(--border)',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                <div>
+                  <span style={{fontWeight:700,fontSize:15}}>{isNew?'Nouvelle sous-phase':'Modifier sous-phase'}</span>
+                  <div style={{fontSize:12,color:'var(--text-muted)',marginTop:2}}>Phase : {parentPhase.name}</div>
+                </div>
+                <button className="btn-icon" onClick={()=>{setEditSub(null);setAddSubPhase(null);}}>✕</button>
+              </div>
+              <SubForm
+                initial={subForm}
+                phase={parentPhase}
+                onSave={sub => {
+                  const ph = phases.find(p=>p.id===parentPhase.id)!;
+                  const exist = ph.subphases.find(s=>s.id===sub.id);
+                  const newSubs = exist ? ph.subphases.map(s=>s.id===sub.id?sub:s) : [...ph.subphases,sub];
+                  savePhases(phases.map(p=>p.id===ph.id?{...p,subphases:newSubs}:p));
+                  setEditSub(null); setAddSubPhase(null);
+                }}
+                onClose={()=>{setEditSub(null);setAddSubPhase(null);}}
+              />
+            </div>
+          </div>
+        );
+      })()}
+    </div>
+  );
+}
+
+function SubForm({ initial, phase, onSave, onClose }: { initial: GanttSubphase; phase: GanttPhase; onSave: (s: GanttSubphase) => void; onClose: () => void }) {
+  const [form, setForm] = useState<GanttSubphase>(initial);
+  return (
+    <>
+      <div style={{padding:24,display:'flex',flexDirection:'column',gap:16}}>
+        <div>
+          <label style={{fontSize:12,color:'var(--text-muted)',fontWeight:600,display:'block',marginBottom:6}}>Nom *</label>
+          <input className="input" value={form.name} onChange={e=>setForm({...form,name:e.target.value})} placeholder="Ex: Ateliers métier"/>
+        </div>
+        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:14}}>
+          <div>
+            <label style={{fontSize:12,color:'var(--text-muted)',fontWeight:600,display:'block',marginBottom:6}}>Date de début</label>
+            <input type="date" className="input" value={form.startDate} onChange={e=>setForm({...form,startDate:e.target.value})} disabled={!!form.dependsOn} style={{opacity:form.dependsOn?0.5:1}}/>
+          </div>
+          <div>
+            <label style={{fontSize:12,color:'var(--text-muted)',fontWeight:600,display:'block',marginBottom:6}}>Durée (jours)</label>
+            <input type="number" min={1} className="input" value={form.duration} onChange={e=>setForm({...form,duration:parseInt(e.target.value)||1})}/>
+          </div>
+        </div>
+        <div>
+          <label style={{fontSize:12,color:'var(--text-muted)',fontWeight:600,display:'block',marginBottom:6}}>Dépend de</label>
+          <select className="input" value={form.dependsOn??''} onChange={e=>setForm({...form,dependsOn:e.target.value||null})}>
+            <option value="">Aucune</option>
+            {phase.subphases.filter(s=>s.id!==form.id).map(s=><option key={s.id} value={s.id}>{s.name}</option>)}
+          </select>
         </div>
       </div>
-
-      {/* PHASE MODAL */}
-      {editingPhase && (
-        <div className="modal-overlay" onClick={() => setEditingPhase(null)}>
-          <div className="modal" style={{ maxWidth: 540 }} onClick={e => e.stopPropagation()}>
-            <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h2 style={{ fontSize: 16, fontWeight: 700 }}>{isNew ? 'Nouvelle phase' : 'Modifier la phase'}</h2>
-              <button className="btn btn-ghost btn-sm" onClick={() => setEditingPhase(null)}>✕</button>
-            </div>
-            <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
-              <div>
-                <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 4, fontWeight: 600 }}>Nom de la phase *</label>
-                <input className="input" value={editingPhase.name} onChange={e => setEditingPhase({ ...editingPhase, name: e.target.value })} />
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-                <div>
-                  <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 4, fontWeight: 600 }}>Date de début</label>
-                  <input type="date" className="input" value={editingPhase.startDate} onChange={e => setEditingPhase({ ...editingPhase, startDate: e.target.value })} />
-                </div>
-                <div>
-                  <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 4, fontWeight: 600 }}>Durée (jours)</label>
-                  <input type="number" min={1} className="input" value={editingPhase.duration} onChange={e => setEditingPhase({ ...editingPhase, duration: Math.max(1, parseInt(e.target.value) || 1) })} />
-                </div>
-              </div>
-              <div>
-                <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 4, fontWeight: 600 }}>Couleur</label>
-                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                  {GANTT_COLORS.map(c => (
-                    <button key={c} onClick={() => setEditingPhase({ ...editingPhase, color: c })}
-                      style={{ width: 28, height: 28, borderRadius: 6, background: c, border: editingPhase.color === c ? '3px solid var(--text)' : '2px solid transparent', cursor: 'pointer', transition: 'transform 0.1s' }}
-                    />
-                  ))}
-                </div>
-              </div>
-              <div>
-                <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 4, fontWeight: 600 }}>Dépend de (commence après)</label>
-                <select className="input" value={editingPhase.dependsOn ?? ''} onChange={e => setEditingPhase({ ...editingPhase, dependsOn: e.target.value || null })}>
-                  <option value="">Aucune dépendance</option>
-                  {phases.filter(p => p.id !== editingPhase.id).map(p => (
-                    <option key={p.id} value={p.id}>{p.name}</option>
-                  ))}
-                </select>
-                {editingPhase.dependsOn && (
-                  <div style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 4 }}>
-                    ↳ La date de début sera automatiquement décalée si la phase précédente change.
-                  </div>
-                )}
-              </div>
-              <div>
-                <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 4, fontWeight: 600 }}>Ordre d'affichage</label>
-                <input type="number" min={0} className="input" value={editingPhase.order} onChange={e => setEditingPhase({ ...editingPhase, order: parseInt(e.target.value) || 0 })} />
-              </div>
-              {/* Preview */}
-              <div style={{ background: 'var(--bg3)', borderRadius: 8, padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 10 }}>
-                <div style={{ height: 14, borderRadius: 4, background: editingPhase.color, width: 80, flexShrink: 0 }} />
-                <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>
-                  {formatDate(editingPhase.startDate)} → {formatDate(addDays(editingPhase.startDate, editingPhase.duration))} · {editingPhase.duration} jours
-                </div>
-              </div>
-            </div>
-            <div style={{ padding: '16px 24px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
-              <button className="btn btn-ghost" onClick={() => setEditingPhase(null)}>Annuler</button>
-              <button className="btn btn-primary" onClick={savePhase} disabled={!editingPhase.name}>Enregistrer</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* SUBPHASE MODAL */}
-      {editingSub && (
-        <div className="modal-overlay" onClick={() => setEditingSub(null)}>
-          <div className="modal" style={{ maxWidth: 480 }} onClick={e => e.stopPropagation()}>
-            <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h2 style={{ fontSize: 16, fontWeight: 700 }}>{isNew ? 'Nouvelle sous-phase' : 'Modifier la sous-phase'}</h2>
-              <button className="btn btn-ghost btn-sm" onClick={() => setEditingSub(null)}>✕</button>
-            </div>
-            <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
-              <div>
-                <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 4, fontWeight: 600 }}>Nom *</label>
-                <input className="input" value={editingSub.sub.name} onChange={e => setEditingSub({ ...editingSub, sub: { ...editingSub.sub, name: e.target.value } })} />
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-                <div>
-                  <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 4, fontWeight: 600 }}>Date de début</label>
-                  <input type="date" className="input" value={editingSub.sub.startDate} onChange={e => setEditingSub({ ...editingSub, sub: { ...editingSub.sub, startDate: e.target.value } })} />
-                </div>
-                <div>
-                  <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 4, fontWeight: 600 }}>Durée (jours)</label>
-                  <input type="number" min={1} className="input" value={editingSub.sub.duration} onChange={e => setEditingSub({ ...editingSub, sub: { ...editingSub.sub, duration: Math.max(1, parseInt(e.target.value) || 1) } })} />
-                </div>
-              </div>
-              <div>
-                <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 4, fontWeight: 600 }}>Dépend de (sous-phase)</label>
-                <select className="input" value={editingSub.sub.dependsOn ?? ''} onChange={e => setEditingSub({ ...editingSub, sub: { ...editingSub.sub, dependsOn: e.target.value || null } })}>
-                  <option value="">Aucune dépendance</option>
-                  {phases.find(p => p.id === editingSub.phaseId)?.subPhases
-                    .filter(s => s.id !== editingSub.sub.id)
-                    .map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-                </select>
-              </div>
-            </div>
-            <div style={{ padding: '16px 24px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
-              <button className="btn btn-ghost" onClick={() => setEditingSub(null)}>Annuler</button>
-              <button className="btn btn-primary" onClick={saveSubPhase} disabled={!editingSub.sub.name}>Enregistrer</button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+      <div style={{padding:'16px 24px',borderTop:'1px solid var(--border)',display:'flex',justifyContent:'flex-end',gap:10}}>
+        <button className="btn btn-ghost" onClick={onClose}>Annuler</button>
+        <button className="btn btn-primary" disabled={!form.name} onClick={()=>form.name&&onSave(form)}>Enregistrer</button>
+      </div>
+    </>
   );
 }

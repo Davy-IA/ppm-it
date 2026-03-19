@@ -40,10 +40,10 @@ export default function App() {
   return (
     <div style={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
       <Sidebar view={view} setView={setView} open={sidebarOpen} setOpen={setSidebarOpen} saving={saving} data={data} />
-      <main style={{ flex: 1, overflow: 'auto', padding: '24px', background: 'var(--bg)' }}>
+      <main style={{ flex: 1, overflow: 'auto', padding: '24px 28px', background: 'var(--bg)' }}>
         {view === 'dashboard' && <Dashboard data={data} setView={setView} />}
         {view === 'projects' && <ProjectsView data={data} updateData={updateData} />}
-        {view === 'gantt' && <GanttView data={data} />}
+        {view === 'gantt' && <GanttView data={data} updateData={updateData} />}
         {view === 'staff' && <StaffView data={data} updateData={updateData} />}
         {view === 'workload' && <WorkloadView data={data} updateData={updateData} />}
         {view === 'capacity' && <CapacityView data={data} updateData={updateData} />}

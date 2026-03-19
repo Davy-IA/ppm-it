@@ -57,7 +57,28 @@ export const INITIAL_DATA: AppData = {
     { id: 'a6', projectId: 'p9', projectName: 'Stores opening 2026 - Lisbon', profile: 'FUNC', staffId: 's16', staffName: 'Ryan LBIYEB', monthly: { '2026-03': 10, '2026-04': 15, '2026-05': 10 } },
     { id: 'a7', projectId: 'p13', projectName: 'Deployments Stores 2026 - CC Charonne', profile: 'FUNC', staffId: 's16', staffName: 'Ryan LBIYEB', monthly: { '2026-02': 8, '2026-03': 12, '2026-04': 8 } },
   ],
+  ganttPhases: [
+    {
+      id: 'g1', projectId: 'p1', name: 'Cadrage & Discovery', startDate: '2026-01-05', duration: 30, color: '#6366f1', dependsOn: null,
+      subphases: [
+        { id: 'g1s1', phaseId: 'g1', name: 'Ateliers métier', startDate: '2026-01-05', duration: 15, dependsOn: null },
+        { id: 'g1s2', phaseId: 'g1', name: 'Spécifications fonctionnelles', startDate: '2026-01-20', duration: 15, dependsOn: 'g1s1' },
+      ]
+    },
+    {
+      id: 'g2', projectId: 'p1', name: 'Développement', startDate: '2026-02-04', duration: 45, color: '#10b981', dependsOn: 'g1',
+      subphases: [
+        { id: 'g2s1', phaseId: 'g2', name: 'Setup technique', startDate: '2026-02-04', duration: 10, dependsOn: null },
+        { id: 'g2s2', phaseId: 'g2', name: 'Développement core', startDate: '2026-02-14', duration: 25, dependsOn: 'g2s1' },
+        { id: 'g2s3', phaseId: 'g2', name: 'Intégrations', startDate: '2026-03-11', duration: 10, dependsOn: 'g2s2' },
+      ]
+    },
+    {
+      id: 'g3', projectId: 'p1', name: 'Recette & Go-Live', startDate: '2026-03-21', duration: 30, color: '#f59e0b', dependsOn: 'g2',
+      subphases: [
+        { id: 'g3s1', phaseId: 'g3', name: 'Tests utilisateurs', startDate: '2026-03-21', duration: 15, dependsOn: null },
+        { id: 'g3s2', phaseId: 'g3', name: 'Déploiement production', startDate: '2026-04-05', duration: 15, dependsOn: 'g3s1' },
+      ]
+    },
+  ],
 };
-
-// Gantt data store (separate from AppData for simplicity)
-export const INITIAL_GANTT: Record<string, import('@/types').GanttPhase[]> = {};

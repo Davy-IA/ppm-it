@@ -5,27 +5,29 @@ import { AppData } from '@/types';
 import { computeAlerts } from '@/lib/alerts';
 
 function useTheme() {
-  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
   useEffect(() => {
-    const saved = localStorage.getItem('ppm-theme') as 'dark' | 'light' | null;
-    if (saved) { setTheme(saved); document.documentElement.setAttribute('data-theme', saved === 'light' ? 'light' : ''); }
+    const saved = localStorage.getItem('ppm-theme') as 'light'|'dark'|null;
+    const t = saved ?? 'light';
+    setTheme(t);
+    document.documentElement.setAttribute('data-theme', t === 'dark' ? 'dark' : '');
   }, []);
   const toggle = () => {
     const next = theme === 'dark' ? 'light' : 'dark';
     setTheme(next);
-    document.documentElement.setAttribute('data-theme', next === 'light' ? 'light' : '');
+    document.documentElement.setAttribute('data-theme', next === 'dark' ? 'dark' : '');
     localStorage.setItem('ppm-theme', next);
   };
   return { theme, toggle };
 }
 
 const NAV: { id: View; label: string; icon: string }[] = [
-  { id: 'dashboard', label: 'Tableau de bord', icon: '⬡' },
-  { id: 'projects', label: 'Portefeuille', icon: '◎' },
-  { id: 'gantt', label: 'Planning Gantt', icon: '▤' },
-  { id: 'staff', label: 'Ressources', icon: '◉' },
+  { id: 'dashboard', label: 'Dashboard', icon: '▣' },
+  { id: 'projects', label: 'Portefeuille', icon: '◉' },
+  { id: 'gantt', label: 'Planning', icon: '▦' },
+  { id: 'staff', label: 'Ressources', icon: '◎' },
   { id: 'workload', label: 'Charge & Staffing', icon: '◈' },
-  { id: 'capacity', label: 'Capacité', icon: '▦' },
+  { id: 'capacity', label: 'Capacité', icon: '▤' },
   { id: 'alerts', label: 'Alertes', icon: '◬' },
 ];
 
@@ -42,54 +44,49 @@ export default function Sidebar({ view, setView, open, setOpen, saving, data }: 
 
   return (
     <aside style={{
-      width: open ? 230 : 60, minWidth: open ? 230 : 60,
-      background: 'var(--bg2)', borderRight: '1px solid var(--border)',
+      width: open ? 224 : 60, minWidth: open ? 224 : 60,
+      background: 'var(--bg2)',
+      borderRight: '1px solid var(--border)',
       display: 'flex', flexDirection: 'column',
-      transition: 'width 0.2s ease, min-width 0.2s ease',
-      overflow: 'hidden', zIndex: 20, boxShadow: 'var(--shadow)',
+      transition: 'width 0.22s cubic-bezier(.4,0,.2,1), min-width 0.22s cubic-bezier(.4,0,.2,1)',
+      overflow: 'hidden', zIndex: 20,
+      boxShadow: 'var(--shadow-sm)',
     }}>
       {/* Logo */}
-      <div style={{ padding: open ? '18px 16px 14px' : '18px 10px 14px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 10 }}>
-        <div style={{
-          width: 34, height: 34, borderRadius: 10, flexShrink: 0,
-          background: 'linear-gradient(135deg, var(--accent), var(--accent2))',
+      <div style={{ padding: '18px 14px 14px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 10 }}>
+        <button onClick={() => setOpen(!open)} style={{
+          width: 32, height: 32, borderRadius: 8, border: 'none', cursor: 'pointer',
+          background: 'var(--accent-gradient)', color: '#fff',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: 16, fontWeight: 800, color: '#fff', letterSpacing: '-0.05em',
-        }}>P</div>
+          fontSize: 14, fontWeight: 800, flexShrink: 0, boxShadow: '0 2px 8px rgba(99,102,241,0.35)',
+        }}>P</button>
         {open && (
-          <div style={{ overflow: 'hidden' }}>
-            <div style={{ fontWeight: 800, fontSize: 15, color: 'var(--text)', letterSpacing: '-0.03em', whiteSpace: 'nowrap' }}>PPM · IT</div>
-            <div style={{ fontSize: 10, color: 'var(--text-faint)', marginTop: 1, whiteSpace: 'nowrap' }}>Capacity Planning</div>
+          <div>
+            <div style={{ fontWeight: 800, fontSize: 14, letterSpacing: '-0.03em', color: 'var(--text)' }}>PPM·IT</div>
+            <div style={{ fontSize: 10, color: 'var(--text-faint)', fontWeight: 500 }}>Capacity Planning</div>
           </div>
         )}
-        <button onClick={() => setOpen(!open)} style={{
-          marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer',
-          color: 'var(--text-faint)', fontSize: 13, padding: '4px 2px', flexShrink: 0,
-          borderRadius: 4, transition: 'color 0.15s',
-        }}>
-          {open ? '◀' : '▶'}
-        </button>
       </div>
 
       {/* Nav */}
-      <nav style={{ flex: 1, padding: '10px 8px', display: 'flex', flexDirection: 'column', gap: 2, overflowY: 'auto' }}>
-        {open && <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '0.1em', padding: '8px 8px 4px' }}>Navigation</div>}
+      <nav style={{ flex: 1, padding: '12px 8px', display: 'flex', flexDirection: 'column', gap: 2, overflowY: 'auto' }}>
+        {open && <div style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-faint)', padding: '4px 12px 8px' }}>Navigation</div>}
         {NAV.map(item => {
           const isActive = view === item.id;
           const isAlerts = item.id === 'alerts';
           return (
-            <button key={item.id} onClick={() => setView(item.id as View)}
+            <button key={item.id} onClick={() => setView(item.id)}
               className={`nav-item ${isActive ? 'active' : ''}`}
               title={!open ? item.label : undefined}
               style={{ justifyContent: open ? 'flex-start' : 'center' }}
             >
-              <span style={{ fontSize: 17, flexShrink: 0, lineHeight: 1 }}>{item.icon}</span>
-              {open && <span style={{ flex: 1 }}>{item.label}</span>}
-              {isAlerts && alertCount > 0 && (
-                <span style={{
-                  background: 'var(--danger)', color: '#fff',
-                  borderRadius: 10, padding: '1px 6px', fontSize: 10, fontWeight: 700, flexShrink: 0,
-                }}>{alertCount}</span>
+              <span style={{ fontSize: 15, flexShrink: 0, opacity: isActive ? 1 : 0.7 }}>{item.icon}</span>
+              {open && <span style={{ fontWeight: isActive ? 700 : 500 }}>{item.label}</span>}
+              {open && isAlerts && alertCount > 0 && (
+                <span style={{ marginLeft: 'auto', background: 'var(--danger)', color: '#fff', borderRadius: 10, padding: '1px 7px', fontSize: 10, fontWeight: 700 }}>{alertCount}</span>
+              )}
+              {!open && isAlerts && alertCount > 0 && (
+                <span style={{ position: 'absolute', top: 6, right: 6, width: 7, height: 7, background: 'var(--danger)', borderRadius: '50%' }} />
               )}
             </button>
           );
@@ -97,26 +94,32 @@ export default function Sidebar({ view, setView, open, setOpen, saving, data }: 
       </nav>
 
       {/* Footer */}
-      <div style={{ padding: '12px 10px', borderTop: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: 10 }}>
+      <div style={{ padding: '12px 10px', borderTop: '1px solid var(--border)' }}>
+        {/* Theme toggle */}
+        <button onClick={toggle} title={theme === 'dark' ? 'Thème clair' : 'Thème sombre'}
+          style={{ display: 'flex', alignItems: 'center', gap: open ? 10 : 0, width: '100%', background: 'none', border: 'none', cursor: 'pointer', padding: '6px 4px', borderRadius: 8, justifyContent: open ? 'flex-start' : 'center' }}>
+          <div style={{
+            position: 'relative', width: 36, height: 20, flexShrink: 0,
+            background: theme === 'dark' ? 'var(--accent)' : 'var(--border-light)',
+            borderRadius: 10, transition: 'background 0.2s',
+          }}>
+            <div style={{
+              position: 'absolute', top: 3, left: theme === 'dark' ? 19 : 3,
+              width: 14, height: 14, borderRadius: '50%', background: '#fff',
+              transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.25)',
+            }} />
+          </div>
+          {open && <span style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 500 }}>{theme === 'dark' ? '🌙 Sombre' : '☀️ Clair'}</span>}
+        </button>
+
         {open && (
-          <div style={{ fontSize: 11, color: 'var(--text-faint)', paddingLeft: 4 }}>
+          <div style={{ marginTop: 8, fontSize: 11, color: 'var(--text-faint)', padding: '0 4px' }}>
             {saving
               ? <span style={{ color: 'var(--warning)' }}>● Sauvegarde…</span>
-              : <span>{data.projects.length} projets · {data.staff.length} ressources</span>
+              : `${data.projects.length} projets · ${data.staff.length} ressources`
             }
           </div>
         )}
-        {/* Theme toggle */}
-        <button onClick={toggle} title={theme === 'dark' ? 'Thème clair' : 'Thème sombre'}
-          style={{ display: 'flex', alignItems: 'center', gap: open ? 10 : 0, background: 'var(--bg3)', border: '1.5px solid var(--border)', borderRadius: 8, padding: '7px 10px', cursor: 'pointer', width: '100%', justifyContent: open ? 'flex-start' : 'center', transition: 'all 0.15s' }}>
-          <span style={{ fontSize: 15 }}>{theme === 'dark' ? '🌙' : '☀️'}</span>
-          {open && <span style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 500 }}>{theme === 'dark' ? 'Thème sombre' : 'Thème clair'}</span>}
-          {open && (
-            <div style={{ marginLeft: 'auto', position: 'relative', width: 32, height: 18, background: theme === 'light' ? 'var(--accent)' : 'var(--border-light)', borderRadius: 9, transition: 'background 0.2s', flexShrink: 0 }}>
-              <div style={{ position: 'absolute', top: 2, left: theme === 'light' ? 16 : 2, width: 14, height: 14, borderRadius: '50%', background: '#fff', transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.3)' }} />
-            </div>
-          )}
-        </button>
       </div>
     </aside>
   );
