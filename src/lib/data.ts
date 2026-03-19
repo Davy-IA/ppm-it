@@ -58,3 +58,6 @@ export const INITIAL_DATA: AppData = {
     { id: 'a7', projectId: 'p13', projectName: 'Deployments Stores 2026 - CC Charonne', profile: 'FUNC', staffId: 's16', staffName: 'Ryan LBIYEB', monthly: { '2026-02': 8, '2026-03': 12, '2026-04': 8 } },
   ],
 };
+
+// Gantt data store (separate from AppData for simplicity)
+export const INITIAL_GANTT: Record<string, import('@/types').GanttPhase[]> = {};

@@ -19,22 +19,20 @@ function useTheme() {
   return { theme, toggle };
 }
 
-const NAV = [
-  { id: 'dashboard', label: 'Tableau de bord', icon: '◈' },
-  { id: 'projects', label: 'Portefeuille', icon: '◉' },
-  { id: 'staff', label: 'Ressources', icon: '◎' },
+const NAV: { id: View; label: string; icon: string }[] = [
+  { id: 'dashboard', label: 'Tableau de bord', icon: '⬡' },
+  { id: 'projects', label: 'Portefeuille', icon: '◎' },
+  { id: 'gantt', label: 'Planning Gantt', icon: '▤' },
+  { id: 'staff', label: 'Ressources', icon: '◉' },
   { id: 'workload', label: 'Charge & Staffing', icon: '◈' },
-  { id: 'capacity', label: 'Plan de capacité', icon: '▦' },
+  { id: 'capacity', label: 'Capacité', icon: '▦' },
   { id: 'alerts', label: 'Alertes', icon: '◬' },
-] as const;
+];
 
 interface Props {
-  view: View;
-  setView: (v: View) => void;
-  open: boolean;
-  setOpen: (o: boolean) => void;
-  saving: boolean;
-  data: AppData;
+  view: View; setView: (v: View) => void;
+  open: boolean; setOpen: (o: boolean) => void;
+  saving: boolean; data: AppData;
 }
 
 export default function Sidebar({ view, setView, open, setOpen, saving, data }: Props) {
@@ -44,51 +42,54 @@ export default function Sidebar({ view, setView, open, setOpen, saving, data }: 
 
   return (
     <aside style={{
-      width: open ? 220 : 56, minWidth: open ? 220 : 56,
+      width: open ? 230 : 60, minWidth: open ? 230 : 60,
       background: 'var(--bg2)', borderRight: '1px solid var(--border)',
       display: 'flex', flexDirection: 'column',
       transition: 'width 0.2s ease, min-width 0.2s ease',
-      overflow: 'hidden', zIndex: 20,
+      overflow: 'hidden', zIndex: 20, boxShadow: 'var(--shadow)',
     }}>
-      {/* Header */}
-      <div style={{ padding: '16px 12px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 10 }}>
-        <button
-          onClick={() => setOpen(!open)}
-          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', fontSize: 16, padding: 4, flexShrink: 0 }}
-        >
-          {open ? '◀' : '▶'}
-        </button>
+      {/* Logo */}
+      <div style={{ padding: open ? '18px 16px 14px' : '18px 10px 14px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div style={{
+          width: 34, height: 34, borderRadius: 10, flexShrink: 0,
+          background: 'linear-gradient(135deg, var(--accent), var(--accent2))',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: 16, fontWeight: 800, color: '#fff', letterSpacing: '-0.05em',
+        }}>P</div>
         {open && (
-          <div>
-            <div style={{ fontWeight: 700, fontSize: 14, color: 'var(--text)', letterSpacing: '-0.02em' }}>PPM·IT</div>
-            <div style={{ fontSize: 10, color: 'var(--text-faint)', marginTop: 1 }}>Capacity Planning</div>
+          <div style={{ overflow: 'hidden' }}>
+            <div style={{ fontWeight: 800, fontSize: 15, color: 'var(--text)', letterSpacing: '-0.03em', whiteSpace: 'nowrap' }}>PPM · IT</div>
+            <div style={{ fontSize: 10, color: 'var(--text-faint)', marginTop: 1, whiteSpace: 'nowrap' }}>Capacity Planning</div>
           </div>
         )}
+        <button onClick={() => setOpen(!open)} style={{
+          marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer',
+          color: 'var(--text-faint)', fontSize: 13, padding: '4px 2px', flexShrink: 0,
+          borderRadius: 4, transition: 'color 0.15s',
+        }}>
+          {open ? '◀' : '▶'}
+        </button>
       </div>
 
       {/* Nav */}
-      <nav style={{ flex: 1, padding: '12px 8px', display: 'flex', flexDirection: 'column', gap: 2 }}>
+      <nav style={{ flex: 1, padding: '10px 8px', display: 'flex', flexDirection: 'column', gap: 2, overflowY: 'auto' }}>
+        {open && <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '0.1em', padding: '8px 8px 4px' }}>Navigation</div>}
         {NAV.map(item => {
           const isActive = view === item.id;
           const isAlerts = item.id === 'alerts';
           return (
-            <button
-              key={item.id}
-              onClick={() => setView(item.id as View)}
+            <button key={item.id} onClick={() => setView(item.id as View)}
               className={`nav-item ${isActive ? 'active' : ''}`}
               title={!open ? item.label : undefined}
-              style={{ width: '100%', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', position: 'relative' }}
+              style={{ justifyContent: open ? 'flex-start' : 'center' }}
             >
-              <span style={{ fontSize: 16, flexShrink: 0, color: isActive ? 'var(--accent)' : 'var(--text-muted)' }}>{item.icon}</span>
-              {open && <span style={{ color: isActive ? 'var(--accent)' : 'var(--text-muted)', fontSize: 13, fontWeight: isActive ? 600 : 400 }}>{item.label}</span>}
+              <span style={{ fontSize: 17, flexShrink: 0, lineHeight: 1 }}>{item.icon}</span>
+              {open && <span style={{ flex: 1 }}>{item.label}</span>}
               {isAlerts && alertCount > 0 && (
                 <span style={{
-                  marginLeft: 'auto', background: 'var(--danger)', color: '#fff',
-                  borderRadius: 10, padding: '1px 6px', fontSize: 10, fontWeight: 700,
-                  flexShrink: 0,
-                }}>
-                  {alertCount}
-                </span>
+                  background: 'var(--danger)', color: '#fff',
+                  borderRadius: 10, padding: '1px 6px', fontSize: 10, fontWeight: 700, flexShrink: 0,
+                }}>{alertCount}</span>
               )}
             </button>
           );
@@ -96,46 +97,24 @@ export default function Sidebar({ view, setView, open, setOpen, saving, data }: 
       </nav>
 
       {/* Footer */}
-      <div style={{ padding: '12px', borderTop: '1px solid var(--border)' }}>
-        {saving && open && (
-          <div style={{ fontSize: 11, color: 'var(--text-faint)', display: 'flex', alignItems: 'center', gap: 6 }}>
-            <span style={{ display: 'inline-block', width: 6, height: 6, borderRadius: '50%', background: 'var(--warning)', animation: 'pulse 1s infinite' }}></span>
-            Sauvegarde…
+      <div style={{ padding: '12px 10px', borderTop: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {open && (
+          <div style={{ fontSize: 11, color: 'var(--text-faint)', paddingLeft: 4 }}>
+            {saving
+              ? <span style={{ color: 'var(--warning)' }}>● Sauvegarde…</span>
+              : <span>{data.projects.length} projets · {data.staff.length} ressources</span>
+            }
           </div>
         )}
-        {!saving && open && (
-          <div style={{ fontSize: 11, color: 'var(--text-faint)', marginBottom: 10 }}>
-            {data.projects.length} projets · {data.staff.length} ressources
-          </div>
-        )}
-
         {/* Theme toggle */}
-        <button
-          onClick={toggle}
-          title={theme === 'dark' ? 'Passer en thème clair' : 'Passer en thème sombre'}
-          style={{
-            display: 'flex', alignItems: 'center', gap: open ? 8 : 0,
-            background: 'none', border: 'none', cursor: 'pointer',
-            padding: '4px 0', width: '100%',
-          }}
-        >
-          {/* Switch track */}
-          <div style={{
-            position: 'relative', width: 36, height: 20, flexShrink: 0,
-            background: theme === 'light' ? 'var(--accent)' : 'var(--border-light)',
-            borderRadius: 10, transition: 'background 0.2s',
-          }}>
-            <div style={{
-              position: 'absolute', top: 3, left: theme === 'light' ? 19 : 3,
-              width: 14, height: 14, borderRadius: '50%',
-              background: '#fff', transition: 'left 0.2s',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
-            }} />
-          </div>
+        <button onClick={toggle} title={theme === 'dark' ? 'Thème clair' : 'Thème sombre'}
+          style={{ display: 'flex', alignItems: 'center', gap: open ? 10 : 0, background: 'var(--bg3)', border: '1.5px solid var(--border)', borderRadius: 8, padding: '7px 10px', cursor: 'pointer', width: '100%', justifyContent: open ? 'flex-start' : 'center', transition: 'all 0.15s' }}>
+          <span style={{ fontSize: 15 }}>{theme === 'dark' ? '🌙' : '☀️'}</span>
+          {open && <span style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 500 }}>{theme === 'dark' ? 'Thème sombre' : 'Thème clair'}</span>}
           {open && (
-            <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
-              {theme === 'dark' ? '🌙 Sombre' : '☀️ Clair'}
-            </span>
+            <div style={{ marginLeft: 'auto', position: 'relative', width: 32, height: 18, background: theme === 'light' ? 'var(--accent)' : 'var(--border-light)', borderRadius: 9, transition: 'background 0.2s', flexShrink: 0 }}>
+              <div style={{ position: 'absolute', top: 2, left: theme === 'light' ? 16 : 2, width: 14, height: 14, borderRadius: '50%', background: '#fff', transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.3)' }} />
+            </div>
           )}
         </button>
       </div>
