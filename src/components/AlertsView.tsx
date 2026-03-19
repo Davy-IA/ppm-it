@@ -55,7 +55,7 @@ export default function AlertsView({ data }: Props) {
         <div className="card" style={{ borderLeft: `3px solid ${uncovCount > 0 ? 'var(--warning)' : 'var(--success)'}` }}>
           <div style={{ fontSize: 28, fontWeight: 700, fontFamily: 'DM Mono, monospace', color: uncovCount > 0 ? 'var(--warning)' : 'var(--success)' }}>{uncovCount}</div>
           <div style={{ fontSize: 13, fontWeight: 600, marginTop: 4 }}>{t('incomplete_coverage')}</div>
-          <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>Profil projet non entièrement affecté</div>
+          <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>{t('coverage_desc')}</div>
         </div>
         <div className="card" style={{ borderLeft: `3px solid ${overloaded.length > 0 ? 'var(--danger)' : 'var(--success)'}` }}>
           <div style={{ fontSize: 28, fontWeight: 700, fontFamily: 'DM Mono, monospace', color: overloaded.length > 0 ? 'var(--danger)' : 'var(--success)' }}>{overloaded.length}</div>

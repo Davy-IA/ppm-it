@@ -117,13 +117,13 @@ export default function Dashboard({ data, setView }: Props) {
               {alerts.slice(0, 3).map((a, i) => (
                 <div key={i} style={{ fontSize: 11, color: a.type === 'overcapacity' ? 'var(--danger)' : 'var(--warning)', marginBottom: 4 }}>
                   {a.type === 'overcapacity'
-                    ? `↑ ${a.staffName} surchargé en ${a.month} (+${a.value?.toFixed(0)}j)`
-                    : `✗ ${a.projectName} — profil ${a.profile} non couvert en ${a.month}`}
+                    ? `↑ ${a.staffName} ${t('overload_alert').replace('{name}','').trim()} ${a.month} (+${a.value?.toFixed(0)}${t('days')})`
+                    : `✗ ${a.projectName} — ${t('profile')} ${a.profile} ${a.month}`}
                 </div>
               ))}
               {alerts.length > 3 && (
                 <button className="btn btn-ghost btn-sm" style={{ marginTop: 6, width: '100%' }} onClick={() => setView('alerts')}>
-                  {t('see_more_alerts', { n: alerts.length - 3 })}
+                  {t('see_more_alerts').replace('{n}', String(alerts.length - 3))}
                 </button>
               )}
             </div>
