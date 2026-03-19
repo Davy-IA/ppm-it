@@ -53,12 +53,12 @@ export default function SettingsView({ data, updateData, spaces }: Props) {
   ];
 
   const ALL_TABS = [
-    { id: 'identity', label: '🏷 Identité', show: true },
+    { id: 'identity', label: t('settings_tab_identity'), show: true },
     { id: 'theme', label: '🎨 Thèmes', show: true },
-    { id: 'lang', label: '🌐 Langue', show: true },
+    { id: 'lang', label: t('settings_tab_lang'), show: true },
     { id: 'lists', label: '📋 Listes', show: !!isAdmin },
-    { id: 'spaces', label: '◉ Espaces', show: !!isAdmin },
-    { id: 'users', label: '👥 Utilisateurs', show: !!isAdmin },
+    { id: 'spaces', label: t('settings_tab_spaces'), show: !!isAdmin },
+    { id: 'users', label: t('settings_tab_users'), show: !!isAdmin },
   ].filter(t => t.show);
 
   return (

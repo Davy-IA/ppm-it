@@ -7,12 +7,7 @@ import { useAuth } from '@/lib/auth-context';
 interface Space { id: string; name: string; color: string; }
 interface User { id: string; email: string; first_name: string; last_name: string; role: string; active: boolean; last_login: string | null; spaces: Space[]; }
 
-const ROLE_LABELS: Record<string, { label: string; badge: string; desc: string }> = {
-  superadmin: { label: 'Super Admin', badge: 'badge-red', desc: 'Accès total, gestion complète' },
-  admin: { label: 'Admin', badge: 'badge-purple', desc: 'Gestion users, espaces, paramètres' },
-  global: { label: 'Global / CODIR', badge: 'badge-yellow', desc: 'Portfolio global, tous espaces en lecture' },
-  member: { label: 'Membre', badge: 'badge-blue', desc: 'Accès aux espaces assignés uniquement' },
-};
+const ROLE_BADGES: Record<string, string> = { superadmin: 'badge-red', admin: 'badge-purple', global: 'badge-yellow', member: 'badge-blue' };
 
 interface Props { spaces: Space[]; }
 
@@ -74,7 +69,7 @@ export default function UsersManager({ spaces }: Props) {
         <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
           <table className="data-table">
             <thead>
-              <tr><th>Utilisateur</th><th>Rôle</th><th>Espaces</th><th>Dernière connexion</th><th>Statut</th><th></th></tr>
+              <tr><th>Utilisateur</th><th>{t('user_col_role')}</th><th>{t('user_col_spaces')}</th><th>{t('user_col_last_login')}</th><th>{t('user_col_status')}</th><th></th></tr>
             </thead>
             <tbody>
               {users.map(u => (
@@ -83,7 +78,7 @@ export default function UsersManager({ spaces }: Props) {
                     <div style={{ fontWeight: 600 }}>{u.first_name} {u.last_name}</div>
                     <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{u.email}</div>
                   </td>
-                  <td><span className={`badge ${ROLE_LABELS[u.role]?.badge ?? 'badge-gray'}`}>{ROLE_LABELS[u.role]?.label ?? u.role}</span></td>
+                  <td><span className={`badge ${ROLE_BADGES[u.role] ?? 'badge-gray'}`}>{t(('role_' + u.role) as any) ?? u.role}</span></td>
                   <td>
                     <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
                       {['superadmin', 'admin', 'global'].includes(u.role)
@@ -96,12 +91,12 @@ export default function UsersManager({ spaces }: Props) {
                     {u.last_login ? formatDateTime(u.last_login, locale) : t('never')}
                   </td>
                   <td>
-                    <span className={`badge ${u.active ? 'badge-green' : 'badge-gray'}`}>{u.active ? 'Actif' : 'Inactif'}</span>
+                    <span className={`badge ${u.active ? 'badge-green' : 'badge-gray'}`}>{u.active ? t('active') : t('inactive')}</span>
                   </td>
                   <td>
                     <div style={{ display: 'flex', gap: 4 }}>
                       <button className="btn btn-ghost btn-sm" onClick={() => { setEditing({ ...u, spaceIds: u.spaces?.map(s => s.id) ?? [] }); setIsNew(false); }} disabled={u.id === me?.id}>{t('edit_btn')}</button>
-                      {u.id !== me?.id && <button className="btn btn-ghost btn-sm" onClick={() => toggleActive(u)}>{u.active ? 'Désactiver' : 'Activer'}</button>}
+                      {u.id !== me?.id && <button className="btn btn-ghost btn-sm" onClick={() => toggleActive(u)}>{u.active ? t('deactivate') : t('activate')}</button>}
                     </div>
                   </td>
                 </tr>
@@ -144,8 +139,8 @@ export default function UsersManager({ spaces }: Props) {
                   {allowedRoles.map(role => (
                     <button key={role} onClick={() => setEditing({ ...editing, role })}
                       style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', borderRadius: 8, border: `2px solid ${editing.role === role ? 'var(--accent)' : 'var(--border)'}`, background: editing.role === role ? 'var(--accent-subtle)' : 'var(--bg3)', cursor: 'pointer', textAlign: 'left' }}>
-                      <span className={`badge ${ROLE_LABELS[role]?.badge}`}>{ROLE_LABELS[role]?.label}</span>
-                      <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{ROLE_LABELS[role]?.desc}</span>
+                      <span className={`badge ${ROLE_BADGES[role]}`}>{t(('role_' + role) as any)}</span>
+                      <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{t(('role_' + role + '_desc') as any)}</span>
                       {editing.role === role && <span style={{ marginLeft: 'auto', color: 'var(--accent)', fontWeight: 700 }}>✓</span>}
                     </button>
                   ))}

@@ -12,7 +12,7 @@ interface Props { spaces: Space[]; onBack: () => void; }
 
 export default function GlobalPortfolio({ spaces, onBack }: Props) {
   const { token } = useAuth();
-  const { settings } = useSettings();
+  const { settings, t } = useSettings();
   const locale = settings.locale ?? 'fr';
   const [allData, setAllData] = useState<Record<string, SpaceData>>({});
   const [loading, setLoading] = useState(true);
@@ -79,9 +79,9 @@ export default function GlobalPortfolio({ spaces, onBack }: Props) {
       {/* Tabs */}
       <div style={{ display: 'flex', gap: 4, marginBottom: 24, background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 10, padding: 4, width: 'fit-content' }}>
         {[
-          { id: 'kpis', label: '📊 Dashboard KPIs' },
-          { id: 'projects', label: '◉ Projets consolidés' },
-          { id: 'gantt', label: '▦ Gantt cross-espaces' },
+          { id: 'kpis', label: t('global_kpis_tab') },
+          { id: 'projects', label: t('global_projects_tab') },
+          { id: 'gantt', label: t('global_gantt_tab') },
         ].map(tab => (
           <button key={tab.id} onClick={() => setActiveTab(tab.id as any)}
             className={`btn ${activeTab === tab.id ? 'btn-primary' : 'btn-ghost'}`} style={{ fontSize: 13 }}
@@ -90,7 +90,7 @@ export default function GlobalPortfolio({ spaces, onBack }: Props) {
       </div>
 
       {loading ? (
-        <div style={{ textAlign: 'center', padding: 60, color: 'var(--text-faint)' }}>⏳ Chargement des données…</div>
+        <div style={{ textAlign: 'center', padding: 60, color: 'var(--text-faint)' }}>{t('global_loading')}</div>
       ) : (
         <>
           {/* KPIs TAB */}
@@ -99,11 +99,11 @@ export default function GlobalPortfolio({ spaces, onBack }: Props) {
               {/* Summary row */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 14, marginBottom: 24 }}>
                 {[
-                  { label: 'Projets total', value: allProjects.length, color: 'var(--accent)' },
-                  { label: 'En cours', value: allProjects.filter(p => p.status === '3-In progress').length, color: 'var(--success)' },
-                  { label: 'À arbitrer', value: allProjects.filter(p => p.status === '1-To arbitrate').length, color: 'var(--warning)' },
-                  { label: 'Ressources', value: allStaff.length, color: 'var(--purple)' },
-                  { label: 'Espaces actifs', value: spaces.length, color: '#f59e0b' },
+                  { label: t('global_projects_total'), value: allProjects.length, color: 'var(--accent)' },
+                  { label: t('global_ongoing'), value: allProjects.filter(p => p.status === '3-In progress').length, color: 'var(--success)' },
+                  { label: t('global_to_arbitrate'), value: allProjects.filter(p => p.status === '1-To arbitrate').length, color: 'var(--warning)' },
+                  { label: t('kpi_resources'), value: allStaff.length, color: 'var(--purple)' },
+                  { label: t('global_active_spaces'), value: spaces.length, color: '#f59e0b' },
                 ].map(k => (
                   <div key={k.label} className="card" style={{ borderLeft: `3px solid ${k.color}` }}>
                     <div style={{ fontSize: 28, fontWeight: 800, fontFamily: 'JetBrains Mono, monospace', color: k.color }}>{k.value}</div>
@@ -122,10 +122,10 @@ export default function GlobalPortfolio({ spaces, onBack }: Props) {
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
                       {[
-                        { label: 'Projets', value: projects },
-                        { label: 'En cours', value: active },
-                        { label: 'Ressources', value: staff },
-                        { label: 'Phases Gantt', value: phases },
+                        { label: t('kpi_projects'), value: projects },
+                        { label: t('global_ongoing'), value: active },
+                        { label: t('kpi_resources'), value: staff },
+                        { label: t('kpi_phases'), value: phases },
                       ].map(k => (
                         <div key={k.label} style={{ background: 'var(--bg3)', borderRadius: 8, padding: '10px 12px' }}>
                           <div style={{ fontSize: 20, fontWeight: 800, fontFamily: 'JetBrains Mono, monospace', color: space.color }}>{k.value}</div>
@@ -163,9 +163,9 @@ export default function GlobalPortfolio({ spaces, onBack }: Props) {
                 <table className="data-table">
                   <thead>
                     <tr>
-                      <th>Espace</th><th>Projet</th><th>Domaine</th>
-                      <th>Chef de projet</th><th>Priorité</th><th>Statut</th>
-                      <th>Début</th><th>Go-Live</th>
+                      <th>{t('global_col_space')}</th><th>{t('project_name')}</th><th>{t('domain')}</th>
+                      <th>{t('project_manager')}</th><th>{t('priority')}</th><th>{t('status')}</th>
+                      <th>{t('start_date')}</th><th>{t('go_live')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -218,7 +218,7 @@ export default function GlobalPortfolio({ spaces, onBack }: Props) {
                           return (
                             <div key={projId} style={{ marginBottom: 16 }}>
                               <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 8, color: 'var(--text)' }}>
-                                {proj?.name ?? 'Projet inconnu'}
+                                {proj?.name ?? t('global_unknown_project')}
                                 <span style={{ marginLeft: 8 }} className="badge badge-gray">{projPhases.length} phases</span>
                               </div>
                               <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>

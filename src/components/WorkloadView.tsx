@@ -106,7 +106,7 @@ export default function WorkloadView({ data, updateData }: Props) {
       {/* Filters + tabs */}
       <div style={{ display: 'flex', gap: 10, marginBottom: 16, flexWrap: 'wrap' }}>
         <select className="input" value={projectFilter} onChange={e => setProjectFilter(e.target.value)} style={{ maxWidth: 300 }}>
-          <option value="">{t('filter_all_projects')}</option>
+          <option value="">{t('all_projects')}</option>
           {data.projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
         </select>
         <select className="input" value={yearFilter} onChange={e => setYearFilter(e.target.value)} style={{ maxWidth: 100 }}>
@@ -128,7 +128,7 @@ export default function WorkloadView({ data, updateData }: Props) {
               <thead>
                 <tr>
                   <th className="sticky-left" style={{ minWidth: 220 }}>Projet</th>
-                  <th>{t('col_profile')}</th>
+                  <th>{t('profile')}</th>
                   {months.map(m => <th key={m} className="cap-cell">{monthLabel(m)}</th>)}
                   <th>{t('total')}</th>
                   <th></th>
@@ -186,8 +186,8 @@ export default function WorkloadView({ data, updateData }: Props) {
               <thead>
                 <tr>
                   <th className="sticky-left" style={{ minWidth: 220 }}>Projet</th>
-                  <th>{t('col_profile')}</th>
-                  <th style={{ minWidth: 160 }}>{t('col_resource')}</th>
+                  <th>{t('profile')}</th>
+                  <th style={{ minWidth: 160 }}>{t('resource_col')}</th>
                   {months.map(m => <th key={m} className="cap-cell">{monthLabel(m)}</th>)}
                   <th>{t('total')}</th>
                   <th></th>
@@ -279,8 +279,8 @@ export default function WorkloadView({ data, updateData }: Props) {
               ))}
             </div>
             <div style={{ padding: '16px 24px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
-              <button className="btn btn-ghost" onClick={() => setEditingWorkload(null)}>{t('btn_cancel')}</button>
-              <button className="btn btn-primary" onClick={saveWorkload}>{t('btn_save')}</button>
+              <button className="btn btn-ghost" onClick={() => setEditingWorkload(null)}>{t('cancel')}</button>
+              <button className="btn btn-primary" onClick={saveWorkload}>{t('save')}</button>
             </div>
           </div>
         </div>
@@ -357,8 +357,8 @@ export default function WorkloadView({ data, updateData }: Props) {
               ))}
             </div>
             <div style={{ padding: '16px 24px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
-              <button className="btn btn-ghost" onClick={() => setEditingAlloc(null)}>{t('btn_cancel')}</button>
-              <button className="btn btn-primary" onClick={saveAlloc}>{t('btn_save')}</button>
+              <button className="btn btn-ghost" onClick={() => setEditingAlloc(null)}>{t('cancel')}</button>
+              <button className="btn btn-primary" onClick={saveAlloc}>{t('save')}</button>
             </div>
           </div>
         </div>

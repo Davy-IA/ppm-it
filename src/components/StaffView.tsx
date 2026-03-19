@@ -76,8 +76,8 @@ export default function StaffView({ data, updateData }: Props) {
       <div style={{ display: 'flex', gap: 10, marginBottom: 16 }}>
         <input className="input" placeholder={t('search')} value={search} onChange={e => setSearch(e.target.value)} style={{ maxWidth: 240 }} />
         <select className="input" value={typeFilter} onChange={e => setTypeFilter(e.target.value)} style={{ maxWidth: 160 }}>
-          <option value="">{t('filter_all_types')}</option>
-          <option value="Internal">{t('contract_internal')}</option>
+          <option value="">{t('all_types')}</option>
+          <option value="Internal">{t('internal')}</option>
           <option value="External">{t('contract_external')}</option>
         </select>
         <select className="input" value={yearFilter} onChange={e => setYearFilter(e.target.value)} style={{ maxWidth: 120 }}>
@@ -94,9 +94,9 @@ export default function StaffView({ data, updateData }: Props) {
             <thead>
               <tr>
                 <th className="sticky-left" style={{ minWidth: 200 }}>{t('project_name').replace('Projet', 'Ressource') || 'Ressource'}</th>
-                <th>{t('col_profile')}</th>
-                <th>{t('col_type')}</th>
-                <th>{t('col_entity')}</th>
+                <th>{t('profile')}</th>
+                <th>{t('type')}</th>
+                <th>{t('entity')}</th>
                 {months.map(m => {
                   const label = formatMonth(m, locale);
                   return <th key={m} className="cap-cell">{label}</th>;
@@ -121,7 +121,7 @@ export default function StaffView({ data, updateData }: Props) {
                       {s.type === 'External' && <span className="badge badge-yellow" style={{ marginLeft: 6, fontSize: 10 }}>Ext.</span>}
                     </td>
                     <td><span className="badge badge-blue">{s.profile}</span></td>
-                    <td style={{ color: 'var(--text-muted)', fontSize: 12 }}>{s.type === 'Internal' ? t('contract_internal') : t('external_label')}</td>
+                    <td style={{ color: 'var(--text-muted)', fontSize: 12 }}>{s.type === 'Internal' ? t('internal') : t('external_label')}</td>
                     <td style={{ color: 'var(--text-muted)' }}>{s.entity}</td>
                     {months.map(m => {
                       const cap = s.capacity[m] ?? 0;
@@ -139,7 +139,7 @@ export default function StaffView({ data, updateData }: Props) {
                     })}
                     <td>
                       <div style={{ display: 'flex', gap: 4 }}>
-                        <button className="btn btn-ghost btn-sm" onClick={() => { setEditing({ ...s }); setIsNew(false); }}>{t('btn_edit')}</button>
+                        <button className="btn btn-ghost btn-sm" onClick={() => { setEditing({ ...s }); setIsNew(false); }}>{t('edit_btn')}</button>
                         <button className="btn btn-danger btn-sm" onClick={() => remove(s.id)}>✕</button>
                       </div>
                     </td>
@@ -175,7 +175,7 @@ export default function StaffView({ data, updateData }: Props) {
                 <div>
                   <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>Type de contrat</label>
                   <select className="input" value={editing.type} onChange={e => setEditing({ ...editing, type: e.target.value as 'Internal' | 'External' })}>
-                    <option value="Internal">{t('contract_internal')}</option>
+                    <option value="Internal">{t('internal')}</option>
                     <option value="External">{t('contract_external')}</option>
                   </select>
                 </div>
@@ -223,8 +223,8 @@ export default function StaffView({ data, updateData }: Props) {
               ))}
             </div>
             <div style={{ padding: '16px 24px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
-              <button className="btn btn-ghost" onClick={() => setEditing(null)}>{t('btn_cancel')}</button>
-              <button className="btn btn-primary" onClick={save} disabled={!editing.name}>{t('btn_save')}</button>
+              <button className="btn btn-ghost" onClick={() => setEditing(null)}>{t('cancel')}</button>
+              <button className="btn btn-primary" onClick={save} disabled={!editing.name}>{t('save')}</button>
             </div>
           </div>
         </div>

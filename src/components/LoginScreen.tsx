@@ -5,13 +5,13 @@ import { useSettings } from '@/lib/context';
 
 export default function LoginScreen() {
   const { login } = useAuth();
-  const { settings } = useSettings();
+  const { settings, t } = useSettings();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const appName = settings.appName || 'VEJA Project Management';
+  const appName = settings.appName || settings.appName || 'VEJA Project Management';
   const logo = settings.logo;
 
   const handleSubmit = async () => {
@@ -55,7 +55,7 @@ export default function LoginScreen() {
             {appName}
           </h1>
           <p style={{ color: 'var(--text-muted)', fontSize: 14 }}>
-            Connectez-vous à votre espace de travail
+            {t('login_subtitle')}
           </p>
         </div>
 
@@ -64,7 +64,7 @@ export default function LoginScreen() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
             <div>
               <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                Adresse email
+                {t('login_email')}
               </label>
               <input
                 className="input" type="email" placeholder="vous@entreprise.com"
@@ -97,13 +97,13 @@ export default function LoginScreen() {
               disabled={loading || !email || !password}
               style={{ width: '100%', padding: '12px', fontSize: 14, marginTop: 4, opacity: (loading || !email || !password) ? 0.7 : 1 }}
             >
-              {loading ? '⏳ Connexion...' : 'Se connecter →'}
+              {loading ? t('login_loading') : t('login_btn')}
             </button>
           </div>
         </div>
 
         <p style={{ textAlign: 'center', color: 'var(--text-faint)', fontSize: 12, marginTop: 16 }}>
-          Vous n'avez pas de compte ? Contactez votre administrateur.
+          {t('login_no_account')}
         </p>
       </div>
     </div>

@@ -123,7 +123,7 @@ export default function CapacityView({ data }: Props) {
           <option value="2028">2028</option>
         </select>
         <select className="input" value={profileFilter} onChange={e => setProfileFilter(e.target.value)} style={{ maxWidth: 140 }}>
-          <option value="">{t('filter_all_profiles')}</option>
+          <option value="">{t('all_profiles')}</option>
           {PROFILES.map(p => <option key={p}>{p}</option>)}
         </select>
       </div>
@@ -163,11 +163,11 @@ export default function CapacityView({ data }: Props) {
               <thead>
                 <tr>
                   <th className="sticky-left" style={{ minWidth: 200 }}>{t('resource_col')}</th>
-                  <th>{t('col_profile')}</th>
+                  <th>{t('profile')}</th>
                   {months.map(m => <th key={m} className="cap-cell">{monthLabel(m)}</th>)}
-                  <th>{t('col_total_avail')}</th>
-                  <th>{t('col_total_alloc')}</th>
-                  <th>{t('col_rate')}</th>
+                  <th>{t('total_avail')}</th>
+                  <th>{t('total_alloc')}</th>
+                  <th>{t('rate')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -237,7 +237,7 @@ export default function CapacityView({ data }: Props) {
                       <>
                         <tr key={`${p.id}-${prof}-w`} style={{ background: 'rgba(61,126,255,0.04)' }}>
                           <td rowSpan={2} style={{ fontWeight: 600 }}><span className="badge badge-blue">{prof}</span></td>
-                          <td style={{ fontSize: 11, color: 'var(--text-muted)' }}>{t('col_need')}</td>
+                          <td style={{ fontSize: 11, color: 'var(--text-muted)' }}>{t('need')}</td>
                           {months.map(m => {
                             const need = p.wloads[prof][m] ?? 0;
                             return <td key={m} className="cap-cell" style={{ color: need > 0 ? 'var(--text)' : 'var(--text-faint)' }}>{need > 0 ? need : '—'}</td>;
@@ -247,7 +247,7 @@ export default function CapacityView({ data }: Props) {
                           </td>
                         </tr>
                         <tr key={`${p.id}-${prof}-a`}>
-                          <td style={{ fontSize: 11, color: 'var(--text-muted)' }}>{t('col_allocated')}</td>
+                          <td style={{ fontSize: 11, color: 'var(--text-muted)' }}>{t('allocated')}</td>
                           {months.map(m => {
                             const need = p.wloads[prof][m] ?? 0;
                             const alloc = p.allocs[prof][m] ?? 0;
@@ -291,7 +291,7 @@ export default function CapacityView({ data }: Props) {
                   <>
                     <tr key={`${r.profile}-cap`}>
                       <td rowSpan={3} style={{ fontWeight: 700 }}><span className="badge badge-purple">{r.profile}</span></td>
-                      <td style={{ fontSize: 11, color: 'var(--text-muted)' }}>{t('col_capacity')}</td>
+                      <td style={{ fontSize: 11, color: 'var(--text-muted)' }}>{t('available_cap')}</td>
                       {months.map(m => (
                         <td key={m} className="cap-cell" style={{ color: 'var(--text)' }}>{r.cap[m] > 0 ? r.cap[m] : '—'}</td>
                       ))}
@@ -300,7 +300,7 @@ export default function CapacityView({ data }: Props) {
                       </td>
                     </tr>
                     <tr key={`${r.profile}-wl`}>
-                      <td style={{ fontSize: 11, color: 'var(--text-muted)' }}>{t('col_need')}</td>
+                      <td style={{ fontSize: 11, color: 'var(--text-muted)' }}>{t('need')}</td>
                       {months.map(m => {
                         const need = r.workload[m] ?? 0;
                         const cap = r.cap[m] ?? 0;
@@ -312,7 +312,7 @@ export default function CapacityView({ data }: Props) {
                       </td>
                     </tr>
                     <tr key={`${r.profile}-gap`} style={{ borderBottom: '2px solid var(--border)' }}>
-                      <td style={{ fontSize: 11, color: 'var(--text-muted)' }}>{t('col_gap')}</td>
+                      <td style={{ fontSize: 11, color: 'var(--text-muted)' }}>{t('gap')}</td>
                       {months.map(m => {
                         const gap = (r.cap[m] ?? 0) - (r.workload[m] ?? 0);
                         const cls = gap < 0 ? 'cap-cell cap-over' : gap > 5 ? 'cap-cell cap-zero' : 'cap-cell cap-ok';

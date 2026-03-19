@@ -12,7 +12,7 @@ interface Props {
 
 export default function SpaceSelector({ spaces, onSelect, appName }: Props) {
   const { user, logout } = useAuth();
-  const { settings } = useSettings();
+  const { settings, t } = useSettings();
 
   const displayName = settings.appName || appName;
   const logo = settings.logo;
@@ -38,7 +38,7 @@ export default function SpaceSelector({ spaces, onSelect, appName }: Props) {
             <div>
               <h1 style={{ fontSize: 22, fontWeight: 800, letterSpacing: '-0.03em', color: 'var(--text)' }}>{displayName}</h1>
               <p style={{ color: 'var(--text-muted)', fontSize: 13, marginTop: 2 }}>
-                Bonjour {user?.firstName} — choisissez votre espace de travail
+                {t('space_greeting', { name: user?.firstName ?? '' })}
               </p>
             </div>
           </div>
@@ -86,7 +86,7 @@ export default function SpaceSelector({ spaces, onSelect, appName }: Props) {
 
           {/* Global portfolio */}
           {user && ['superadmin', 'admin', 'global'].includes(user.role) && (
-            <button onClick={() => onSelect({ id: '__global__', name: 'Portfolio Global', description: 'Vue consolidée CODIR', color: '#f59e0b', icon: '🌐' })}
+            <button onClick={() => onSelect({ id: '__global__', name: t('global_portfolio'), description: t('global_portfolio_subtitle'), color: '#f59e0b', icon: '🌐' })}
               style={{
                 background: 'linear-gradient(135deg, rgba(245,158,11,0.08), rgba(245,158,11,0.04))',
                 border: '2px dashed rgba(245,158,11,0.4)',

@@ -71,11 +71,11 @@ export default function ProjectsView({ data, updateData }: Props) {
       <div style={{ display: 'flex', gap: 10, marginBottom: 16 }}>
         <input className="input" placeholder={t('search')} value={search} onChange={e => setSearch(e.target.value)} style={{ maxWidth: 280 }} />
         <select className="input" value={statusFilter} onChange={e => setStatusFilter(e.target.value)} style={{ maxWidth: 180 }}>
-          <option value="">{t('filter_all_statuses')}</option>
+          <option value="">{t('all_statuses')}</option>
           {STATUSES.map(s => <option key={s} value={s}>{s.replace(/^\d-/, '')}</option>)}
         </select>
         <select className="input" value={domainFilter} onChange={e => setDomainFilter(e.target.value)} style={{ maxWidth: 140 }}>
-          <option value="">{t('filter_all_domains')}</option>
+          <option value="">{t('all_domains')}</option>
           {DOMAINS.map(d => <option key={d} value={d}>{d}</option>)}
         </select>
       </div>
@@ -86,9 +86,9 @@ export default function ProjectsView({ data, updateData }: Props) {
           <table className="data-table">
             <thead>
               <tr>
-                <th>{t('col_project')}</th><th>{t('col_domain')}</th><th>{t('col_type')}</th><th>{t('col_dept')}</th>
-                <th>{t('col_sponsor')}</th><th>{t('col_pm')}</th><th>{t('col_priority')}</th>
-                <th>{t('col_complexity')}</th><th>{t('col_status')}</th><th>{t('col_start')}</th><th>{t('col_golive')}</th><th></th>
+                <th>{t('project_name')}</th><th>{t('domain')}</th><th>{t('type')}</th><th>{t('lead_dept')}</th>
+                <th>{t('sponsor')}</th><th>{t('project_manager')}</th><th>{t('priority')}</th>
+                <th>{t('complexity')}</th><th>{t('status')}</th><th>{t('start_date')}</th><th>{t('go_live')}</th><th></th>
               </tr>
             </thead>
             <tbody>
@@ -107,7 +107,7 @@ export default function ProjectsView({ data, updateData }: Props) {
                   <td style={{ color: 'var(--text-muted)', fontSize: 12 }}>{p.goLive ? p.goLive.slice(0, 7) : '—'}</td>
                   <td>
                     <div style={{ display: 'flex', gap: 4 }}>
-                      <button className="btn btn-ghost btn-sm" onClick={() => { setEditing({ ...p }); setIsNew(false); }}>{t('btn_edit')}</button>
+                      <button className="btn btn-ghost btn-sm" onClick={() => { setEditing({ ...p }); setIsNew(false); }}>{t('edit_btn')}</button>
                       <button className="btn btn-danger btn-sm" onClick={() => remove(p.id)}>✕</button>
                     </div>
                   </td>
@@ -203,8 +203,8 @@ export default function ProjectsView({ data, updateData }: Props) {
               </div>
             </div>
             <div style={{ padding: '16px 24px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
-              <button className="btn btn-ghost" onClick={() => setEditing(null)}>{t('btn_cancel')}</button>
-              <button className="btn btn-primary" onClick={save} disabled={!editing.name}>{t('btn_save')}</button>
+              <button className="btn btn-ghost" onClick={() => setEditing(null)}>{t('cancel')}</button>
+              <button className="btn btn-primary" onClick={save} disabled={!editing.name}>{t('save')}</button>
             </div>
           </div>
         </div>
