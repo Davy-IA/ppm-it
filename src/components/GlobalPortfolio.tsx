@@ -231,7 +231,7 @@ export default function GlobalPortfolio({ spaces, onBack }: Props) {
                                       <div style={{ width: 10, height: 10, borderRadius: 3, background: phase.color ?? space.color, flexShrink: 0 }} />
                                       <span style={{ fontSize: 13, minWidth: 200 }}>{phase.name}</span>
                                       <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
-                                        {start.toLocaleDateString(locale === 'fr' ? 'fr-FR' : locale === 'en' ? 'en-US' : locale === 'pt' ? 'pt-BR' : 'zh-CN', { day: '2-digit', month: 'short' })} → {end.toLocaleDateString(locale === 'fr' ? 'fr-FR' : locale === 'en' ? 'en-US' : locale === 'pt' ? 'pt-BR' : 'zh-CN', { day: '2-digit', month: 'short', year: '2-digit' })}
+                                        {start.toLocaleDateString(({ fr: 'fr-FR', en: 'en-US', pt: 'pt-BR', zh: 'zh-CN' }[locale] ?? 'fr-FR'), { day: '2-digit', month: 'short' })} → {end.toLocaleDateString(({ fr: 'fr-FR', en: 'en-US', pt: 'pt-BR', zh: 'zh-CN' }[locale] ?? 'fr-FR'), { day: '2-digit', month: 'short', year: '2-digit' })}
                                       </span>
                                       <span style={{ fontSize: 11, color: 'var(--text-faint)' }}>{phase.duration}j</span>
                                       {phase.subphases?.length > 0 && <span className="badge badge-gray" style={{ fontSize: 10 }}>{phase.subphases.length} sous-phases</span>}

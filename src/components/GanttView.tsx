@@ -101,7 +101,7 @@ export default function GanttView({ data, updateData }: Props) {
     const mEnd = new Date(cur.getFullYear(), cur.getMonth()+1, 0);
     const left = Math.max(0, daysBetween(minDate, cur.toISOString().slice(0,10))) * DAY_PX;
     const right = Math.min(totalDays, daysBetween(minDate, mEnd.toISOString().slice(0,10))) * DAY_PX;
-    months.push({ label: cur.toLocaleDateString(locale === 'fr' ? 'fr-FR' : locale === 'en' ? 'en-US' : locale === 'pt' ? 'pt-BR' : 'zh-CN', {month:'short',year:'2-digit'}), left, width: right - left });
+    months.push({ label: cur.toLocaleDateString(({ fr: 'fr-FR', en: 'en-US', pt: 'pt-BR', zh: 'zh-CN' }[locale] ?? 'fr-FR'), {month:'short',year:'2-digit'}), left, width: right - left });
     cur.setMonth(cur.getMonth()+1);
   }
 

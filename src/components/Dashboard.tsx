@@ -29,9 +29,14 @@ export default function Dashboard({ data, setView }: Props) {
     return { month: label, capacity: totalCap, allocated: totalAlloc };
   });
 
+  const STATUS_KEYS: Record<string, string> = {
+    '1-To arbitrate': 'status_to_arbitrate', '2-Validated': 'status_validated',
+    '3-In progress': 'status_in_progress', '4-Frozen': 'status_frozen',
+    '5-Completed': 'status_completed', '6-Aborted': 'status_aborted',
+  };
   const statusCounts: Record<string, number> = {};
   for (const p of data.projects) {
-    const s = p.status ?? 'Non défini';
+    const s = p.status ?? 'status_undefined';
     statusCounts[s] = (statusCounts[s] ?? 0) + 1;
   }
   const statusColors: Record<string, string> = {
@@ -95,7 +100,7 @@ export default function Dashboard({ data, setView }: Props) {
               return (
                 <div key={status}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4, fontSize: 12 }}>
-                    <span style={{ color: 'var(--text-muted)' }}>{status.replace(/^\d-/, '')}</span>
+                    <span style={{ color: 'var(--text-muted)' }}>{t(STATUS_KEYS[status] ?? status) || status.replace(/^\d-/, '')}</span>
                     <span style={{ color, fontWeight: 600, fontFamily: 'JetBrains Mono, monospace' }}>{count}</span>
                   </div>
                   <div style={{ height: 4, background: 'var(--bg3)', borderRadius: 2 }}>

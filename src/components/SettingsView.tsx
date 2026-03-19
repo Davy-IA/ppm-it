@@ -80,7 +80,7 @@ export default function SettingsView({ data, updateData, spaces }: Props) {
         <div style={{ marginBottom: 20, display: 'flex', alignItems: 'center', gap: 8 }}>
           {isAdmin ? (
             <div style={{ padding: '6px 12px', background: 'var(--accent-subtle)', borderRadius: 8, fontSize: 12, color: 'var(--accent)', fontWeight: 600 }}>
-              {isSuperAdmin ? '⭐ Super Admin — accès complet' : '🔧 Admin — gestion des utilisateurs et espaces'}
+              {isSuperAdmin ? '⭐ ' + t('role_badge_superadmin') : '🔧 ' + t('role_badge_admin')}
             </div>
           ) : (
             <div style={{ padding: '6px 12px', background: 'var(--bg3)', borderRadius: 8, fontSize: 12, color: 'var(--text-muted)', fontWeight: 500 }}>
@@ -115,16 +115,16 @@ export default function SettingsView({ data, updateData, spaces }: Props) {
             </div>
           </div>
           <div className="card">
-            <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 16 }}>Nom de l'organisation</div>
-            <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: 6 }}>Nom affiché</label>
+            <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 16 }}>{t('settings_org_name_label')}</div>
+            <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: 6 }}>{t('settings_org_name_displayed')}</label>
             <input className="input" value={settings.appName} placeholder="Ex: VEJA Project Management" onChange={e => updateSettings({ appName: e.target.value })} onBlur={showSaved} />
 
             {/* Budget URL */}
             <div style={{ marginTop: 20, paddingTop: 16, borderTop: '1px solid var(--border)' }}>
               <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6 }}>
-                💰 Lien Budget externe
+                {t('settings_budget_label')}
               </div>
-              <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 8 }}>URL vers votre outil budgétaire (SAP Analytics Cloud, etc.)</div>
+              <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 8 }}>{t('settings_budget_desc')}</div>
               <input
                 className="input"
                 value={(settings as any).budgetUrl ?? ''}
@@ -135,7 +135,7 @@ export default function SettingsView({ data, updateData, spaces }: Props) {
               {(settings as any).budgetUrl && (
                 <a href={(settings as any).budgetUrl} target="_blank" rel="noopener noreferrer"
                   style={{ display: 'inline-flex', alignItems: 'center', gap: 5, marginTop: 8, fontSize: 12, color: 'var(--accent)', textDecoration: 'none', fontWeight: 500 }}>
-                  ↗ Tester le lien
+                  {t('settings_budget_test')}
                 </a>
               )}
             </div>
@@ -146,7 +146,7 @@ export default function SettingsView({ data, updateData, spaces }: Props) {
               </div>
               <div>
                 <div style={{ fontWeight: 800, fontSize: 13 }}>{settings.appName || 'VEJA Project Management'}</div>
-                <div style={{ fontSize: 10, color: 'var(--text-faint)' }}>Aperçu sidebar</div>
+                <div style={{ fontSize: 10, color: 'var(--text-faint)' }}>{t('settings_sidebar_preview')}</div>
               </div>
             </div>
           </div>
