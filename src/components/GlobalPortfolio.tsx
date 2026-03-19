@@ -61,7 +61,7 @@ export default function GlobalPortfolio({ spaces, onBack }: Props) {
         <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
           <button onClick={onBack} className="btn btn-ghost btn-sm">← Espaces</button>
           <div>
-            <h1 style={{ fontSize: 22, fontWeight: 800, letterSpacing: '-0.03em' }}>🌐 Portfolio Global</h1>
+            <h1 style={{ fontSize: 22, fontWeight: 800, letterSpacing: '-0.03em' }}>🌐 {t('global_portfolio')}</h1>
             <p style={{ color: 'var(--text-muted)', fontSize: 13, marginTop: 2 }}>Vue consolidée de tous les espaces · {allProjects.length} projets · {allStaff.length} ressources</p>
           </div>
         </div>

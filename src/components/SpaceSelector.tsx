@@ -76,10 +76,10 @@ export default function SpaceSelector({ spaces, onSelect, appName }: Props) {
                 {space.icon}
               </div>
               <div style={{ fontWeight: 700, fontSize: 15, color: 'var(--text)', marginBottom: 4 }}>{space.name}</div>
-              <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{space.description || 'Espace projet'}</div>
+              <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{space.description || ''}</div>
               <div style={{ marginTop: 14, display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: space.color, fontWeight: 600 }}>
                 <div style={{ width: 6, height: 6, borderRadius: '50%', background: space.color }} />
-                Accéder →
+                {t('space_access_btn')}
               </div>
             </button>
           ))}
@@ -97,8 +97,8 @@ export default function SpaceSelector({ spaces, onSelect, appName }: Props) {
               onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(245,158,11,0.4)'; (e.currentTarget as HTMLElement).style.transform = 'none'; }}
             >
               <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(245,158,11,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, marginBottom: 14 }}>🌐</div>
-              <div style={{ fontWeight: 700, fontSize: 15, color: 'var(--text)', marginBottom: 4 }}>Portfolio Global</div>
-              <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>Vue consolidée tous espaces</div>
+              <div style={{ fontWeight: 700, fontSize: 15, color: 'var(--text)', marginBottom: 4 }}>{t('global_portfolio')}</div>
+              <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{t('global_portfolio_subtitle')}</div>
               <div style={{ marginTop: 14, fontSize: 11, color: '#f59e0b', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>
                 <span className="badge badge-yellow" style={{ fontSize: 10 }}>{user?.role === 'superadmin' ? 'Super Admin' : user?.role === 'admin' ? 'Admin' : 'CODIR'}</span>
               </div>
