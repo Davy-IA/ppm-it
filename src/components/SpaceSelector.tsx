@@ -47,7 +47,7 @@ export default function SpaceSelector({ spaces, onSelect, appName }: Props) {
               <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>{user?.firstName} {user?.lastName}</div>
               <div style={{ fontSize: 11, color: 'var(--text-faint)' }}>{user?.email}</div>
             </div>
-            <button onClick={logout} className="btn btn-ghost btn-sm">Déconnexion</button>
+            <button onClick={logout} className="btn btn-ghost btn-sm">{t('logout')}</button>
           </div>
         </div>
 

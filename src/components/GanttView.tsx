@@ -169,7 +169,7 @@ export default function GanttView({ data, updateData }: Props) {
               {/* Labels */}
               <div style={{ width:LEFT_W, minWidth:LEFT_W, borderRight:'1px solid var(--border)', flexShrink:0 }}>
                 <div style={{ height:40, background:'var(--bg3)', borderBottom:'1px solid var(--border)', display:'flex', alignItems:'center', padding:'0 16px' }}>
-                  <span style={{ fontSize:11, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.07em', color:'var(--text-faint)' }}>Structure</span>
+                  <span style={{ fontSize:11, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.07em', color:'var(--text-faint)' }}>{t('structure')}</span>
                 </div>
                 {phases.map(ph => (
                   <div key={ph.id}>
