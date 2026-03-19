@@ -60,7 +60,7 @@ export default function ProjectsView({ data, updateData }: Props) {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
         <div>
           <h1 className="page-title">{t('projects_title')}</h1>
-          <p style={{ color: 'var(--text-muted)', fontSize: 13, marginTop: 4 }}>{data.projects.length} projets au total</p>
+          <p style={{ color: 'var(--text-muted)', fontSize: 13, marginTop: 4 }}>{t('projects_subtitle_fmt').replace('{n}', String(data.projects.length))}</p>
         </div>
         <button className="btn btn-primary" onClick={() => { setEditing({ id: '', ...EMPTY_PROJECT }); setIsNew(true); }}>
           {t('new_project')}

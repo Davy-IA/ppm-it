@@ -54,9 +54,9 @@ export default function SettingsView({ data, updateData, spaces }: Props) {
 
   const ALL_TABS = [
     { id: 'identity', label: t('settings_tab_identity'), show: true },
-    { id: 'theme', label: '🎨 Thèmes', show: true },
+    { id: 'theme', label: t('settings_tab_theme'), show: true },
     { id: 'lang', label: t('settings_tab_lang'), show: true },
-    { id: 'lists', label: '📋 Listes', show: !!isAdmin },
+    { id: 'lists', label: t('settings_tab_lists'), show: !!isAdmin },
     { id: 'spaces', label: t('settings_tab_spaces'), show: !!isAdmin },
     { id: 'users', label: t('settings_tab_users'), show: !!isAdmin },
   ].filter(t => t.show);

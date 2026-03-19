@@ -234,7 +234,7 @@ export default function GlobalPortfolio({ spaces, onBack }: Props) {
                                         {start.toLocaleDateString(({ fr: 'fr-FR', en: 'en-US', pt: 'pt-BR', zh: 'zh-CN' }[locale] ?? 'fr-FR'), { day: '2-digit', month: 'short' })} → {end.toLocaleDateString(({ fr: 'fr-FR', en: 'en-US', pt: 'pt-BR', zh: 'zh-CN' }[locale] ?? 'fr-FR'), { day: '2-digit', month: 'short', year: '2-digit' })}
                                       </span>
                                       <span style={{ fontSize: 11, color: 'var(--text-faint)' }}>{phase.duration}j</span>
-                                      {phase.subphases?.length > 0 && <span className="badge badge-gray" style={{ fontSize: 10 }}>{phase.subphases.length} sous-phases</span>}
+                                      {phase.subphases?.length > 0 && <span className="badge badge-gray" style={{ fontSize: 10 }}>{phase.subphases.length} {t('gantt_subphases').toLowerCase()}</span>}
                                     </div>
                                   );
                                 })}

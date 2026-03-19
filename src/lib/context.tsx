@@ -9,6 +9,18 @@ interface SettingsCtx {
   t: (key: string, vars?: Record<string, string | number>) => string;
 }
 
+function getInitialSettings(): AppSettings {
+  if (typeof window === 'undefined') return DEFAULT_SETTINGS;
+  try {
+    const saved = localStorage.getItem('ppm-settings');
+    if (saved) {
+      const parsed = JSON.parse(saved) as AppSettings;
+      return { ...DEFAULT_SETTINGS, ...parsed };
+    }
+  } catch {}
+  return DEFAULT_SETTINGS;
+}
+
 const Ctx = createContext<SettingsCtx>({
   settings: DEFAULT_SETTINGS,
   updateSettings: () => {},
@@ -16,17 +28,11 @@ const Ctx = createContext<SettingsCtx>({
 });
 
 export function SettingsProvider({ children }: { children: ReactNode }) {
-  const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
+  const [settings, setSettings] = useState<AppSettings>(getInitialSettings);
 
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem('ppm-settings');
-      if (saved) {
-        const parsed = JSON.parse(saved) as AppSettings;
-        setSettings({ ...DEFAULT_SETTINGS, ...parsed });
-        applyColorTheme(parsed.colorTheme ?? 'indigo');
-      }
-    } catch {}
+    // Apply color theme on mount
+    applyColorTheme(settings.colorTheme ?? 'indigo');
   }, []);
 
   const updateSettings = (partial: Partial<AppSettings>) => {
@@ -36,7 +42,6 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     if (partial.colorTheme) applyColorTheme(partial.colorTheme);
   };
 
-  // Accept any string key — returns translation or falls back to key
   const tFn = (key: string, vars?: Record<string, string | number>): string =>
     translate(settings.locale, key as any, vars);
 

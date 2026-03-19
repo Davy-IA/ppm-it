@@ -115,7 +115,7 @@ export default function GanttView({ data, updateData }: Props) {
         <button className="btn btn-primary" onClick={() => {
           setEditPhase({ id: uuid(), projectId: selProj, name: '', startDate: new Date().toISOString().slice(0,10), duration: 30, color: PHASE_COLORS[phases.length % PHASE_COLORS.length], dependsOn: null, subphases: [] } as unknown as GanttPhase);
           setIsNew(true);
-        }}>+ Nouvelle phase</button>
+        }}>{t('new_phase')}</button>
       </div>
 
       {/* Project selector */}

@@ -50,7 +50,7 @@ export default function AlertsView({ data }: Props) {
         <div className="card" style={{ borderLeft: `3px solid ${overCount > 0 ? 'var(--danger)' : 'var(--success)'}` }}>
           <div style={{ fontSize: 28, fontWeight: 700, fontFamily: 'DM Mono, monospace', color: overCount > 0 ? 'var(--danger)' : 'var(--success)' }}>{overCount}</div>
           <div style={{ fontSize: 13, fontWeight: 600, marginTop: 4 }}>{t('overloads_detected')}</div>
-          <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>Ressource allouée au-delà de sa capacité</div>
+          <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>{t('overload_desc')}</div>
         </div>
         <div className="card" style={{ borderLeft: `3px solid ${uncovCount > 0 ? 'var(--warning)' : 'var(--success)'}` }}>
           <div style={{ fontSize: 28, fontWeight: 700, fontFamily: 'DM Mono, monospace', color: uncovCount > 0 ? 'var(--warning)' : 'var(--success)' }}>{uncovCount}</div>
@@ -113,7 +113,7 @@ export default function AlertsView({ data }: Props) {
                       <>
                         <div style={{ fontWeight: 600, color, fontSize: 13 }}>{t('coverage_alert').replace('{project}', a.projectName??'')}</div>
                         <div style={{ color: 'var(--text-muted)', fontSize: 12, marginTop: 2 }}>
-                          Profil <strong>{a.profile}</strong> en <strong>{monthFmt}</strong> : {a.allocated}j affectés pour {a.workload}j requis
+                          {t('in_month')} <strong>{monthFmt}</strong> · {t('profile')} <strong>{a.profile}</strong> : {a.allocated}{t('days')} / {a.workload}{t('days')}
                           <span style={{ color, fontWeight: 600 }}> (-{a.value?.toFixed(1)}{t('days')})</span>
                         </div>
                       </>

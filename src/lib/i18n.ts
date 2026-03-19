@@ -940,6 +940,8 @@ export const translations = {
     by_resource_btn: 'Por recurso',
     by_project_btn: 'Por projeto',
     by_profile_btn: 'Por perfil',
+    settings_logo_btn: 'Escolher arquivo',
+    settings_logo_reset: 'Redefinir',
   },
   zh: {
     nav_dashboard: '仪表板',
@@ -1121,6 +1123,8 @@ role_badge_admin_full: '🔧 管理员 — 用户和空间管理',
     status_completed: '已完成',
     status_aborted: '已中止',
     status_undefined: '未定义',
+    settings_logo_btn: '选择文件',
+    settings_logo_reset: '重置',
   },
 } as const;
 
