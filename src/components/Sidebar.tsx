@@ -53,6 +53,7 @@ export default function Sidebar({ view, setView, open, setOpen, saving, data, cu
     { id: 'settings', labelKey: 'nav_settings', icon: '⚙' },
   ];
 
+  const budgetUrl = settings.budgetUrl || 'https://www.sapanalytics.cloud';
   const currentLocale = LOCALES.find(l => l.code === settings.locale);
   const ROLE_COLORS: Record<string, string> = { superadmin: 'var(--danger)', admin: 'var(--purple)', global: 'var(--warning)', member: 'var(--accent)' };
   const ROLE_LABELS: Record<string, string> = { superadmin: 'Super Admin', admin: 'Admin', global: 'CODIR', member: 'Membre' };
@@ -94,13 +95,36 @@ export default function Sidebar({ view, setView, open, setOpen, saving, data, cu
           const isAlerts = item.id === 'alerts';
           // Hide settings for non-admin members
           if (item.id === 'settings' && user?.role === 'member') return null;
+          // Insert Budget link after capacity
+          const budgetLink = item.id === 'alerts' ? (
+            <a
+              key="budget-link"
+              href={budgetUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="nav-item"
+              title={!open ? 'Budget' : undefined}
+              style={{ justifyContent: open ? 'flex-start' : 'center', textDecoration: 'none' }}
+            >
+              <span style={{ fontSize: 15, flexShrink: 0, opacity: 0.7 }}>💰</span>
+              {open && (
+                <span style={{ fontWeight: 500, flex: 1 }}>Budget</span>
+              )}
+              {open && (
+                <span style={{ fontSize: 10, color: 'var(--text-faint)', flexShrink: 0 }}>↗</span>
+              )}
+            </a>
+          ) : null;
           return (
-            <button key={item.id} onClick={() => setView(item.id)} className={`nav-item ${isActive ? 'active' : ''}`} title={!open ? t(item.labelKey as any) : undefined} style={{ justifyContent: open ? 'flex-start' : 'center', position: 'relative' }}>
+            <>
+              {budgetLink}
+              <button key={item.id} onClick={() => setView(item.id)} className={`nav-item ${isActive ? 'active' : ''}`} title={!open ? t(item.labelKey as any) : undefined} style={{ justifyContent: open ? 'flex-start' : 'center', position: 'relative' }}>
               <span style={{ fontSize: 15, flexShrink: 0, opacity: isActive ? 1 : 0.7 }}>{item.icon}</span>
               {open && <span style={{ fontWeight: isActive ? 700 : 500 }}>{t(item.labelKey as any)}</span>}
               {open && isAlerts && alertCount > 0 && <span style={{ marginLeft: 'auto', background: 'var(--danger)', color: '#fff', borderRadius: 10, padding: '1px 7px', fontSize: 10, fontWeight: 700 }}>{alertCount}</span>}
               {!open && isAlerts && alertCount > 0 && <span style={{ position: 'absolute', top: 6, right: 6, width: 7, height: 7, background: 'var(--danger)', borderRadius: '50%' }} />}
             </button>
+            </>
           );
         })}
       </nav>

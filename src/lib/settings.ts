@@ -80,6 +80,7 @@ export interface AppSettings {
   colorTheme: string;
   logo: string | null; // base64 or null
   appName: string;
+  budgetUrl: string;
   // Editable lists
   domains: string[];
   profiles: string[];
@@ -95,6 +96,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   colorTheme: 'indigo',
   logo: null,
   appName: 'PPM·IT',
+  budgetUrl: 'https://www.sapanalytics.cloud',
   domains: ['APPLI', 'INFRA', 'INNOV', 'DATA'],
   profiles: ['PM', 'FUNC', 'DEV', 'INFRA', 'DATA', 'QA', 'DESIGN'],
   statuses: ['1-To arbitrate', '2-Validated', '3-In progress', '4-Frozen', '5-Completed', '6-Aborted'],

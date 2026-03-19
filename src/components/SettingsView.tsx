@@ -118,6 +118,28 @@ export default function SettingsView({ data, updateData, spaces }: Props) {
             <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 16 }}>Nom de l'organisation</div>
             <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: 6 }}>Nom affiché</label>
             <input className="input" value={settings.appName} placeholder="Ex: VEJA Project Management" onChange={e => updateSettings({ appName: e.target.value })} onBlur={showSaved} />
+
+            {/* Budget URL */}
+            <div style={{ marginTop: 20, paddingTop: 16, borderTop: '1px solid var(--border)' }}>
+              <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6 }}>
+                💰 Lien Budget externe
+              </div>
+              <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 8 }}>URL vers votre outil budgétaire (SAP Analytics Cloud, etc.)</div>
+              <input
+                className="input"
+                value={(settings as any).budgetUrl ?? ''}
+                placeholder="https://www.sapanalytics.cloud/..."
+                onChange={e => updateSettings({ budgetUrl: e.target.value } as any)}
+                onBlur={showSaved}
+              />
+              {(settings as any).budgetUrl && (
+                <a href={(settings as any).budgetUrl} target="_blank" rel="noopener noreferrer"
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 5, marginTop: 8, fontSize: 12, color: 'var(--accent)', textDecoration: 'none', fontWeight: 500 }}>
+                  ↗ Tester le lien
+                </a>
+              )}
+            </div>
+
             <div style={{ marginTop: 20, padding: '14px 16px', background: 'var(--bg3)', borderRadius: 8, display: 'flex', alignItems: 'center', gap: 12 }}>
               <div style={{ width: 36, height: 36, borderRadius: 8, overflow: 'hidden', background: settings.logo ? 'transparent' : 'var(--accent-gradient)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                 {settings.logo ? <img src={settings.logo} alt="logo" style={{ width: 36, height: 36, objectFit: 'contain' }} /> : <span style={{ color: '#fff', fontWeight: 800, fontSize: 14 }}>P</span>}
