@@ -290,7 +290,7 @@ export default function GanttView({ data, updateData }: Props) {
               <div>
                 <label style={{fontSize:12,color:'var(--text-muted)',fontWeight:600,display:'block',marginBottom:6}}>Dépend de (commence après…)</label>
                 <select className="input" value={editPhase.dependsOn??''} onChange={e=>setEditPhase({...editPhase,dependsOn:e.target.value||null})}>
-                  <option value="">Aucune dépendance</option>
+                  <option value="">{t('no_dependency')}</option>
                   {phases.filter(p=>p.id!==editPhase.id).map(p=><option key={p.id} value={p.id}>{p.name}</option>)}
                 </select>
               </div>
@@ -307,7 +307,7 @@ export default function GanttView({ data, updateData }: Props) {
                 const exist = phases.find(p=>p.id===editPhase.id);
                 const updated = exist ? phases.map(p=>p.id===editPhase.id?editPhase:p) : [...phases,editPhase];
                 savePhases(updated); setEditPhase(null); setIsNew(false);
-              }}>Enregistrer</button>
+              }}>{t('save')}</button>
             </div>
           </div>
         </div>
@@ -348,6 +348,7 @@ export default function GanttView({ data, updateData }: Props) {
 }
 
 function SubForm({ initial, phase, onSave, onClose }: { initial: GanttSubphase; phase: GanttPhase; onSave: (s: GanttSubphase) => void; onClose: () => void }) {
+  const { t } = useSettings();
   const [form, setForm] = useState<GanttSubphase>(initial);
   return (
     <>
@@ -367,16 +368,16 @@ function SubForm({ initial, phase, onSave, onClose }: { initial: GanttSubphase; 
           </div>
         </div>
         <div>
-          <label style={{fontSize:12,color:'var(--text-muted)',fontWeight:600,display:'block',marginBottom:6}}>Dépend de</label>
+          <label style={{fontSize:12,color:'var(--text-muted)',fontWeight:600,display:'block',marginBottom:6}}>{t('sub_depends')}</label>
           <select className="input" value={form.dependsOn??''} onChange={e=>setForm({...form,dependsOn:e.target.value||null})}>
-            <option value="">Aucune</option>
+            <option value="">{t('no_sub_dependency')}</option>
             {phase.subphases.filter(s=>s.id!==form.id).map(s=><option key={s.id} value={s.id}>{s.name}</option>)}
           </select>
         </div>
       </div>
       <div style={{padding:'16px 24px',borderTop:'1px solid var(--border)',display:'flex',justifyContent:'flex-end',gap:10}}>
         <button className="btn btn-ghost" onClick={onClose}>Annuler</button>
-        <button className="btn btn-primary" disabled={!form.name} onClick={()=>form.name&&onSave(form)}>Enregistrer</button>
+        <button className="btn btn-primary" disabled={!form.name} onClick={()=>form.name&&onSave(form)}>{t('save')}</button>
       </div>
     </>
   );
