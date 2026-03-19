@@ -66,7 +66,7 @@ export default function SettingsView({ data, updateData, spaces }: Props) {
       <div className="page-header">
         <div>
           <h1 className="page-title">{t('settings_title')}</h1>
-          <p className="page-subtitle">{t('settings_subtitle')}</p>
+          <p className="page-subtitle">{t('settings_subtitle_full')}</p>
         </div>
         {saved && (
           <div style={{ background: 'var(--success-subtle)', color: 'var(--success)', border: '1px solid var(--success)', borderRadius: 8, padding: '8px 16px', fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -103,8 +103,8 @@ export default function SettingsView({ data, updateData, spaces }: Props) {
       {activeTab === 'identity' && (
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, maxWidth: 800 }}>
           <div className="card">
-            <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 4 }}>{t('settings_logo')}</div>
-            <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 16 }}>{t('settings_logo_desc')}</div>
+            <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 4 }}>{t('settings_logo_label')}</div>
+            <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 16 }}>{t('settings_logo_upload_desc')}</div>
             <div style={{ width: 120, height: 120, borderRadius: 12, border: '2px dashed var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16, background: 'var(--bg3)', overflow: 'hidden' }}>
               {settings.logo ? <img src={settings.logo} alt="logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> : <div style={{ textAlign: 'center', color: 'var(--text-faint)' }}><div style={{ fontSize: 32 }}>🖼</div><div style={{ fontSize: 11, marginTop: 4 }}>Logo</div></div>}
             </div>

@@ -64,11 +64,11 @@ export default function StaffView({ data, updateData }: Props) {
         <div>
           <h1 style={{ fontSize: 22, fontWeight: 700, letterSpacing: '-0.02em' }}>{t('staff_title')}</h1>
           <p style={{ color: 'var(--text-muted)', fontSize: 13, marginTop: 4 }}>
-            {data.staff.filter(s => s.type === 'Internal').length} internes · {data.staff.filter(s => s.type === 'External').length} externes
+            {t('staff_subtitle_fmt').replace('{i}', String(data.staff.filter(s => s.type === 'Internal').length)).replace('{e}', String(data.staff.filter(s => s.type === 'External').length))}
           </p>
         </div>
         <button className="btn btn-primary" onClick={() => { setEditing({ id: '', ...EMPTY_STAFF }); setIsNew(true); }}>
-          + Ajouter ressource
+          {t('add_staff')}
         </button>
       </div>
 

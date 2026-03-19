@@ -109,8 +109,8 @@ export default function GanttView({ data, updateData }: Props) {
     <div className="animate-in">
       <div className="page-header">
         <div>
-          <h1 className="page-title">Planning Gantt</h1>
-          <p className="page-subtitle">{t("gantt_subtitle")}</p>
+          <h1 className="page-title">{t('gantt_title')}</h1>
+          <p className="page-subtitle">{t('gantt_subtitle')}</p>
         </div>
         <button className="btn btn-primary" onClick={() => {
           setEditPhase({ id: uuid(), projectId: selProj, name: '', startDate: new Date().toISOString().slice(0,10), duration: 30, color: PHASE_COLORS[phases.length % PHASE_COLORS.length], dependsOn: null, subphases: [] } as unknown as GanttPhase);
@@ -159,8 +159,8 @@ export default function GanttView({ data, updateData }: Props) {
       {phases.length === 0 ? (
         <div className="card" style={{ textAlign:'center', padding:60, color:'var(--text-faint)' }}>
           <div style={{fontSize:48,marginBottom:12}}>📅</div>
-          <div style={{fontWeight:700,fontSize:16,color:'var(--text-muted)',marginBottom:6}}>Aucune phase définie</div>
-          <div style={{fontSize:13}}>Cliquez sur "+ Nouvelle phase" pour démarrer le planning</div>
+          <div style={{fontWeight:700,fontSize:16,color:'var(--text-muted)',marginBottom:6}}>{t('no_phases')}</div>
+          <div style={{fontSize:13}}>{t('no_phases_cta')}</div>
         </div>
       ) : (
         <div style={{ border:'1px solid var(--border)', borderRadius:'var(--radius)', overflow:'hidden', background:'var(--bg2)', boxShadow:'var(--shadow-sm)' }}>

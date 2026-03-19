@@ -41,31 +41,31 @@ export default function AlertsView({ data }: Props) {
   return (
     <div className="animate-in">
       <div style={{ marginBottom: 24 }}>
-        <h1 style={{ fontSize: 22, fontWeight: 700, letterSpacing: '-0.02em' }}>Alertes & Analyse</h1>
-        <p style={{ color: 'var(--text-muted)', fontSize: 13, marginTop: 4 }}>Détection automatique des problèmes de capacité</p>
+        <h1 style={{ fontSize: 22, fontWeight: 700, letterSpacing: '-0.02em' }}>{t('alerts_title')}</h1>
+        <p style={{ color: 'var(--text-muted)', fontSize: 13, marginTop: 4 }}>{t('alerts_subtitle')}</p>
       </div>
 
       {/* Summary banners */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 14, marginBottom: 24 }}>
         <div className="card" style={{ borderLeft: `3px solid ${overCount > 0 ? 'var(--danger)' : 'var(--success)'}` }}>
           <div style={{ fontSize: 28, fontWeight: 700, fontFamily: 'DM Mono, monospace', color: overCount > 0 ? 'var(--danger)' : 'var(--success)' }}>{overCount}</div>
-          <div style={{ fontSize: 13, fontWeight: 600, marginTop: 4 }}>Surcharges détectées</div>
+          <div style={{ fontSize: 13, fontWeight: 600, marginTop: 4 }}>{t('overloads_detected')}</div>
           <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>Ressource allouée au-delà de sa capacité</div>
         </div>
         <div className="card" style={{ borderLeft: `3px solid ${uncovCount > 0 ? 'var(--warning)' : 'var(--success)'}` }}>
           <div style={{ fontSize: 28, fontWeight: 700, fontFamily: 'DM Mono, monospace', color: uncovCount > 0 ? 'var(--warning)' : 'var(--success)' }}>{uncovCount}</div>
-          <div style={{ fontSize: 13, fontWeight: 600, marginTop: 4 }}>Couvertures incomplètes</div>
+          <div style={{ fontSize: 13, fontWeight: 600, marginTop: 4 }}>{t('incomplete_coverage')}</div>
           <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>Profil projet non entièrement affecté</div>
         </div>
         <div className="card" style={{ borderLeft: `3px solid ${overloaded.length > 0 ? 'var(--danger)' : 'var(--success)'}` }}>
           <div style={{ fontSize: 28, fontWeight: 700, fontFamily: 'DM Mono, monospace', color: overloaded.length > 0 ? 'var(--danger)' : 'var(--success)' }}>{overloaded.length}</div>
-          <div style={{ fontSize: 13, fontWeight: 600, marginTop: 4 }}>Ressources surchargées</div>
-          <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>Taux d'occupation &gt; 100% sur {yearFilter}</div>
+          <div style={{ fontSize: 13, fontWeight: 600, marginTop: 4 }}>{t('overloaded_resources')}</div>
+          <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>{t('overloaded_desc').replace('{year}', yearFilter)}</div>
         </div>
         <div className="card" style={{ borderLeft: `3px solid ${underused.length > 0 ? 'var(--warning)' : 'var(--success)'}` }}>
           <div style={{ fontSize: 28, fontWeight: 700, fontFamily: 'DM Mono, monospace', color: underused.length > 0 ? 'var(--warning)' : 'var(--success)' }}>{underused.length}</div>
-          <div style={{ fontSize: 13, fontWeight: 600, marginTop: 4 }}>Ressources sous-utilisées</div>
-          <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>Taux d'occupation &lt; 40% sur {yearFilter}</div>
+          <div style={{ fontSize: 13, fontWeight: 600, marginTop: 4 }}>{t('underused_resources')}</div>
+          <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>{t('underused_desc').replace('{year}', yearFilter)}</div>
         </div>
       </div>
 
@@ -131,7 +131,7 @@ export default function AlertsView({ data }: Props) {
         {/* Staff utilization panel */}
         <div>
           <div className="card" style={{ marginBottom: 12 }}>
-            <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 14 }}>{t('util_title', { year: yearFilter })}</div>
+            <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 14 }}>{t('util_rate_title').replace('{year}', yearFilter)}</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {staffSummary.map(s => {
                 const color = s.pct > 100 ? 'var(--danger)' : s.pct >= 70 ? 'var(--success)' : s.pct > 0 ? 'var(--warning)' : 'var(--text-faint)';
@@ -159,7 +159,7 @@ export default function AlertsView({ data }: Props) {
           {/* Overloaded alert box */}
           {overloaded.length > 0 && (
             <div className="card" style={{ borderColor: 'var(--danger)', borderLeft: '3px solid var(--danger)' }}>
-              <div style={{ fontWeight: 600, fontSize: 12, color: 'var(--danger)', marginBottom: 10 }}>⚡ Ressources surchargées</div>
+              <div style={{ fontWeight: 600, fontSize: 12, color: 'var(--danger)', marginBottom: 10 }}>{t('overloaded_box')}</div>
               {overloaded.map(s => (
                 <div key={s.id} style={{ fontSize: 12, marginBottom: 6, display: 'flex', justifyContent: 'space-between' }}>
                   <span style={{ color: 'var(--text)' }}>{s.name}</span>
@@ -172,7 +172,7 @@ export default function AlertsView({ data }: Props) {
           {/* Underused box */}
           {underused.length > 0 && (
             <div className="card" style={{ marginTop: 12, borderColor: 'var(--warning)', borderLeft: '3px solid var(--warning)' }}>
-              <div style={{ fontWeight: 600, fontSize: 12, color: 'var(--warning)', marginBottom: 10 }}>💤 Ressources sous-utilisées</div>
+              <div style={{ fontWeight: 600, fontSize: 12, color: 'var(--warning)', marginBottom: 10 }}>{t('underused_box')}</div>
               {underused.map(s => (
                 <div key={s.id} style={{ fontSize: 12, marginBottom: 6, display: 'flex', justifyContent: 'space-between' }}>
                   <span style={{ color: 'var(--text)' }}>{s.name}</span>

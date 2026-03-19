@@ -41,10 +41,10 @@ export default function Dashboard({ data, setView }: Props) {
   };
 
   const statCards = [
-    { label: t('active_projects'), value: data.projects.filter(p => p.status === '3-In progress').length, sub: `${data.projects.length} ${t('total')}`, color: 'var(--accent)' },
-    { label: t('resources'), value: data.staff.length, sub: `${data.staff.filter(s => s.type === 'External').length} ${t('external')}`, color: 'var(--purple)' },
-    { label: t('overload_alerts'), value: overcap.length, sub: t('month_resource'), color: overcap.length > 0 ? 'var(--danger)' : 'var(--success)' },
-    { label: t('coverage_incomplete'), value: uncovered.length, sub: t('uncovered_profiles'), color: uncovered.length > 0 ? 'var(--warning)' : 'var(--success)' },
+    { label: t('active_projects'), value: data.projects.filter(p => p.status === '3-In progress').length, sub: `${data.projects.length} ${t('stat_total')}`, color: 'var(--accent)' },
+    { label: t('resources'), value: data.staff.length, sub: `${data.staff.filter(s => s.type === 'External').length} ${t('stat_external')}`, color: 'var(--purple)' },
+    { label: t('overload_alerts'), value: overcap.length, sub: t('stat_month_resource'), color: overcap.length > 0 ? 'var(--danger)' : 'var(--success)' },
+    { label: t('coverage_incomplete'), value: uncovered.length, sub: t('stat_uncovered_profiles'), color: uncovered.length > 0 ? 'var(--warning)' : 'var(--success)' },
   ];
 
   return (
@@ -128,7 +128,7 @@ export default function Dashboard({ data, setView }: Props) {
 
       <div className="card" style={{ marginTop: 16 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-          <div style={{ fontWeight: 600, fontSize: 14 }}>{t('ongoing_projects')}</div>
+          <div style={{ fontWeight: 600, fontSize: 14 }}>{t('ongoing_title')}</div>
           <button className="btn btn-ghost btn-sm" onClick={() => setView('projects')}>{t('see_all')}</button>
         </div>
         <table className="data-table">

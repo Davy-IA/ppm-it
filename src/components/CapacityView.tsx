@@ -104,8 +104,8 @@ export default function CapacityView({ data }: Props) {
   return (
     <div className="animate-in">
       <div style={{ marginBottom: 24 }}>
-        <h1 style={{ fontSize: 22, fontWeight: 700, letterSpacing: '-0.02em' }}>Plan de capacité</h1>
-        <p style={{ color: 'var(--text-muted)', fontSize: 13, marginTop: 4 }}>Analyse capacité disponible vs charge projet</p>
+        <h1 style={{ fontSize: 22, fontWeight: 700, letterSpacing: '-0.02em' }}>{t('capacity_title')}</h1>
+        <p style={{ color: 'var(--text-muted)', fontSize: 13, marginTop: 4 }}>{t('capacity_subtitle')}</p>
       </div>
 
       {/* Controls */}

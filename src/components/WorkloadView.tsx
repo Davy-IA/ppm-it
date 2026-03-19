@@ -79,9 +79,9 @@ export default function WorkloadView({ data, updateData }: Props) {
     <div className="animate-in">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
         <div>
-          <h1 style={{ fontSize: 22, fontWeight: 700, letterSpacing: '-0.02em' }}>Charge & Staffing</h1>
+          <h1 style={{ fontSize: 22, fontWeight: 700, letterSpacing: '-0.02em' }}>{t('workload_title')}</h1>
           <p style={{ color: 'var(--text-muted)', fontSize: 13, marginTop: 4 }}>
-            Besoins en charge par profil et affectation des ressources
+            {t('workload_subtitle')}
           </p>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
@@ -90,7 +90,7 @@ export default function WorkloadView({ data, updateData }: Props) {
               const proj = data.projects[0];
               setEditingWorkload({ id: '', projectId: proj?.id ?? '', projectName: proj?.name ?? '', profile: 'FUNC', monthly: {} });
               setIsNew(true);
-            }}>+ Ajouter charge</button>
+            }}>{t('add_workload')}</button>
           )}
           {tab === 'allocation' && (
             <button className="btn btn-primary" onClick={() => {
