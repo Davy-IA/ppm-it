@@ -1,13 +1,18 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/auth-context';
+import { useSettings } from '@/lib/context';
 
 export default function LoginScreen() {
   const { login } = useAuth();
+  const { settings } = useSettings();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  const appName = settings.appName || 'VEJA Project Management';
+  const logo = settings.logo;
 
   const handleSubmit = async () => {
     if (!email || !password) return;
@@ -26,28 +31,52 @@ export default function LoginScreen() {
       </div>
 
       <div style={{ width: '100%', maxWidth: 420, position: 'relative', zIndex: 1 }}>
-        {/* Logo block */}
+        {/* Logo + nom */}
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
-          <div style={{ width: 56, height: 56, borderRadius: 16, background: 'var(--accent-gradient)', margin: '0 auto 16px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 8px 24px rgba(99,102,241,0.35)', fontSize: 24, color: '#fff', fontWeight: 800 }}>P</div>
-          <h1 style={{ fontSize: 24, fontWeight: 800, letterSpacing: '-0.03em', color: 'var(--text)', marginBottom: 6 }}>VEJA Project Management</h1>
-          <p style={{ color: 'var(--text-muted)', fontSize: 14 }}>Connectez-vous à votre espace de travail</p>
+          {logo ? (
+            <img
+              src={logo}
+              alt={appName}
+              style={{ height: 72, maxWidth: 240, objectFit: 'contain', margin: '0 auto 16px', display: 'block' }}
+            />
+          ) : (
+            <div style={{
+              width: 64, height: 64, borderRadius: 18,
+              background: 'var(--accent-gradient)',
+              margin: '0 auto 16px',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              boxShadow: '0 8px 24px rgba(99,102,241,0.35)',
+              fontSize: 28, color: '#fff', fontWeight: 800,
+            }}>
+              {appName.charAt(0).toUpperCase()}
+            </div>
+          )}
+          <h1 style={{ fontSize: 22, fontWeight: 800, letterSpacing: '-0.03em', color: 'var(--text)', marginBottom: 6 }}>
+            {appName}
+          </h1>
+          <p style={{ color: 'var(--text-muted)', fontSize: 14 }}>
+            Connectez-vous à votre espace de travail
+          </p>
         </div>
 
-        {/* Card */}
+        {/* Formulaire */}
         <div className="card" style={{ boxShadow: 'var(--shadow-lg)' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
             <div>
-              <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Adresse email</label>
+              <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                Adresse email
+              </label>
               <input
-                className="input" type="email" placeholder="vous@veja.fr"
+                className="input" type="email" placeholder="vous@entreprise.com"
                 value={email} onChange={e => setEmail(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && handleSubmit()}
-                autoFocus
-                style={{ fontSize: 14 }}
+                autoFocus style={{ fontSize: 14 }}
               />
             </div>
             <div>
-              <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Mot de passe</label>
+              <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                Mot de passe
+              </label>
               <input
                 className="input" type="password" placeholder="••••••••"
                 value={password} onChange={e => setPassword(e.target.value)}

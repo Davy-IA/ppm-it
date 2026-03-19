@@ -1,5 +1,6 @@
 'use client';
 import { useAuth } from '@/lib/auth-context';
+import { useSettings } from '@/lib/context';
 
 interface Space { id: string; name: string; description: string; color: string; icon: string; }
 
@@ -11,8 +12,10 @@ interface Props {
 
 export default function SpaceSelector({ spaces, onSelect, appName }: Props) {
   const { user, logout } = useAuth();
+  const { settings } = useSettings();
 
-  const canViewGlobal = user && ['superadmin', 'admin', 'global'].includes(user.role);
+  const displayName = settings.appName || appName;
+  const logo = settings.logo;
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
@@ -24,11 +27,20 @@ export default function SpaceSelector({ spaces, onSelect, appName }: Props) {
       <div style={{ width: '100%', maxWidth: 720, position: 'relative', zIndex: 1 }}>
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 40 }}>
-          <div>
-            <h1 style={{ fontSize: 26, fontWeight: 800, letterSpacing: '-0.03em', color: 'var(--text)' }}>{appName}</h1>
-            <p style={{ color: 'var(--text-muted)', fontSize: 14, marginTop: 4 }}>
-              Bonjour {user?.firstName} — choisissez votre espace de travail
-            </p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+            {logo ? (
+              <img src={logo} alt={displayName} style={{ height: 44, maxWidth: 160, objectFit: 'contain' }} />
+            ) : (
+              <div style={{ width: 44, height: 44, borderRadius: 12, background: 'var(--accent-gradient)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 800, fontSize: 20, boxShadow: '0 4px 12px rgba(99,102,241,0.35)', flexShrink: 0 }}>
+                {displayName.charAt(0).toUpperCase()}
+              </div>
+            )}
+            <div>
+              <h1 style={{ fontSize: 22, fontWeight: 800, letterSpacing: '-0.03em', color: 'var(--text)' }}>{displayName}</h1>
+              <p style={{ color: 'var(--text-muted)', fontSize: 13, marginTop: 2 }}>
+                Bonjour {user?.firstName} — choisissez votre espace de travail
+              </p>
+            </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <div style={{ textAlign: 'right' }}>
@@ -73,7 +85,7 @@ export default function SpaceSelector({ spaces, onSelect, appName }: Props) {
           ))}
 
           {/* Global portfolio */}
-          {canViewGlobal && (
+          {user && ['superadmin', 'admin', 'global'].includes(user.role) && (
             <button onClick={() => onSelect({ id: '__global__', name: 'Portfolio Global', description: 'Vue consolidée CODIR', color: '#f59e0b', icon: '🌐' })}
               style={{
                 background: 'linear-gradient(135deg, rgba(245,158,11,0.08), rgba(245,158,11,0.04))',
