@@ -10,8 +10,9 @@ import WorkloadView from './WorkloadView';
 import CapacityView from './CapacityView';
 import AlertsView from './AlertsView';
 import GanttView from './GanttView';
+import SettingsView from './SettingsView';
 
-export type View = 'dashboard' | 'projects' | 'gantt' | 'staff' | 'workload' | 'capacity' | 'alerts';
+export type View = 'dashboard' | 'projects' | 'gantt' | 'staff' | 'workload' | 'capacity' | 'alerts' | 'settings';
 
 export default function App() {
   const [view, setView] = useState<View>('dashboard');
@@ -48,6 +49,7 @@ export default function App() {
         {view === 'workload' && <WorkloadView data={data} updateData={updateData} />}
         {view === 'capacity' && <CapacityView data={data} updateData={updateData} />}
         {view === 'alerts' && <AlertsView data={data} />}
+        {view === 'settings' && <SettingsView data={data} updateData={updateData} />}
       </main>
     </div>
   );
