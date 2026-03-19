@@ -2,10 +2,12 @@
 import { useState } from 'react';
 import { AppData, WorkloadEntry, AllocationEntry, MONTHS_2026_2028, PROFILES } from '@/types';
 import { v4 as uuid } from 'uuid';
+import { useSettings } from '@/lib/context';
 
 interface Props { data: AppData; updateData: (d: AppData) => void; }
 
 export default function WorkloadView({ data, updateData }: Props) {
+  const { t } = useSettings();
   const [projectFilter, setProjectFilter] = useState('');
   const [yearFilter, setYearFilter] = useState('2026');
   const [tab, setTab] = useState<'workload' | 'allocation'>('workload');
@@ -102,7 +104,7 @@ export default function WorkloadView({ data, updateData }: Props) {
       {/* Filters + tabs */}
       <div style={{ display: 'flex', gap: 10, marginBottom: 16, flexWrap: 'wrap' }}>
         <select className="input" value={projectFilter} onChange={e => setProjectFilter(e.target.value)} style={{ maxWidth: 300 }}>
-          <option value="">Tous les projets</option>
+          <option value="">{t('filter_all_projects')}</option>
           {data.projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
         </select>
         <select className="input" value={yearFilter} onChange={e => setYearFilter(e.target.value)} style={{ maxWidth: 100 }}>
@@ -111,8 +113,8 @@ export default function WorkloadView({ data, updateData }: Props) {
           <option value="2028">2028</option>
         </select>
         <div style={{ display: 'flex', background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 6, padding: 3, gap: 3 }}>
-          <button className={`btn btn-sm ${tab === 'workload' ? 'btn-primary' : 'btn-ghost'}`} onClick={() => setTab('workload')}>Charge prévue</button>
-          <button className={`btn btn-sm ${tab === 'allocation' ? 'btn-primary' : 'btn-ghost'}`} onClick={() => setTab('allocation')}>Affectations</button>
+          <button className={`btn btn-sm ${tab === 'workload' ? 'btn-primary' : 'btn-ghost'}`} onClick={() => setTab('workload')}>{t('tab_workload')}</button>
+          <button className={`btn btn-sm ${tab === 'allocation' ? 'btn-primary' : 'btn-ghost'}`} onClick={() => setTab('allocation')}>{t('tab_alloc')}</button>
         </div>
       </div>
 
@@ -124,9 +126,9 @@ export default function WorkloadView({ data, updateData }: Props) {
               <thead>
                 <tr>
                   <th className="sticky-left" style={{ minWidth: 220 }}>Projet</th>
-                  <th>Profil</th>
+                  <th>{t('col_profile')}</th>
                   {months.map(m => <th key={m} className="cap-cell">{monthLabel(m)}</th>)}
-                  <th>Total</th>
+                  <th>{t('total')}</th>
                   <th></th>
                 </tr>
               </thead>
@@ -182,10 +184,10 @@ export default function WorkloadView({ data, updateData }: Props) {
               <thead>
                 <tr>
                   <th className="sticky-left" style={{ minWidth: 220 }}>Projet</th>
-                  <th>Profil</th>
-                  <th style={{ minWidth: 160 }}>Ressource</th>
+                  <th>{t('col_profile')}</th>
+                  <th style={{ minWidth: 160 }}>{t('col_resource')}</th>
                   {months.map(m => <th key={m} className="cap-cell">{monthLabel(m)}</th>)}
-                  <th>Total</th>
+                  <th>{t('total')}</th>
                   <th></th>
                 </tr>
               </thead>
@@ -235,7 +237,7 @@ export default function WorkloadView({ data, updateData }: Props) {
         <div className="modal-overlay" onClick={() => setEditingWorkload(null)}>
           <div className="modal" style={{ maxWidth: 820 }} onClick={e => e.stopPropagation()}>
             <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h2 style={{ fontSize: 16, fontWeight: 700 }}>{isNew ? 'Nouvelle charge' : 'Modifier charge'}</h2>
+              <h2 style={{ fontSize: 16, fontWeight: 700 }}>{isNew ? t('new_workload') : t('edit_workload')}</h2>
               <button className="btn btn-ghost btn-sm" onClick={() => setEditingWorkload(null)}>✕</button>
             </div>
             <div style={{ padding: 24 }}>
@@ -275,8 +277,8 @@ export default function WorkloadView({ data, updateData }: Props) {
               ))}
             </div>
             <div style={{ padding: '16px 24px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
-              <button className="btn btn-ghost" onClick={() => setEditingWorkload(null)}>Annuler</button>
-              <button className="btn btn-primary" onClick={saveWorkload}>Enregistrer</button>
+              <button className="btn btn-ghost" onClick={() => setEditingWorkload(null)}>{t('btn_cancel')}</button>
+              <button className="btn btn-primary" onClick={saveWorkload}>{t('btn_save')}</button>
             </div>
           </div>
         </div>
@@ -287,7 +289,7 @@ export default function WorkloadView({ data, updateData }: Props) {
         <div className="modal-overlay" onClick={() => setEditingAlloc(null)}>
           <div className="modal" style={{ maxWidth: 820 }} onClick={e => e.stopPropagation()}>
             <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h2 style={{ fontSize: 16, fontWeight: 700 }}>{isNew ? 'Nouvelle affectation' : 'Modifier affectation'}</h2>
+              <h2 style={{ fontSize: 16, fontWeight: 700 }}>{isNew ? t('new_assignment') : t('edit_assignment')}</h2>
               <button className="btn btn-ghost btn-sm" onClick={() => setEditingAlloc(null)}>✕</button>
             </div>
             <div style={{ padding: 24 }}>
@@ -353,8 +355,8 @@ export default function WorkloadView({ data, updateData }: Props) {
               ))}
             </div>
             <div style={{ padding: '16px 24px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
-              <button className="btn btn-ghost" onClick={() => setEditingAlloc(null)}>Annuler</button>
-              <button className="btn btn-primary" onClick={saveAlloc}>Enregistrer</button>
+              <button className="btn btn-ghost" onClick={() => setEditingAlloc(null)}>{t('btn_cancel')}</button>
+              <button className="btn btn-primary" onClick={saveAlloc}>{t('btn_save')}</button>
             </div>
           </div>
         </div>

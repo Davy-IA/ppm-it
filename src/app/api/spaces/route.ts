@@ -43,3 +43,38 @@ export async function POST(req: NextRequest) {
 
   return NextResponse.json({ space: data });
 }
+
+export async function PUT(req: NextRequest) {
+  const token = getTokenFromRequest(req);
+  if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  const user = await getSessionUser(token);
+  if (!user || !['superadmin', 'admin'].includes(user.role)) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  }
+  const body = await req.json();
+  const { data, error } = await supabaseAdmin
+    .from('spaces')
+    .update({ name: body.name, description: body.description, color: body.color, icon: body.icon, active: body.active })
+    .eq('id', body.id)
+    .select()
+    .single();
+  if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+  return NextResponse.json({ space: data });
+}
+
+export async function DELETE(req: NextRequest) {
+  const token = getTokenFromRequest(req);
+  if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  const user = await getSessionUser(token);
+  if (!user || !['superadmin', 'admin'].includes(user.role)) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  }
+  const { searchParams } = new URL(req.url);
+  const id = searchParams.get('id');
+  if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 400 });
+  // Delete space data first
+  await supabaseAdmin.from('space_data').delete().eq('space_id', id);
+  await supabaseAdmin.from('user_spaces').delete().eq('space_id', id);
+  await supabaseAdmin.from('spaces').delete().eq('id', id);
+  return NextResponse.json({ ok: true });
+}

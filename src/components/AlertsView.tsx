@@ -1,11 +1,13 @@
 'use client';
 import { useState } from 'react';
+import { useSettings } from '@/lib/context';
 import { AppData, MONTHS_2026_2028 } from '@/types';
 import { computeAlerts, getStaffUtilization } from '@/lib/alerts';
 
 interface Props { data: AppData; }
 
 export default function AlertsView({ data }: Props) {
+  const { t } = useSettings();
   const [filter, setFilter] = useState<'all' | 'overcapacity' | 'uncovered'>('all');
   const [yearFilter, setYearFilter] = useState('2026');
 

@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { AppData, Staff, MONTHS_2026_2028, PROFILES, DEPARTMENTS, COUNTRIES } from '@/types';
 import { v4 as uuid } from 'uuid';
+import { useSettings } from '@/lib/context';
 
 interface Props { data: AppData; updateData: (d: AppData) => void; }
 
@@ -12,6 +13,7 @@ const EMPTY_STAFF: Omit<Staff, 'id'> = {
 export default function StaffView({ data, updateData }: Props) {
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
+  const { t } = useSettings();
   const [editing, setEditing] = useState<Staff | null>(null);
   const [isNew, setIsNew] = useState(false);
   const [yearFilter, setYearFilter] = useState('2026');
@@ -70,11 +72,11 @@ export default function StaffView({ data, updateData }: Props) {
 
       {/* Filters */}
       <div style={{ display: 'flex', gap: 10, marginBottom: 16 }}>
-        <input className="input" placeholder="Rechercher..." value={search} onChange={e => setSearch(e.target.value)} style={{ maxWidth: 240 }} />
+        <input className="input" placeholder={t('search')} value={search} onChange={e => setSearch(e.target.value)} style={{ maxWidth: 240 }} />
         <select className="input" value={typeFilter} onChange={e => setTypeFilter(e.target.value)} style={{ maxWidth: 160 }}>
-          <option value="">Tous types</option>
-          <option value="Internal">Interne</option>
-          <option value="External">Externe</option>
+          <option value="">{t('filter_all_types')}</option>
+          <option value="Internal">{t('contract_internal')}</option>
+          <option value="External">{t('contract_external')}</option>
         </select>
         <select className="input" value={yearFilter} onChange={e => setYearFilter(e.target.value)} style={{ maxWidth: 120 }}>
           <option value="2026">2026</option>
@@ -89,10 +91,10 @@ export default function StaffView({ data, updateData }: Props) {
           <table className="data-table">
             <thead>
               <tr>
-                <th className="sticky-left" style={{ minWidth: 200 }}>Ressource</th>
-                <th>Profil</th>
-                <th>Type</th>
-                <th>Entité</th>
+                <th className="sticky-left" style={{ minWidth: 200 }}>{t('project_name').replace('Projet', 'Ressource') || 'Ressource'}</th>
+                <th>{t('col_profile')}</th>
+                <th>{t('col_type')}</th>
+                <th>{t('col_entity')}</th>
                 {months.map(m => {
                   const label = new Date(m + '-01').toLocaleDateString('fr-FR', { month: 'short' });
                   return <th key={m} className="cap-cell">{label}</th>;
@@ -117,7 +119,7 @@ export default function StaffView({ data, updateData }: Props) {
                       {s.type === 'External' && <span className="badge badge-yellow" style={{ marginLeft: 6, fontSize: 10 }}>Ext.</span>}
                     </td>
                     <td><span className="badge badge-blue">{s.profile}</span></td>
-                    <td style={{ color: 'var(--text-muted)', fontSize: 12 }}>{s.type === 'Internal' ? 'Interne' : 'Externe'}</td>
+                    <td style={{ color: 'var(--text-muted)', fontSize: 12 }}>{s.type === 'Internal' ? t('contract_internal') : t('external_label')}</td>
                     <td style={{ color: 'var(--text-muted)' }}>{s.entity}</td>
                     {months.map(m => {
                       const cap = s.capacity[m] ?? 0;
@@ -135,7 +137,7 @@ export default function StaffView({ data, updateData }: Props) {
                     })}
                     <td>
                       <div style={{ display: 'flex', gap: 4 }}>
-                        <button className="btn btn-ghost btn-sm" onClick={() => { setEditing({ ...s }); setIsNew(false); }}>Éditer</button>
+                        <button className="btn btn-ghost btn-sm" onClick={() => { setEditing({ ...s }); setIsNew(false); }}>{t('btn_edit')}</button>
                         <button className="btn btn-danger btn-sm" onClick={() => remove(s.id)}>✕</button>
                       </div>
                     </td>
@@ -152,7 +154,7 @@ export default function StaffView({ data, updateData }: Props) {
         <div className="modal-overlay" onClick={() => setEditing(null)}>
           <div className="modal" style={{ maxWidth: 780 }} onClick={e => e.stopPropagation()}>
             <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h2 style={{ fontSize: 16, fontWeight: 700 }}>{isNew ? 'Nouvelle ressource' : `Éditer — ${editing.name}`}</h2>
+              <h2 style={{ fontSize: 16, fontWeight: 700 }}>{isNew ? t('new_staff') : `Éditer — ${editing.name}`}</h2>
               <button className="btn btn-ghost btn-sm" onClick={() => setEditing(null)}>✕</button>
             </div>
             <div style={{ padding: 24 }}>
@@ -171,8 +173,8 @@ export default function StaffView({ data, updateData }: Props) {
                 <div>
                   <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>Type de contrat</label>
                   <select className="input" value={editing.type} onChange={e => setEditing({ ...editing, type: e.target.value as 'Internal' | 'External' })}>
-                    <option value="Internal">Interne</option>
-                    <option value="External">Externe</option>
+                    <option value="Internal">{t('contract_internal')}</option>
+                    <option value="External">{t('contract_external')}</option>
                   </select>
                 </div>
                 <div>
@@ -194,8 +196,8 @@ export default function StaffView({ data, updateData }: Props) {
                 <div key={year} style={{ marginBottom: 20 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
                     <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>Disponibilité {year}</div>
-                    <button className="btn btn-ghost btn-sm" onClick={() => fillYear(21)}>Remplir 21j</button>
-                    <button className="btn btn-ghost btn-sm" onClick={() => fillYear(0)}>Vider</button>
+                    <button className="btn btn-ghost btn-sm" onClick={() => fillYear(21)}>{t('btn_fill21')}</button>
+                    <button className="btn btn-ghost btn-sm" onClick={() => fillYear(0)}>{t('btn_clear')}</button>
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(12, 1fr)', gap: 6 }}>
                     {MONTHS_2026_2028.filter(m => m.startsWith(year)).map(m => {
@@ -219,8 +221,8 @@ export default function StaffView({ data, updateData }: Props) {
               ))}
             </div>
             <div style={{ padding: '16px 24px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
-              <button className="btn btn-ghost" onClick={() => setEditing(null)}>Annuler</button>
-              <button className="btn btn-primary" onClick={save} disabled={!editing.name}>Enregistrer</button>
+              <button className="btn btn-ghost" onClick={() => setEditing(null)}>{t('btn_cancel')}</button>
+              <button className="btn btn-primary" onClick={save} disabled={!editing.name}>{t('btn_save')}</button>
             </div>
           </div>
         </div>

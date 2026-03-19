@@ -12,15 +12,35 @@ export default function SpacesManager({ spaces, onRefresh }: Props) {
   const { token } = useAuth();
   const [editing, setEditing] = useState<Partial<Space> | null>(null);
   const [isNew, setIsNew] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState<Space | null>(null);
 
   const save = async () => {
     if (!editing?.name) return;
+    const method = isNew ? 'POST' : 'PUT';
     const r = await fetch('/api/spaces', {
-      method: 'POST',
+      method,
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
       body: JSON.stringify(editing),
     });
     if (r.ok) { onRefresh(); setEditing(null); }
+    else { const d = await r.json(); alert(d.error); }
+  };
+
+  const toggleActive = async (space: Space) => {
+    await fetch('/api/spaces', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ ...space, active: !space.active }),
+    });
+    onRefresh();
+  };
+
+  const deleteSpace = async (space: Space) => {
+    const r = await fetch(`/api/spaces?id=${space.id}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (r.ok) { onRefresh(); setConfirmDelete(null); }
     else { const d = await r.json(); alert(d.error); }
   };
 
@@ -41,18 +61,24 @@ export default function SpacesManager({ spaces, onRefresh }: Props) {
                 <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>{space.description || '—'}</div>
               </div>
             </div>
-            <div style={{ display: 'flex', gap: 6 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, justifyContent: 'space-between' }}>
               <span className={`badge ${space.active ? 'badge-green' : 'badge-gray'}`}>{space.active ? 'Actif' : 'Inactif'}</span>
+              <div style={{ display: 'flex', gap: 6 }}>
+                <button className="btn btn-ghost btn-sm" onClick={() => { setEditing({ ...space }); setIsNew(false); }}>Éditer</button>
+                <button className="btn btn-ghost btn-sm" onClick={() => toggleActive(space)}>{space.active ? 'Désactiver' : 'Activer'}</button>
+                <button className="btn btn-danger btn-sm" onClick={() => setConfirmDelete(space)}>✕</button>
+              </div>
             </div>
           </div>
         ))}
       </div>
 
+      {/* Create/Edit modal */}
       {editing && (
         <div className="modal-overlay" onClick={() => setEditing(null)}>
           <div className="modal" style={{ maxWidth: 480 }} onClick={e => e.stopPropagation()}>
             <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ fontWeight: 700, fontSize: 15 }}>Nouvel espace</span>
+              <span style={{ fontWeight: 700, fontSize: 15 }}>{isNew ? 'Nouvel espace' : `Modifier — ${editing.name}`}</span>
               <button className="btn-icon" onClick={() => setEditing(null)}>✕</button>
             </div>
             <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -79,7 +105,31 @@ export default function SpacesManager({ spaces, onRefresh }: Props) {
             </div>
             <div style={{ padding: '16px 24px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
               <button className="btn btn-ghost" onClick={() => setEditing(null)}>Annuler</button>
-              <button className="btn btn-primary" onClick={save} disabled={!editing.name}>Créer l'espace</button>
+              <button className="btn btn-primary" onClick={save} disabled={!editing.name}>{isNew ? "Créer l'espace" : 'Enregistrer'}</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete confirm modal */}
+      {confirmDelete && (
+        <div className="modal-overlay" onClick={() => setConfirmDelete(null)}>
+          <div className="modal" style={{ maxWidth: 400 }} onClick={e => e.stopPropagation()}>
+            <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border)' }}>
+              <span style={{ fontWeight: 700, fontSize: 15 }}>Supprimer l'espace</span>
+            </div>
+            <div style={{ padding: 24 }}>
+              <div style={{ background: 'var(--danger-subtle)', border: '1px solid var(--danger)', borderRadius: 8, padding: '12px 14px', marginBottom: 16 }}>
+                <div style={{ fontWeight: 700, color: 'var(--danger)', marginBottom: 4 }}>⚠ Action irréversible</div>
+                <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>
+                  Supprimer <strong>"{confirmDelete.name}"</strong> supprimera également toutes ses données (projets, ressources, Gantt…).
+                </div>
+              </div>
+              <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>Êtes-vous sûr de vouloir continuer ?</div>
+            </div>
+            <div style={{ padding: '16px 24px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
+              <button className="btn btn-ghost" onClick={() => setConfirmDelete(null)}>Annuler</button>
+              <button className="btn btn-danger" onClick={() => deleteSpace(confirmDelete)}>Supprimer définitivement</button>
             </div>
           </div>
         </div>

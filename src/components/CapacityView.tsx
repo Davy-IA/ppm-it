@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { AppData, MONTHS_2026_2028, PROFILES } from '@/types';
+import { useSettings } from '@/lib/context';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine, Cell } from 'recharts';
 
 interface Props { data: AppData; updateData: (d: AppData) => void; }
@@ -8,6 +9,7 @@ interface Props { data: AppData; updateData: (d: AppData) => void; }
 type ViewMode = 'staff' | 'project' | 'profile';
 
 export default function CapacityView({ data }: Props) {
+  const { t } = useSettings();
   const [yearFilter, setYearFilter] = useState('2026');
   const [viewMode, setViewMode] = useState<ViewMode>('staff');
   const [profileFilter, setProfileFilter] = useState('');
@@ -109,7 +111,7 @@ export default function CapacityView({ data }: Props) {
         <div style={{ display: 'flex', background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 6, padding: 3, gap: 3 }}>
           {(['staff', 'project', 'profile'] as ViewMode[]).map(m => (
             <button key={m} className={`btn btn-sm ${viewMode === m ? 'btn-primary' : 'btn-ghost'}`} onClick={() => setViewMode(m)}>
-              {m === 'staff' ? 'Par ressource' : m === 'project' ? 'Par projet' : 'Par profil'}
+              {m === 'staff' ? t('by_resource') : m === 'project' ? t('by_project') : t('by_profile')}
             </button>
           ))}
         </div>
@@ -119,7 +121,7 @@ export default function CapacityView({ data }: Props) {
           <option value="2028">2028</option>
         </select>
         <select className="input" value={profileFilter} onChange={e => setProfileFilter(e.target.value)} style={{ maxWidth: 140 }}>
-          <option value="">Tous profils</option>
+          <option value="">{t('filter_all_profiles')}</option>
           {PROFILES.map(p => <option key={p}>{p}</option>)}
         </select>
       </div>
@@ -159,11 +161,11 @@ export default function CapacityView({ data }: Props) {
               <thead>
                 <tr>
                   <th className="sticky-left" style={{ minWidth: 200 }}>Ressource</th>
-                  <th>Profil</th>
+                  <th>{t('col_profile')}</th>
                   {months.map(m => <th key={m} className="cap-cell">{monthLabel(m)}</th>)}
-                  <th>Dispo totale</th>
-                  <th>Alloué total</th>
-                  <th>Taux</th>
+                  <th>{t('col_total_avail')}</th>
+                  <th>{t('col_total_alloc')}</th>
+                  <th>{t('col_rate')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -225,7 +227,7 @@ export default function CapacityView({ data }: Props) {
                       <th style={{ minWidth: 80 }}>Profil</th>
                       <th style={{ minWidth: 80 }}>Ligne</th>
                       {months.map(m => <th key={m} className="cap-cell">{monthLabel(m)}</th>)}
-                      <th>Total</th>
+                      <th>{t('total')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -233,7 +235,7 @@ export default function CapacityView({ data }: Props) {
                       <>
                         <tr key={`${p.id}-${prof}-w`} style={{ background: 'rgba(61,126,255,0.04)' }}>
                           <td rowSpan={2} style={{ fontWeight: 600 }}><span className="badge badge-blue">{prof}</span></td>
-                          <td style={{ fontSize: 11, color: 'var(--text-muted)' }}>Besoin</td>
+                          <td style={{ fontSize: 11, color: 'var(--text-muted)' }}>{t('col_need')}</td>
                           {months.map(m => {
                             const need = p.wloads[prof][m] ?? 0;
                             return <td key={m} className="cap-cell" style={{ color: need > 0 ? 'var(--text)' : 'var(--text-faint)' }}>{need > 0 ? need : '—'}</td>;
@@ -243,7 +245,7 @@ export default function CapacityView({ data }: Props) {
                           </td>
                         </tr>
                         <tr key={`${p.id}-${prof}-a`}>
-                          <td style={{ fontSize: 11, color: 'var(--text-muted)' }}>Alloué</td>
+                          <td style={{ fontSize: 11, color: 'var(--text-muted)' }}>{t('col_allocated')}</td>
                           {months.map(m => {
                             const need = p.wloads[prof][m] ?? 0;
                             const alloc = p.allocs[prof][m] ?? 0;
@@ -279,7 +281,7 @@ export default function CapacityView({ data }: Props) {
                   <th style={{ minWidth: 100 }}>Profil</th>
                   <th style={{ minWidth: 100 }}>Métrique</th>
                   {months.map(m => <th key={m} className="cap-cell">{monthLabel(m)}</th>)}
-                  <th>Total</th>
+                  <th>{t('total')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -287,7 +289,7 @@ export default function CapacityView({ data }: Props) {
                   <>
                     <tr key={`${r.profile}-cap`}>
                       <td rowSpan={3} style={{ fontWeight: 700 }}><span className="badge badge-purple">{r.profile}</span></td>
-                      <td style={{ fontSize: 11, color: 'var(--text-muted)' }}>Capacité</td>
+                      <td style={{ fontSize: 11, color: 'var(--text-muted)' }}>{t('col_capacity')}</td>
                       {months.map(m => (
                         <td key={m} className="cap-cell" style={{ color: 'var(--text)' }}>{r.cap[m] > 0 ? r.cap[m] : '—'}</td>
                       ))}
@@ -296,7 +298,7 @@ export default function CapacityView({ data }: Props) {
                       </td>
                     </tr>
                     <tr key={`${r.profile}-wl`}>
-                      <td style={{ fontSize: 11, color: 'var(--text-muted)' }}>Besoin</td>
+                      <td style={{ fontSize: 11, color: 'var(--text-muted)' }}>{t('col_need')}</td>
                       {months.map(m => {
                         const need = r.workload[m] ?? 0;
                         const cap = r.cap[m] ?? 0;
@@ -308,7 +310,7 @@ export default function CapacityView({ data }: Props) {
                       </td>
                     </tr>
                     <tr key={`${r.profile}-gap`} style={{ borderBottom: '2px solid var(--border)' }}>
-                      <td style={{ fontSize: 11, color: 'var(--text-muted)' }}>Écart</td>
+                      <td style={{ fontSize: 11, color: 'var(--text-muted)' }}>{t('col_gap')}</td>
                       {months.map(m => {
                         const gap = (r.cap[m] ?? 0) - (r.workload[m] ?? 0);
                         const cls = gap < 0 ? 'cap-cell cap-over' : gap > 5 ? 'cap-cell cap-zero' : 'cap-cell cap-ok';
