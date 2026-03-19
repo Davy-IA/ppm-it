@@ -1,7 +1,23 @@
 'use client';
+import { useEffect, useState } from 'react';
 import { View } from './App';
-import { AppData, CapacityAlert } from '@/types';
+import { AppData } from '@/types';
 import { computeAlerts } from '@/lib/alerts';
+
+function useTheme() {
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  useEffect(() => {
+    const saved = localStorage.getItem('ppm-theme') as 'dark' | 'light' | null;
+    if (saved) { setTheme(saved); document.documentElement.setAttribute('data-theme', saved === 'light' ? 'light' : ''); }
+  }, []);
+  const toggle = () => {
+    const next = theme === 'dark' ? 'light' : 'dark';
+    setTheme(next);
+    document.documentElement.setAttribute('data-theme', next === 'light' ? 'light' : '');
+    localStorage.setItem('ppm-theme', next);
+  };
+  return { theme, toggle };
+}
 
 const NAV = [
   { id: 'dashboard', label: 'Tableau de bord', icon: '◈' },
@@ -24,6 +40,7 @@ interface Props {
 export default function Sidebar({ view, setView, open, setOpen, saving, data }: Props) {
   const alerts = computeAlerts(data);
   const alertCount = alerts.length;
+  const { theme, toggle } = useTheme();
 
   return (
     <aside style={{
@@ -87,10 +104,40 @@ export default function Sidebar({ view, setView, open, setOpen, saving, data }: 
           </div>
         )}
         {!saving && open && (
-          <div style={{ fontSize: 11, color: 'var(--text-faint)' }}>
+          <div style={{ fontSize: 11, color: 'var(--text-faint)', marginBottom: 10 }}>
             {data.projects.length} projets · {data.staff.length} ressources
           </div>
         )}
+
+        {/* Theme toggle */}
+        <button
+          onClick={toggle}
+          title={theme === 'dark' ? 'Passer en thème clair' : 'Passer en thème sombre'}
+          style={{
+            display: 'flex', alignItems: 'center', gap: open ? 8 : 0,
+            background: 'none', border: 'none', cursor: 'pointer',
+            padding: '4px 0', width: '100%',
+          }}
+        >
+          {/* Switch track */}
+          <div style={{
+            position: 'relative', width: 36, height: 20, flexShrink: 0,
+            background: theme === 'light' ? 'var(--accent)' : 'var(--border-light)',
+            borderRadius: 10, transition: 'background 0.2s',
+          }}>
+            <div style={{
+              position: 'absolute', top: 3, left: theme === 'light' ? 19 : 3,
+              width: 14, height: 14, borderRadius: '50%',
+              background: '#fff', transition: 'left 0.2s',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
+            }} />
+          </div>
+          {open && (
+            <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+              {theme === 'dark' ? '🌙 Sombre' : '☀️ Clair'}
+            </span>
+          )}
+        </button>
       </div>
     </aside>
   );
