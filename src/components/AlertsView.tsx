@@ -103,18 +103,18 @@ export default function AlertsView({ data }: Props) {
                   <div style={{ flex: 1 }}>
                     {isOver ? (
                       <>
-                        <div style={{ fontWeight: 600, color, fontSize: 13 }}>Surcharge — {a.staffName}</div>
+                        <div style={{ fontWeight: 600, color, fontSize: 13 }}>{t('overload_alert').replace('{name}', a.staffName??'')}</div>
                         <div style={{ color: 'var(--text-muted)', fontSize: 12, marginTop: 2 }}>
-                          En <strong>{monthFmt}</strong> : {a.allocated}j alloués pour {a.capacity}j disponibles
+                          {t('in_month')} <strong>{monthFmt}</strong> : {a.allocated}{t('days')} / {a.capacity}{t('days')}
                           <span style={{ color, fontWeight: 600 }}> (+{a.value?.toFixed(1)}j)</span>
                         </div>
                       </>
                     ) : (
                       <>
-                        <div style={{ fontWeight: 600, color, fontSize: 13 }}>Couverture incomplète — {a.projectName}</div>
+                        <div style={{ fontWeight: 600, color, fontSize: 13 }}>{t('coverage_alert').replace('{project}', a.projectName??'')}</div>
                         <div style={{ color: 'var(--text-muted)', fontSize: 12, marginTop: 2 }}>
                           Profil <strong>{a.profile}</strong> en <strong>{monthFmt}</strong> : {a.allocated}j affectés pour {a.workload}j requis
-                          <span style={{ color, fontWeight: 600 }}> (manque {a.value?.toFixed(1)}j)</span>
+                          <span style={{ color, fontWeight: 600 }}> (-{a.value?.toFixed(1)}{t('days')})</span>
                         </div>
                       </>
                     )}

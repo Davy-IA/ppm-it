@@ -115,8 +115,8 @@ export default function WorkloadView({ data, updateData }: Props) {
           <option value="2028">2028</option>
         </select>
         <div style={{ display: 'flex', background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 6, padding: 3, gap: 3 }}>
-          <button className={`btn btn-sm ${tab === 'workload' ? 'btn-primary' : 'btn-ghost'}`} onClick={() => setTab('workload')}>{t('tab_workload')}</button>
-          <button className={`btn btn-sm ${tab === 'allocation' ? 'btn-primary' : 'btn-ghost'}`} onClick={() => setTab('allocation')}>{t('tab_alloc')}</button>
+          <button className={`btn btn-sm ${tab === 'workload' ? 'btn-primary' : 'btn-ghost'}`} onClick={() => setTab('workload')}>{t('planned_load')}</button>
+          <button className={`btn btn-sm ${tab === 'allocation' ? 'btn-primary' : 'btn-ghost'}`} onClick={() => setTab('allocation')}>{t('assignments')}</button>
         </div>
       </div>
 
@@ -171,9 +171,9 @@ export default function WorkloadView({ data, updateData }: Props) {
             </table>
           </div>
           <div style={{ padding: '10px 16px', borderTop: '1px solid var(--border)', fontSize: 11, color: 'var(--text-faint)', display: 'flex', gap: 16 }}>
-            <span style={{ color: 'var(--success)' }}>■ Couvert</span>
-            <span style={{ color: 'var(--warning)' }}>■ Partiellement couvert</span>
-            <span style={{ color: 'var(--danger)' }}>■ Non couvert</span>
+            <span style={{ color: 'var(--success)' }}>{`■ ${t('covered')}`}</span>
+            <span style={{ color: 'var(--warning)' }}>{`■ ${t('partial')}`}</span>
+            <span style={{ color: 'var(--danger)' }}>{`■ ${t('uncovered')}`}</span>
           </div>
         </div>
       )}

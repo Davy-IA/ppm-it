@@ -59,7 +59,7 @@ export default function ProjectsView({ data, updateData }: Props) {
     <div className="animate-in">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
         <div>
-          <h1 style={{ fontSize: 22, fontWeight: 700, letterSpacing: '-0.02em' }}>Portefeuille projets</h1>
+          <h1 className="page-title">Portefeuille projets</h1>
           <p style={{ color: 'var(--text-muted)', fontSize: 13, marginTop: 4 }}>{data.projects.length} projets au total</p>
         </div>
         <button className="btn btn-primary" onClick={() => { setEditing({ id: '', ...EMPTY_PROJECT }); setIsNew(true); }}>

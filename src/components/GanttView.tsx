@@ -110,7 +110,7 @@ export default function GanttView({ data, updateData }: Props) {
       <div className="page-header">
         <div>
           <h1 className="page-title">Planning Gantt</h1>
-          <p className="page-subtitle">Phases et sous-phases avec dépendances et propagation automatique</p>
+          <p className="page-subtitle">{t("gantt_subtitle")}</p>
         </div>
         <button className="btn btn-primary" onClick={() => {
           setEditPhase({ id: uuid(), projectId: selProj, name: '', startDate: new Date().toISOString().slice(0,10), duration: 30, color: PHASE_COLORS[phases.length % PHASE_COLORS.length], dependsOn: null, subphases: [] } as unknown as GanttPhase);
@@ -123,29 +123,29 @@ export default function GanttView({ data, updateData }: Props) {
         <select className="input" value={selProj} onChange={e => setSelProj(e.target.value)} style={{ maxWidth: 340, fontWeight: 600 }}>
           {data.projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
         </select>
-        {project?.startDate && <span className="badge badge-blue">Début : {fmt(project.startDate)}</span>}
+        {project?.startDate && <span className="badge badge-blue">{t('gantt_start')} : {fmt(project.startDate)}</span>}
         {goLive && <span className="badge badge-purple">Go-Live : {fmt(goLive)}</span>}
-        <span className="badge badge-gray">{phases.length} phase{phases.length !== 1 ? 's' : ''} · {phases.reduce((s,p)=>s+p.subphases.length,0)} sous-phases</span>
+        <span className="badge badge-gray">{phases.length} {t('gantt_phases').toLowerCase()} · {phases.reduce((s,p)=>s+p.subphases.length,0)} {t('gantt_subphases').toLowerCase()}</span>
       </div>
 
       {/* Coherence alert */}
       {overdue && <div style={{ marginBottom: 14, padding: '12px 16px', background: 'var(--danger-subtle)', border: '1px solid var(--danger)', borderRadius: 'var(--radius-sm)', color: 'var(--danger)', fontSize: 13, fontWeight: 500, display:'flex', gap:10, alignItems:'center' }}>
         <span style={{fontSize:20}}>⚠</span>
-        <div><strong>Fin du planning ({fmt(ganttEnd!)}) dépasse le Go-Live projet ({fmt(goLive!)})</strong><br/><span style={{fontSize:12,opacity:0.8}}>Ajustez les durées des phases ou mettez à jour le Go-Live dans le portefeuille.</span></div>
+        <div><strong>{t('overdue_alert').replace('{end}', fmt(ganttEnd!)).replace('{golive}', fmt(goLive!))}</strong><br/><span style={{fontSize:12,opacity:0.8}}>{t('overdue_hint')}</span></div>
       </div>}
       {!overdue && ganttEnd && goLive && <div style={{ marginBottom: 14, padding: '10px 16px', background: 'var(--success-subtle)', border: '1px solid var(--success)', borderRadius: 'var(--radius-sm)', color: 'var(--success)', fontSize: 13, fontWeight: 600, display:'flex', gap:8, alignItems:'center' }}>
-        ✓ Planning cohérent — fin Gantt : {fmt(ganttEnd)} ≤ Go-Live : {fmt(goLive)}
+        {t('gantt_ok').replace('{end}', fmt(ganttEnd??'')).replace('{golive}', fmt(goLive??''))}
       </div>}
 
       {/* KPI row */}
       {phases.length > 0 && range && (
         <div style={{ display: 'flex', gap: 12, marginBottom: 18, flexWrap: 'wrap' }}>
           {[
-            { label: 'Début', value: fmt(range.start) },
-            { label: 'Fin prévue', value: fmt(ganttEnd!), danger: !!overdue },
-            { label: 'Durée', value: `${daysBetween(range.start, ganttEnd!)}j` },
-            { label: 'Phases', value: phases.length },
-            { label: 'Sous-phases', value: phases.reduce((s,p)=>s+p.subphases.length,0) },
+            { label: t('gantt_start'), value: fmt(range.start) },
+            { label: t('gantt_end'), value: fmt(ganttEnd!), danger: !!overdue },
+            { label: t('gantt_duration'), value: `${daysBetween(range.start, ganttEnd!)}${t('days')}` },
+            { label: t('gantt_phases'), value: phases.length },
+            { label: t('gantt_subphases'), value: phases.reduce((s,p)=>s+p.subphases.length,0) },
           ].map(k => (
             <div key={k.label} className="card" style={{ padding: '10px 18px', minWidth: 110 }}>
               <div style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--text-faint)', marginBottom: 4 }}>{k.label}</div>
@@ -268,7 +268,7 @@ export default function GanttView({ data, updateData }: Props) {
         <div className="modal-overlay" onClick={()=>{setEditPhase(null);setIsNew(false);}}>
           <div className="modal" style={{maxWidth:520}} onClick={e=>e.stopPropagation()}>
             <div style={{padding:'20px 24px',borderBottom:'1px solid var(--border)',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-              <span style={{fontWeight:700,fontSize:15}}>{isNew?'Nouvelle phase':'Modifier la phase'}</span>
+              <span style={{fontWeight:700,fontSize:15}}>{isNew?t('new_phase_title'):t('edit_phase_title')}</span>
               <button className="btn-icon" onClick={()=>{setEditPhase(null);setIsNew(false);}}>✕</button>
             </div>
             <div style={{padding:24,display:'flex',flexDirection:'column',gap:16}}>

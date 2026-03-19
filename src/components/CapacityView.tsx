@@ -130,7 +130,7 @@ export default function CapacityView({ data }: Props) {
 
       {/* Summary chart */}
       <div className="card" style={{ marginBottom: 16 }}>
-        <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 12, color: 'var(--text-muted)' }}>Vue synthétique {yearFilter} — Capacité vs Besoin (jours)</div>
+        <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 12, color: 'var(--text-muted)' }}>{t('summary_chart').replace('{year}', yearFilter)}</div>
         <ResponsiveContainer width="100%" height={180}>
           <BarChart data={chartData} barGap={3} barSize={18}>
             <XAxis dataKey="month" tick={{ fill: 'var(--text-muted)', fontSize: 11 }} axisLine={false} tickLine={false} />
@@ -149,9 +149,9 @@ export default function CapacityView({ data }: Props) {
           </BarChart>
         </ResponsiveContainer>
         <div style={{ display: 'flex', gap: 20, marginTop: 8, fontSize: 11, color: 'var(--text-faint)' }}>
-          <span><span style={{ color: 'rgba(61,126,255,0.6)' }}>■</span> Capacité disponible</span>
-          <span><span style={{ color: 'var(--success)' }}>■</span> Charge couverte</span>
-          <span><span style={{ color: 'var(--danger)' }}>■</span> Surcharge / Besoin dépassé</span>
+          <span><span style={{ color: 'rgba(61,126,255,0.6)' }}>■</span> {t('available_cap')}</span>
+          <span><span style={{ color: 'var(--success)' }}>■</span> {t('covered_load')}</span>
+          <span><span style={{ color: 'var(--danger)' }}>■</span> {t('overload')}</span>
         </div>
       </div>
 
@@ -204,10 +204,10 @@ export default function CapacityView({ data }: Props) {
             </table>
           </div>
           <div style={{ padding: '10px 16px', borderTop: '1px solid var(--border)', fontSize: 11, color: 'var(--text-faint)', display: 'flex', gap: 16 }}>
-            <span style={{ color: 'var(--success)' }}>■ ≥80% utilisé</span>
-            <span style={{ color: 'var(--warning)' }}>■ Sous-utilisé</span>
-            <span style={{ color: 'var(--danger)' }}>■ Surchargé</span>
-            <span>Format: alloué/capacité (jours)</span>
+            <span style={{ color: 'var(--success)' }}>■ {t('legend_80')}</span>
+            <span style={{ color: 'var(--warning)' }}>■ {t('legend_under')}</span>
+            <span style={{ color: 'var(--danger)' }}>■ {t('legend_over')}</span>
+            <span>{t('format_note')}</span>
           </div>
         </div>
       )}
