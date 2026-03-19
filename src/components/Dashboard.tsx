@@ -1,5 +1,6 @@
 'use client';
 import { AppData, MONTHS_2026_2028 } from '@/types';
+import { formatMonth, formatDate, formatDateTime } from '@/lib/locale-utils';
 import { computeAlerts } from '@/lib/alerts';
 import { View } from './App';
 import { useSettings } from '@/lib/context';
@@ -14,7 +15,8 @@ const STATUS_BADGE: Record<string, string> = {
 };
 
 export default function Dashboard({ data, setView }: Props) {
-  const { t } = useSettings();
+  const { t, settings } = useSettings();
+  const locale = settings.locale ?? 'fr';
   const alerts = computeAlerts(data);
   const overcap = alerts.filter(a => a.type === 'overcapacity');
   const uncovered = alerts.filter(a => a.type === 'uncovered');
@@ -23,7 +25,7 @@ export default function Dashboard({ data, setView }: Props) {
   const chartData = chartMonths.map(month => {
     const totalCap = data.staff.reduce((s, st) => s + (st.capacity[month] ?? 0), 0);
     const totalAlloc = data.allocations.reduce((s, a) => s + (a.monthly[month] ?? 0), 0);
-    const label = new Date(month + '-01').toLocaleDateString('fr-FR', { month: 'short', year: '2-digit' });
+    const label = formatMonth(month, locale, { month: 'short', year: '2-digit' });
     return { month: label, capacity: totalCap, allocated: totalAlloc };
   });
 

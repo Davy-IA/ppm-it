@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import { formatMonth, formatDate, formatDateTime } from '@/lib/locale-utils';
 import { AppData, MONTHS_2026_2028, PROFILES } from '@/types';
 import { useSettings } from '@/lib/context';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine, Cell } from 'recharts';
@@ -9,14 +10,15 @@ interface Props { data: AppData; updateData: (d: AppData) => void; }
 type ViewMode = 'staff' | 'project' | 'profile';
 
 export default function CapacityView({ data }: Props) {
-  const { t } = useSettings();
+  const { t, settings } = useSettings();
+  const locale = settings.locale ?? 'fr';
   const [yearFilter, setYearFilter] = useState('2026');
   const [viewMode, setViewMode] = useState<ViewMode>('staff');
   const [profileFilter, setProfileFilter] = useState('');
   const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
 
   const months = MONTHS_2026_2028.filter(m => m.startsWith(yearFilter));
-  const monthLabel = (m: string) => new Date(m + '-01').toLocaleDateString('fr-FR', { month: 'short' });
+  const monthLabel = (m: string) => formatMonth(m, locale);
 
   // --- STAFF VIEW: capacity vs allocated per staff ---
   const staffRows = data.staff
@@ -160,7 +162,7 @@ export default function CapacityView({ data }: Props) {
             <table className="data-table">
               <thead>
                 <tr>
-                  <th className="sticky-left" style={{ minWidth: 200 }}>Ressource</th>
+                  <th className="sticky-left" style={{ minWidth: 200 }}>{t('resource_col')}</th>
                   <th>{t('col_profile')}</th>
                   {months.map(m => <th key={m} className="cap-cell">{monthLabel(m)}</th>)}
                   <th>{t('col_total_avail')}</th>
@@ -265,7 +267,7 @@ export default function CapacityView({ data }: Props) {
           ))}
           {projectRows.length === 0 && (
             <div className="card" style={{ textAlign: 'center', color: 'var(--text-faint)', padding: 48 }}>
-              Aucun projet avec des données de charge pour {yearFilter}
+              {t('no_activity_year', { year: yearFilter })}
             </div>
           )}
         </div>

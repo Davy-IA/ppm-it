@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import { formatMonth, formatDate, formatDateTime } from '@/lib/locale-utils';
 import { useSettings } from '@/lib/context';
 import { AppData, MONTHS_2026_2028 } from '@/types';
 import { computeAlerts, getStaffUtilization } from '@/lib/alerts';
@@ -7,7 +8,8 @@ import { computeAlerts, getStaffUtilization } from '@/lib/alerts';
 interface Props { data: AppData; }
 
 export default function AlertsView({ data }: Props) {
-  const { t } = useSettings();
+  const { t, settings } = useSettings();
+  const locale = settings.locale ?? 'fr';
   const [filter, setFilter] = useState<'all' | 'overcapacity' | 'uncovered'>('all');
   const [yearFilter, setYearFilter] = useState('2026');
 
@@ -87,14 +89,14 @@ export default function AlertsView({ data }: Props) {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {filtered.length === 0 && (
               <div className="card" style={{ textAlign: 'center', padding: 40, color: 'var(--success)' }}>
-                ✓ Aucune alerte pour les filtres sélectionnés
+                {t('no_alerts_msg')}
               </div>
             )}
             {filtered.map((a, i) => {
               const isOver = a.type === 'overcapacity';
               const color = isOver ? 'var(--danger)' : 'var(--warning)';
               const bg = isOver ? 'var(--danger-subtle)' : 'var(--warning-subtle)';
-              const monthFmt = new Date(a.month + '-01').toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+              const monthFmt = formatMonth(a.month, locale, { month: 'long', year: 'numeric' });
               return (
                 <div key={i} className="alert-card" style={{ background: bg, borderColor: color }}>
                   <span style={{ fontSize: 18 }}>{isOver ? '⚡' : '⚠'}</span>
@@ -129,7 +131,7 @@ export default function AlertsView({ data }: Props) {
         {/* Staff utilization panel */}
         <div>
           <div className="card" style={{ marginBottom: 12 }}>
-            <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 14 }}>Taux d'utilisation {yearFilter}</div>
+            <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 14 }}>{t('util_title', { year: yearFilter })}</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {staffSummary.map(s => {
                 const color = s.pct > 100 ? 'var(--danger)' : s.pct >= 70 ? 'var(--success)' : s.pct > 0 ? 'var(--warning)' : 'var(--text-faint)';

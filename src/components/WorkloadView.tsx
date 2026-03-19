@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import { formatMonth, formatDate, formatDateTime } from '@/lib/locale-utils';
 import { AppData, WorkloadEntry, AllocationEntry, MONTHS_2026_2028, PROFILES } from '@/types';
 import { v4 as uuid } from 'uuid';
 import { useSettings } from '@/lib/context';
@@ -7,7 +8,8 @@ import { useSettings } from '@/lib/context';
 interface Props { data: AppData; updateData: (d: AppData) => void; }
 
 export default function WorkloadView({ data, updateData }: Props) {
-  const { t } = useSettings();
+  const { t, settings } = useSettings();
+  const locale = settings.locale ?? 'fr';
   const [projectFilter, setProjectFilter] = useState('');
   const [yearFilter, setYearFilter] = useState('2026');
   const [tab, setTab] = useState<'workload' | 'allocation'>('workload');
@@ -40,7 +42,7 @@ export default function WorkloadView({ data, updateData }: Props) {
   };
 
   const deleteWorkload = (id: string) => {
-    if (!confirm('Supprimer cette ligne de charge ?')) return;
+    if (!confirm(t('delete_workload_confirm'))) return;
     updateData({ ...data, workloads: data.workloads.filter(w => w.id !== id) });
   };
 
@@ -55,7 +57,7 @@ export default function WorkloadView({ data, updateData }: Props) {
   };
 
   const deleteAlloc = (id: string) => {
-    if (!confirm('Supprimer cette allocation ?')) return;
+    if (!confirm(t('delete_alloc_confirm'))) return;
     updateData({ ...data, allocations: data.allocations.filter(a => a.id !== id) });
   };
 
@@ -71,7 +73,7 @@ export default function WorkloadView({ data, updateData }: Props) {
     setEditingAlloc({ ...editingAlloc, monthly: { ...editingAlloc.monthly, [month]: isNaN(v) ? 0 : v } });
   };
 
-  const monthLabel = (m: string) => new Date(m + '-01').toLocaleDateString('fr-FR', { month: 'short' });
+  const monthLabel = (m: string) => formatMonth(m, locale);
 
   return (
     <div className="animate-in">
@@ -134,7 +136,7 @@ export default function WorkloadView({ data, updateData }: Props) {
               </thead>
               <tbody>
                 {filteredWorkloads.length === 0 && (
-                  <tr><td colSpan={months.length + 4} style={{ textAlign: 'center', padding: 32, color: 'var(--text-faint)' }}>Aucune charge définie</td></tr>
+                  <tr><td colSpan={months.length + 4} style={{ textAlign: 'center', padding: 32, color: 'var(--text-faint)' }}>{t('no_workload')}</td></tr>
                 )}
                 {filteredWorkloads.map(w => {
                   // Coverage per month
@@ -158,7 +160,7 @@ export default function WorkloadView({ data, updateData }: Props) {
                       <td style={{ fontFamily: 'DM Mono, monospace', fontSize: 12, fontWeight: 600, color: 'var(--accent)' }}>{totalRow > 0 ? `${totalRow}j` : '—'}</td>
                       <td>
                         <div style={{ display: 'flex', gap: 4 }}>
-                          <button className="btn btn-ghost btn-sm" onClick={() => { setEditingWorkload({ ...w }); setIsNew(false); }}>Éditer</button>
+                          <button className="btn btn-ghost btn-sm" onClick={() => { setEditingWorkload({ ...w }); setIsNew(false); }}>{t('edit_btn')}</button>
                           <button className="btn btn-danger btn-sm" onClick={() => deleteWorkload(w.id)}>✕</button>
                         </div>
                       </td>
@@ -193,7 +195,7 @@ export default function WorkloadView({ data, updateData }: Props) {
               </thead>
               <tbody>
                 {filteredAllocs.length === 0 && (
-                  <tr><td colSpan={months.length + 5} style={{ textAlign: 'center', padding: 32, color: 'var(--text-faint)' }}>Aucune affectation</td></tr>
+                  <tr><td colSpan={months.length + 5} style={{ textAlign: 'center', padding: 32, color: 'var(--text-faint)' }}>{t('no_allocation')}</td></tr>
                 )}
                 {filteredAllocs.map(a => {
                   const staff = data.staff.find(s => s.id === a.staffId);
@@ -219,7 +221,7 @@ export default function WorkloadView({ data, updateData }: Props) {
                       <td style={{ fontFamily: 'DM Mono, monospace', fontSize: 12, fontWeight: 600, color: 'var(--accent)' }}>{totalRow > 0 ? `${totalRow}j` : '—'}</td>
                       <td>
                         <div style={{ display: 'flex', gap: 4 }}>
-                          <button className="btn btn-ghost btn-sm" onClick={() => { setEditingAlloc({ ...a }); setIsNew(false); }}>Éditer</button>
+                          <button className="btn btn-ghost btn-sm" onClick={() => { setEditingAlloc({ ...a }); setIsNew(false); }}>{t('edit_btn')}</button>
                           <button className="btn btn-danger btn-sm" onClick={() => deleteAlloc(a.id)}>✕</button>
                         </div>
                       </td>

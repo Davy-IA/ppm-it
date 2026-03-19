@@ -46,7 +46,7 @@ export default function ProjectsView({ data, updateData }: Props) {
   };
 
   const remove = (id: string) => {
-    if (!confirm('Supprimer ce projet ?')) return;
+    if (!confirm(t('delete_confirm'))) return;
     const projects = data.projects.filter(p => p.id !== id);
     const workloads = data.workloads.filter(w => w.projectId !== id);
     const allocations = data.allocations.filter(a => a.projectId !== id);

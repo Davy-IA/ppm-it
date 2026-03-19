@@ -74,7 +74,7 @@ export default function App() {
   }, [saveData]);
 
   if (authLoading) {
-    return <div style={{ height: '100vh', background: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', fontSize: 14 }}>⏳ Chargement…</div>;
+    return <div style={{ height: '100vh', background: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', fontSize: 14 }}>⏳ Loading…</div>;
   }
 
   if (!user) return <LoginScreen />;

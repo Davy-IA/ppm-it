@@ -1,5 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
+import { useSettings } from '@/lib/context';
+import { formatMonth, formatDate, formatDateTime } from '@/lib/locale-utils';
 import { useAuth } from '@/lib/auth-context';
 
 interface Space { id: string; name: string; color: string; icon: string; }
@@ -10,6 +12,8 @@ interface Props { spaces: Space[]; onBack: () => void; }
 
 export default function GlobalPortfolio({ spaces, onBack }: Props) {
   const { token } = useAuth();
+  const { settings } = useSettings();
+  const locale = settings.locale ?? 'fr';
   const [allData, setAllData] = useState<Record<string, SpaceData>>({});
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'projects' | 'kpis' | 'gantt'>('kpis');
@@ -227,7 +231,7 @@ export default function GlobalPortfolio({ spaces, onBack }: Props) {
                                       <div style={{ width: 10, height: 10, borderRadius: 3, background: phase.color ?? space.color, flexShrink: 0 }} />
                                       <span style={{ fontSize: 13, minWidth: 200 }}>{phase.name}</span>
                                       <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
-                                        {start.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })} → {end.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: '2-digit' })}
+                                        {start.toLocaleDateString(locale === 'fr' ? 'fr-FR' : locale === 'en' ? 'en-US' : locale === 'pt' ? 'pt-BR' : 'zh-CN', { day: '2-digit', month: 'short' })} → {end.toLocaleDateString(locale === 'fr' ? 'fr-FR' : locale === 'en' ? 'en-US' : locale === 'pt' ? 'pt-BR' : 'zh-CN', { day: '2-digit', month: 'short', year: '2-digit' })}
                                       </span>
                                       <span style={{ fontSize: 11, color: 'var(--text-faint)' }}>{phase.duration}j</span>
                                       {phase.subphases?.length > 0 && <span className="badge badge-gray" style={{ fontSize: 10 }}>{phase.subphases.length} sous-phases</span>}

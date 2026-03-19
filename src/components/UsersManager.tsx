@@ -1,5 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
+import { useSettings } from '@/lib/context';
+import { formatMonth, formatDate, formatDateTime } from '@/lib/locale-utils';
 import { useAuth } from '@/lib/auth-context';
 
 interface Space { id: string; name: string; color: string; }
@@ -16,6 +18,8 @@ interface Props { spaces: Space[]; }
 
 export default function UsersManager({ spaces }: Props) {
   const { token, user: me } = useAuth();
+  const { t, settings } = useSettings();
+  const locale = settings.locale ?? 'fr';
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<Partial<User> & { password?: string; spaceIds?: string[] } | null>(null);
@@ -89,14 +93,14 @@ export default function UsersManager({ spaces }: Props) {
                     </div>
                   </td>
                   <td style={{ fontSize: 12, color: 'var(--text-muted)' }}>
-                    {u.last_login ? new Date(u.last_login).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Jamais'}
+                    {u.last_login ? formatDateTime(u.last_login, locale) : t('never')}
                   </td>
                   <td>
                     <span className={`badge ${u.active ? 'badge-green' : 'badge-gray'}`}>{u.active ? 'Actif' : 'Inactif'}</span>
                   </td>
                   <td>
                     <div style={{ display: 'flex', gap: 4 }}>
-                      <button className="btn btn-ghost btn-sm" onClick={() => { setEditing({ ...u, spaceIds: u.spaces?.map(s => s.id) ?? [] }); setIsNew(false); }} disabled={u.id === me?.id}>Éditer</button>
+                      <button className="btn btn-ghost btn-sm" onClick={() => { setEditing({ ...u, spaceIds: u.spaces?.map(s => s.id) ?? [] }); setIsNew(false); }} disabled={u.id === me?.id}>{t('edit_btn')}</button>
                       {u.id !== me?.id && <button className="btn btn-ghost btn-sm" onClick={() => toggleActive(u)}>{u.active ? 'Désactiver' : 'Activer'}</button>}
                     </div>
                   </td>

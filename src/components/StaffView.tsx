@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import { formatMonth, formatDate, formatDateTime } from '@/lib/locale-utils';
 import { AppData, Staff, MONTHS_2026_2028, PROFILES, DEPARTMENTS, COUNTRIES } from '@/types';
 import { v4 as uuid } from 'uuid';
 import { useSettings } from '@/lib/context';
@@ -13,7 +14,8 @@ const EMPTY_STAFF: Omit<Staff, 'id'> = {
 export default function StaffView({ data, updateData }: Props) {
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
-  const { t } = useSettings();
+  const { t, settings } = useSettings();
+  const locale = settings.locale ?? 'fr';
   const [editing, setEditing] = useState<Staff | null>(null);
   const [isNew, setIsNew] = useState(false);
   const [yearFilter, setYearFilter] = useState('2026');
@@ -36,7 +38,7 @@ export default function StaffView({ data, updateData }: Props) {
   };
 
   const remove = (id: string) => {
-    if (!confirm('Supprimer cette ressource ?')) return;
+    if (!confirm(t('delete_resource_confirm'))) return;
     const staff = data.staff.filter(s => s.id !== id);
     const allocations = data.allocations.filter(a => a.staffId !== id);
     updateData({ ...data, staff, allocations });
@@ -60,7 +62,7 @@ export default function StaffView({ data, updateData }: Props) {
     <div className="animate-in">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
         <div>
-          <h1 style={{ fontSize: 22, fontWeight: 700, letterSpacing: '-0.02em' }}>Ressources</h1>
+          <h1 style={{ fontSize: 22, fontWeight: 700, letterSpacing: '-0.02em' }}>{t('staff_title')}</h1>
           <p style={{ color: 'var(--text-muted)', fontSize: 13, marginTop: 4 }}>
             {data.staff.filter(s => s.type === 'Internal').length} internes · {data.staff.filter(s => s.type === 'External').length} externes
           </p>
@@ -96,7 +98,7 @@ export default function StaffView({ data, updateData }: Props) {
                 <th>{t('col_type')}</th>
                 <th>{t('col_entity')}</th>
                 {months.map(m => {
-                  const label = new Date(m + '-01').toLocaleDateString('fr-FR', { month: 'short' });
+                  const label = formatMonth(m, locale);
                   return <th key={m} className="cap-cell">{label}</th>;
                 })}
                 <th></th>
@@ -201,7 +203,7 @@ export default function StaffView({ data, updateData }: Props) {
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(12, 1fr)', gap: 6 }}>
                     {MONTHS_2026_2028.filter(m => m.startsWith(year)).map(m => {
-                      const label = new Date(m + '-01').toLocaleDateString('fr-FR', { month: 'short' });
+                      const label = formatMonth(m, locale);
                       return (
                         <div key={m} style={{ textAlign: 'center' }}>
                           <div style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 3 }}>{label}</div>

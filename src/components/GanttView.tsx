@@ -1,5 +1,7 @@
 'use client';
 import { useState } from 'react';
+import { useSettings } from '@/lib/context';
+import { formatMonth, formatDate, formatDateTime } from '@/lib/locale-utils';
 import { AppData, GanttPhase, GanttSubphase } from '@/types';
 import { v4 as uuid } from 'uuid';
 
@@ -16,9 +18,7 @@ function addDays(dateStr: string, days: number): string {
 function daysBetween(a: string, b: string): number {
   return Math.round((new Date(b).getTime() - new Date(a).getTime()) / 86400000);
 }
-function fmt(d: string) {
-  return new Date(d).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: '2-digit' });
-}
+// fmt is locale-aware (defined inside component)
 
 function propagateDeps(phases: GanttPhase[]): GanttPhase[] {
   const map: Record<string, GanttPhase> = {};
@@ -61,6 +61,9 @@ function getRange(phases: GanttPhase[], extra?: string | null) {
 }
 
 export default function GanttView({ data, updateData }: Props) {
+  const { settings, t } = useSettings();
+  const locale = settings.locale ?? 'fr';
+  const fmt = (d: string) => formatDate(d, locale);
   const [selProj, setSelProj] = useState(data.projects[0]?.id ?? '');
   const [editPhase, setEditPhase] = useState<GanttPhase | null>(null);
   const [editSub, setEditSub] = useState<{ sub: GanttSubphase; phase: GanttPhase } | null>(null);
@@ -98,7 +101,7 @@ export default function GanttView({ data, updateData }: Props) {
     const mEnd = new Date(cur.getFullYear(), cur.getMonth()+1, 0);
     const left = Math.max(0, daysBetween(minDate, cur.toISOString().slice(0,10))) * DAY_PX;
     const right = Math.min(totalDays, daysBetween(minDate, mEnd.toISOString().slice(0,10))) * DAY_PX;
-    months.push({ label: cur.toLocaleDateString('fr-FR',{month:'short',year:'2-digit'}), left, width: right - left });
+    months.push({ label: cur.toLocaleDateString(locale === 'fr' ? 'fr-FR' : locale === 'en' ? 'en-US' : locale === 'pt' ? 'pt-BR' : 'zh-CN', {month:'short',year:'2-digit'}), left, width: right - left });
     cur.setMonth(cur.getMonth()+1);
   }
 
@@ -182,7 +185,7 @@ export default function GanttView({ data, updateData }: Props) {
                       <div style={{display:'flex',gap:2,flexShrink:0}}>
                         <button className="btn-icon" style={{width:22,height:22,fontSize:11}} onClick={()=>{setAddSubPhase(ph);setIsNew(true);}} title="+ Sous-phase">＋</button>
                         <button className="btn-icon" style={{width:22,height:22,fontSize:11}} onClick={()=>{setEditPhase({...ph});setIsNew(false);}}>✎</button>
-                        <button className="btn-icon" style={{width:22,height:22,fontSize:11,color:'var(--danger)'}} onClick={()=>{if(!confirm('Supprimer cette phase ?'))return; savePhases(phases.filter(p=>p.id!==ph.id).map(p=>p.dependsOn===ph.id?{...p,dependsOn:null}:p));}}>✕</button>
+                        <button className="btn-icon" style={{width:22,height:22,fontSize:11,color:'var(--danger)'}} onClick={()=>{if(!confirm(t('delete_phase_confirm' as any) || 'Delete this phase?'))return; savePhases(phases.filter(p=>p.id!==ph.id).map(p=>p.dependsOn===ph.id?{...p,dependsOn:null}:p));}}>✕</button>
                       </div>
                     </div>
                     {!ph.collapsed && ph.subphases.map(sub => (
