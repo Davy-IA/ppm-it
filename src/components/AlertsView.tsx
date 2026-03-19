@@ -80,9 +80,9 @@ export default function AlertsView({ data }: Props) {
               <option value="2028">2028</option>
             </select>
             <div style={{ display: 'flex', background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 6, padding: 3, gap: 3 }}>
-              <button className={`btn btn-sm ${filter === 'all' ? 'btn-primary' : 'btn-ghost'}`} onClick={() => setFilter('all')}>Tous ({allAlerts.length})</button>
-              <button className={`btn btn-sm ${filter === 'overcapacity' ? 'btn-primary' : 'btn-ghost'}`} onClick={() => setFilter('overcapacity')}>Surcharge ({overCount})</button>
-              <button className={`btn btn-sm ${filter === 'uncovered' ? 'btn-primary' : 'btn-ghost'}`} onClick={() => setFilter('uncovered')}>Non couvert ({uncovCount})</button>
+              <button className={`btn btn-sm ${filter === 'all' ? 'btn-primary' : 'btn-ghost'}`} onClick={() => setFilter('all')}>{t('all_filter').replace('{n}', String(allAlerts.length))}</button>
+              <button className={`btn btn-sm ${filter === 'overcapacity' ? 'btn-primary' : 'btn-ghost'}`} onClick={() => setFilter('overcapacity')}>{t('overload_filter_btn').replace('{n}', String(overCount))}</button>
+              <button className={`btn btn-sm ${filter === 'uncovered' ? 'btn-primary' : 'btn-ghost'}`} onClick={() => setFilter('uncovered')}>{t('uncovered_filter_btn').replace('{n}', String(uncovCount))}</button>
             </div>
           </div>
 

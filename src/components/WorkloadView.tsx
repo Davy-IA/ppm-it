@@ -127,7 +127,7 @@ export default function WorkloadView({ data, updateData }: Props) {
             <table className="data-table">
               <thead>
                 <tr>
-                  <th className="sticky-left" style={{ minWidth: 220 }}>Projet</th>
+                  <th className="sticky-left" style={{ minWidth: 220 }}>{t('project_name')}</th>
                   <th>{t('profile')}</th>
                   {months.map(m => <th key={m} className="cap-cell">{monthLabel(m)}</th>)}
                   <th>{t('total')}</th>
@@ -185,7 +185,7 @@ export default function WorkloadView({ data, updateData }: Props) {
             <table className="data-table">
               <thead>
                 <tr>
-                  <th className="sticky-left" style={{ minWidth: 220 }}>Projet</th>
+                  <th className="sticky-left" style={{ minWidth: 220 }}>{t('project_name')}</th>
                   <th>{t('profile')}</th>
                   <th style={{ minWidth: 160 }}>{t('resource_col')}</th>
                   {months.map(m => <th key={m} className="cap-cell">{monthLabel(m)}</th>)}
