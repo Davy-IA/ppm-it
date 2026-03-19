@@ -61,15 +61,15 @@ export default function UsersManager({ spaces }: Props) {
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
-        <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>{users.length} utilisateur{users.length > 1 ? 's' : ''}</div>
-        <button className="btn btn-primary btn-sm" onClick={() => { setEditing({ role: 'member', active: true, spaceIds: [] }); setIsNew(true); }}>+ Nouvel utilisateur</button>
+        <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>{users.length} {users.length > 1 ? t('users_plural') : t('user_singular')}</div>
+        <button className="btn btn-primary btn-sm" onClick={() => { setEditing({ role: 'member', active: true, spaceIds: [] }); setIsNew(true); }}>{t('user_new_btn')}</button>
       </div>
 
       {loading ? <div style={{ color: 'var(--text-faint)', padding: 20 }}>Chargement…</div> : (
         <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
           <table className="data-table">
             <thead>
-              <tr><th>Utilisateur</th><th>{t('user_col_role')}</th><th>{t('user_col_spaces')}</th><th>{t('user_col_last_login')}</th><th>{t('user_col_status')}</th><th></th></tr>
+              <tr><th>{t('col_user')}</th><th>{t('user_col_role')}</th><th>{t('user_col_spaces')}</th><th>{t('user_col_last_login')}</th><th>{t('user_col_status')}</th><th></th></tr>
             </thead>
             <tbody>
               {users.map(u => (
@@ -111,30 +111,30 @@ export default function UsersManager({ spaces }: Props) {
         <div className="modal-overlay" onClick={() => setEditing(null)}>
           <div className="modal" style={{ maxWidth: 560 }} onClick={e => e.stopPropagation()}>
             <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontWeight: 700, fontSize: 15 }}>{isNew ? 'Nouvel utilisateur' : 'Modifier utilisateur'}</span>
+              <span style={{ fontWeight: 700, fontSize: 15 }}>{isNew ? t('user_new_title') : t('user_edit_title')}</span>
               <button className="btn-icon" onClick={() => setEditing(null)}>✕</button>
             </div>
             <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
                 <div>
-                  <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: 6 }}>Prénom *</label>
+                  <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: 6 }}>{t('user_first_name')} *</label>
                   <input className="input" value={editing.first_name ?? ''} onChange={e => setEditing({ ...editing, first_name: e.target.value })} />
                 </div>
                 <div>
-                  <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: 6 }}>Nom *</label>
+                  <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: 6 }}>{t('user_last_name')} *</label>
                   <input className="input" value={editing.last_name ?? ''} onChange={e => setEditing({ ...editing, last_name: e.target.value })} />
                 </div>
               </div>
               <div>
-                <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: 6 }}>Email *</label>
+                <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: 6 }}>{t('user_email')} *</label>
                 <input className="input" type="email" value={editing.email ?? ''} onChange={e => setEditing({ ...editing, email: e.target.value })} disabled={!isNew} style={{ opacity: isNew ? 1 : 0.6 }} />
               </div>
               <div>
-                <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: 6 }}>{isNew ? 'Mot de passe *' : 'Nouveau mot de passe (laisser vide pour ne pas changer)'}</label>
-                <input className="input" type="password" placeholder={isNew ? 'Minimum 8 caractères' : '••••••••'} value={editing.password ?? ''} onChange={e => setEditing({ ...editing, password: e.target.value })} />
+                <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: 6 }}>{isNew ? t('user_password_new') + ' *' : t('user_password_change')}</label>
+                <input className="input" type="password" placeholder={isNew ? t('password_min_chars') : '••••••••'} value={editing.password ?? ''} onChange={e => setEditing({ ...editing, password: e.target.value })} />
               </div>
               <div>
-                <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: 8 }}>Rôle</label>
+                <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: 8 }}>{t('user_role_label')}</label>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {allowedRoles.map(role => (
                     <button key={role} onClick={() => setEditing({ ...editing, role })}
@@ -148,7 +148,7 @@ export default function UsersManager({ spaces }: Props) {
               </div>
               {editing.role === 'member' && (
                 <div>
-                  <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: 8 }}>Espaces accessibles</label>
+                  <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: 8 }}>{t('user_spaces_label')}</label>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                     {spaces.map(space => {
                       const isChecked = (editing.spaceIds ?? []).includes(space.id);
@@ -168,8 +168,8 @@ export default function UsersManager({ spaces }: Props) {
               )}
             </div>
             <div style={{ padding: '16px 24px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
-              <button className="btn btn-ghost" onClick={() => setEditing(null)}>Annuler</button>
-              <button className="btn btn-primary" onClick={save} disabled={!editing.first_name || !editing.last_name || !editing.email || (isNew && !editing.password)}>Enregistrer</button>
+              <button className="btn btn-ghost" onClick={() => setEditing(null)}>{t('cancel')}</button>
+              <button className="btn btn-primary" onClick={save} disabled={!editing.first_name || !editing.last_name || !editing.email || (isNew && !editing.password)}>{t('save')}</button>
             </div>
           </div>
         </div>

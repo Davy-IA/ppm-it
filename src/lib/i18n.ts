@@ -354,6 +354,10 @@ export const translations = {
     by_resource_btn: 'Par ressource',
     by_project_btn: 'Par projet',
     by_profile_btn: 'Par profil',
+    users_plural: 'utilisateurs',
+    user_singular: 'utilisateur',
+    col_user: 'Utilisateur',
+    password_min_chars: 'Minimum 8 caractères',
   },
   en: {
     nav_dashboard: 'Dashboard',
@@ -699,6 +703,10 @@ export const translations = {
     by_resource_btn: 'By resource',
     by_project_btn: 'By project',
     by_profile_btn: 'By profile',
+    users_plural: 'users',
+    user_singular: 'user',
+    col_user: 'User',
+    password_min_chars: 'Minimum 8 characters',
   },
   pt: {
     nav_dashboard: 'Painel',
@@ -1044,6 +1052,10 @@ export const translations = {
     user_spaces_label: 'Espaços acessíveis',
     util_title: 'Taxa de utilização {year}',
     workload_subtitle: 'Necessidades de carga por perfil e alocação de recursos',
+    users_plural: 'usuários',
+    user_singular: 'usuário',
+    col_user: 'Usuário',
+    password_min_chars: 'Mínimo 8 caracteres',
   },
   zh: {
     nav_dashboard: '仪表板',
@@ -1389,6 +1401,10 @@ export const translations = {
     util_title: '{year} 利用率',
     workload_subtitle: '按配置分配的资源需求和工作量',
     workload_title: '工作量与配置',
+    users_plural: '用户',
+    user_singular: '用户',
+    col_user: '用户',
+    password_min_chars: '最少8个字符',
   },
 } as const;
 
