@@ -264,7 +264,7 @@ export default function WorkloadView({ data, updateData }: Props) {
                                   onKeyDown={e => { if (e.key === 'Enter') { updateWorkloadMonth(w.id, m, (e.target as HTMLInputElement).value); setInlineEdit(null); } if (e.key === 'Escape') setInlineEdit(null); }}
                                   onClick={e => e.stopPropagation()} />
                               : <>
-                                <span style={{ fontWeight: 700 }}>{need > 0 ? need : outOfRange ? '' : '—'}</span>
+                                <span>{need > 0 ? need : outOfRange ? '' : '—'}</span>
                                 {need > 0 && covered > 0 && (
                                   <div style={{ fontSize: 10, color: 'var(--text-faint)', marginTop: 1, fontWeight: 400 }}>
                                     {covered}{t('days_covered')}
@@ -362,7 +362,7 @@ export default function WorkloadView({ data, updateData }: Props) {
                                   onKeyDown={e => { if (e.key === 'Enter') { updateAllocMonth(a.id, m, (e.target as HTMLInputElement).value); setInlineEdit(null); } if (e.key === 'Escape') setInlineEdit(null); }}
                                   onClick={e => e.stopPropagation()} />
                               : <>
-                                <span style={{ fontWeight: 700 }}>{alloc > 0 ? alloc : outOfRange ? '' : '—'}</span>
+                                <span>{alloc > 0 ? alloc : outOfRange ? '' : '—'}</span>
                                 {!outOfRange && cap > 0 && (
                                   <div style={{ fontSize: 10, color: remaining === 0 ? 'var(--danger)' : 'var(--text-faint)', marginTop: 1, fontWeight: 400 }}>
                                     {remaining}{t('days_available')}

@@ -293,8 +293,8 @@ export default function CapacityView({ data }: Props) {
                           </td>
                         );
                       })}
-                      <td style={{ fontFamily: 'DM Mono, monospace', fontSize: 12 }}>{totalCap}j</td>
-                      <td style={{ fontFamily: 'DM Mono, monospace', fontSize: 12 }}>{totalAlloc}j</td>
+                      <td style={{ fontFamily: 'DM Mono, monospace', fontSize: 13 }}>{totalCap}j</td>
+                      <td style={{ fontFamily: 'DM Mono, monospace', fontSize: 13 }}>{totalAlloc}j</td>
                       <td>
                         <span className={`badge ${taux > 100 ? 'badge-red' : taux >= 70 ? 'badge-green' : taux > 0 ? 'badge-yellow' : 'badge-gray'}`}>
                           {taux}%
@@ -321,7 +321,7 @@ export default function CapacityView({ data }: Props) {
           {projectRows.map(p => (
             <div key={p.id} className="card" style={{ padding: 0, overflow: 'hidden' }}>
               <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 10 }}>
-                <span style={{ fontWeight: 600, fontSize: 14 }}>{p.name}</span>
+                <span>{p.name}</span>
                 <span className="badge badge-blue">{p.domain}</span>
                 {p.status && <span className="badge badge-gray">{p.status.replace(/^\d-/, '')}</span>}
               </div>
