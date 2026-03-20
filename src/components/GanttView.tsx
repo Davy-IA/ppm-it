@@ -82,7 +82,7 @@ export default function GanttView({ data, updateData }: Props) {
     ro.observe(el);
     setStickyH(el.offsetHeight);
     return () => ro.disconnect();
-  }, [phases.length, range]);
+  }, []);
   const [statusFilter, setStatusFilter] = useState('');
   const [domainFilter, setDomainFilter] = useState('');
   const [deptFilter, setDeptFilter] = useState('');
@@ -277,13 +277,21 @@ export default function GanttView({ data, updateData }: Props) {
         </div>
       ) : (
         <div style={{ border:'1px solid var(--border)', borderRadius:'var(--radius)', overflow:'hidden', background:'var(--bg2)', boxShadow:'var(--shadow-sm)' }}>
+          {/* Sticky header row - outside the horizontal scroll container */}
+          <div style={{ position:'sticky', top: stickyH, zIndex: 15, background:'var(--bg3)', borderBottom:'1px solid var(--border)', display:'flex', minWidth: LEFT_W + chartW }}>
+            <div style={{ width:LEFT_W, minWidth:LEFT_W, flexShrink:0, borderRight:'1px solid var(--border)', height:40, display:'flex', alignItems:'center', padding:'0 16px' }}>
+              <span style={{ fontSize:11, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.07em', color:'var(--text-faint)' }}>{t('structure')}</span>
+            </div>
+            <div style={{ flex:1, position:'relative', height:40, overflow:'hidden' }}>
+              {months.map((m,i) => (
+                <div key={i} style={{ position:'absolute', left:m.left, width:m.width, height:'100%', display:'flex', alignItems:'center', justifyContent:'center', borderRight:'1px solid var(--border)', fontSize:11, fontWeight:700, color:'var(--text-muted)', textTransform:'capitalize' }}>{m.label}</div>
+              ))}
+            </div>
+          </div>
           <div style={{ overflowX:'auto' }}>
             <div style={{ display:'flex', minWidth: LEFT_W + chartW, position: 'relative' }}>
               {/* Labels */}
               <div style={{ width:LEFT_W, minWidth:LEFT_W, borderRight:'1px solid var(--border)', flexShrink:0 }}>
-                <div style={{ height:40, background:'var(--bg3)', borderBottom:'1px solid var(--border)', display:'flex', alignItems:'center', padding:'0 16px', position:'sticky', top: stickyH, zIndex: 9 }}>
-                  <span style={{ fontSize:11, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.07em', color:'var(--text-faint)' }}>{t('structure')}</span>
-                </div>
                 {phases.map(ph => (
                   <div key={ph.id}>
                     <div style={{ height:40, borderBottom:'1px solid var(--border)', display:'flex', alignItems:'center', padding:'0 8px', gap:6, background:'var(--bg2)' }}>
@@ -317,13 +325,6 @@ export default function GanttView({ data, updateData }: Props) {
 
               {/* Chart */}
               <div style={{ flex:1, position:'relative', minWidth: chartW }}>
-                {/* Month headers */}
-                <div style={{ height:40, background:'var(--bg3)', borderBottom:'1px solid var(--border)', position:'sticky', top: stickyH, zIndex: 9 }}>
-                  {months.map((m,i) => (
-                    <div key={i} style={{ position:'absolute', left:m.left, width:m.width, height:'100%', display:'flex', alignItems:'center', justifyContent:'center', borderRight:'1px solid var(--border)', fontSize:11, fontWeight:700, color:'var(--text-muted)', textTransform:'capitalize' }}>{m.label}</div>
-                  ))}
-                </div>
-
                 {/* Bars area */}
                 <div style={{ position:'relative', width:chartW }}>
                   {/* Grid lines */}
