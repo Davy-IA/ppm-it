@@ -106,7 +106,7 @@ export default function WorkloadView({ data, updateData }: Props) {
     setEditingAlloc({ ...editingAlloc, monthly: { ...editingAlloc.monthly, [month]: isNaN(v) ? 0 : v } });
   };
 
-  const monthLabel = (m: string) => formatMonth(m, locale);
+  const monthLabel = (m: string) => formatMonth(m, locale, { month: 'short', year: '2-digit' });
   const activeFilters = [projectFilter, profileFilter, staffFilter, deptFilter].filter(Boolean).length;
 
   return (

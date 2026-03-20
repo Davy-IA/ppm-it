@@ -130,7 +130,7 @@ export default function StaffView({ data, updateData }: Props) {
                 <th>{t('type')}</th>
                 <th>{t('entity')}</th>
                 {months.map(m => {
-                  const label = formatMonth(m, locale);
+                  const label = formatMonth(m, locale, { month: 'short', year: '2-digit' });
                   return <th key={m} className="cap-cell">{label}</th>;
                 })}
                 <th></th>
