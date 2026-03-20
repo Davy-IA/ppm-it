@@ -299,8 +299,6 @@ export default function GanttView({ data, updateData }: Props) {
               { label: t('gantt_start'), value: fmt(range.start) },
               { label: t('gantt_end'), value: fmt(ganttEnd!), danger: !!overdue },
               { label: t('gantt_duration'), value: `${daysBetween(range.start, ganttEnd!)}${t('days')}` },
-              { label: t('gantt_phases'), value: `${phases.length} ${String(t('gantt_phases')).toLowerCase()}` },
-              { label: t('gantt_subphases'), value: `${phases.reduce((s,p)=>s+p.subphases.length,0)} ${String(t('gantt_subphases')).toLowerCase()}` },
             ].map(k => (
               <span key={k.label} style={{ fontSize: 12, fontWeight: 600, color: k.danger ? 'var(--danger)' : 'var(--text-muted)', background: 'var(--bg3)', border: `1px solid ${k.danger ? 'var(--danger)' : 'var(--border)'}`, borderRadius: 20, padding: '3px 10px', whiteSpace: 'nowrap' as const }}>
                 {k.label} : <span style={{ color: k.danger ? 'var(--danger)' : 'var(--text)', fontWeight: 700 }}>{k.value}</span>
