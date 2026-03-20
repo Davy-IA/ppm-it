@@ -266,7 +266,7 @@ export default function GanttView({ data, updateData }: Props) {
           <div style={{fontSize:13}}>{t('no_phases_cta')}</div>
         </div>
       ) : (
-        <div style={{ border:'1px solid var(--border)', borderRadius:'var(--radius)', background:'var(--bg2)', boxShadow:'var(--shadow-sm)' }}>
+        <div style={{ border:'1px solid var(--border)', borderRadius:'var(--radius)', background:'var(--bg2)', boxShadow:'var(--shadow-sm)', marginTop: 12 }}>
           <div style={{ overflowX:'auto' }}>
             <div style={{ minWidth: LEFT_W + chartW }}>
               {/* Sticky header row */}
