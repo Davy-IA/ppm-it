@@ -69,8 +69,8 @@ const Icons: Record<string, JSX.Element> = {
   ),
   settings: (
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-      <circle cx="8" cy="8" r="2.5" stroke="currentColor" strokeWidth="1.5"/>
-      <path d="M8 1.5v1.3M8 13.2v1.3M1.5 8h1.3M13.2 8h1.3M3.4 3.4l.9.9M11.7 11.7l.9.9M3.4 12.6l.9-.9M11.7 4.3l.9-.9" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+      <path d="M6.5 1.5h3l.4 1.6a5 5 0 011 .6l1.6-.5 1.5 2.6-1.2 1.1c0 .4 0 .7.1 1l1.2 1.1-1.5 2.6-1.6-.5a5 5 0 01-1 .6l-.4 1.6h-3l-.4-1.6a5 5 0 01-1-.6l-1.6.5L2 9.9l1.2-1.1A5 5 0 013 7.8V7l-1.2-1L3.3 3.4l1.6.5a5 5 0 011-.6z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"/>
+      <circle cx="8" cy="8" r="2" stroke="currentColor" strokeWidth="1.4"/>
     </svg>
   ),
   budget: (
