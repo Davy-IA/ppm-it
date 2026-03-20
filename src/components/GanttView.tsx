@@ -168,38 +168,47 @@ export default function GanttView({ data, updateData, initialProjectId, onMounte
   const localeStr = ({ fr: 'fr-FR', en: 'en-US', pt: 'pt-BR', zh: 'zh-CN' } as Record<string,string>)[locale] ?? 'fr-FR';
 
   if (timeScale === 'week') {
-    // Week columns — start from Monday of minDate week
-    let cur = new Date(minDate);
-    const dow = cur.getDay(); // 0=Sun
+    // Week columns — Monday-based
+    let cur = new Date(displayMin);
+    const dow = cur.getDay();
     cur.setDate(cur.getDate() - (dow === 0 ? 6 : dow - 1));
-    while (cur.toISOString().slice(0,10) <= addDays(displayMin, totalDays)) {
+    while (daysBetween(displayMin, cur.toISOString().slice(0,10)) < totalDays) {
       const wEnd = new Date(cur); wEnd.setDate(wEnd.getDate() + 6);
       const left = Math.max(0, daysBetween(displayMin, cur.toISOString().slice(0,10))) * DAY_PX_DYN;
-      const right = Math.min(totalDays, daysBetween(displayMin, wEnd.toISOString().slice(0,10))) * DAY_PX_DYN;
-      const label = cur.toLocaleDateString(localeStr, { day: 'numeric', month: 'short' });
-      months.push({ label, left, width: right - left });
+      const right = Math.min(totalDays, daysBetween(displayMin, wEnd.toISOString().slice(0,10)) + 1) * DAY_PX_DYN;
+      months.push({ label: cur.toLocaleDateString(localeStr, { day: 'numeric', month: 'short' }), left, width: right - left });
       cur.setDate(cur.getDate() + 7);
     }
-  } else if (timeScale === 'year') {
-    // Quarter columns
-    let cur = new Date(displayMin); cur.setMonth(Math.floor(cur.getMonth()/3)*3, 1);
-    while (cur.toISOString().slice(0,10) <= addDays(displayMin, totalDays)) {
-      const qEnd = new Date(cur); qEnd.setMonth(qEnd.getMonth()+3, 0);
+  } else if (timeScale === 'semester') {
+    // Half-year columns (S1 Jan-Jun, S2 Jul-Dec)
+    let cur = new Date(displayMin); cur.setMonth(cur.getMonth() < 6 ? 0 : 6, 1);
+    while (daysBetween(displayMin, cur.toISOString().slice(0,10)) < totalDays) {
+      const isS1 = cur.getMonth() === 0;
+      const sEnd = new Date(cur.getFullYear(), isS1 ? 5 : 11, isS1 ? 30 : 31);
       const left = Math.max(0, daysBetween(displayMin, cur.toISOString().slice(0,10))) * DAY_PX_DYN;
-      const right = Math.min(totalDays, daysBetween(displayMin, qEnd.toISOString().slice(0,10))) * DAY_PX_DYN;
-      const q = Math.floor(cur.getMonth()/3)+1;
-      months.push({ label: `Q${q} ${cur.getFullYear()}`, left, width: right - left });
-      cur.setMonth(cur.getMonth()+3);
+      const right = Math.min(totalDays, daysBetween(displayMin, sEnd.toISOString().slice(0,10)) + 1) * DAY_PX_DYN;
+      months.push({ label: `S${isS1 ? 1 : 2} ${cur.getFullYear()}`, left, width: right - left });
+      cur.setMonth(cur.getMonth() + 6);
+    }
+  } else if (timeScale === 'year') {
+    // Annual columns over 3-year range
+    let cur = new Date(displayMin); cur.setMonth(0, 1);
+    while (daysBetween(displayMin, cur.toISOString().slice(0,10)) < totalDays) {
+      const yEnd = new Date(cur.getFullYear(), 11, 31);
+      const left = Math.max(0, daysBetween(displayMin, cur.toISOString().slice(0,10))) * DAY_PX_DYN;
+      const right = Math.min(totalDays, daysBetween(displayMin, yEnd.toISOString().slice(0,10)) + 1) * DAY_PX_DYN;
+      months.push({ label: String(cur.getFullYear()), left, width: right - left });
+      cur.setFullYear(cur.getFullYear() + 1);
     }
   } else {
     // Month columns (default)
     let cur = new Date(displayMin); cur.setDate(1);
-    while (cur.toISOString().slice(0,10) <= addDays(displayMin, totalDays)) {
-      const mEnd = new Date(cur.getFullYear(), cur.getMonth()+1, 0);
+    while (daysBetween(displayMin, cur.toISOString().slice(0,10)) < totalDays) {
+      const mEnd = new Date(cur.getFullYear(), cur.getMonth() + 1, 0);
       const left = Math.max(0, daysBetween(displayMin, cur.toISOString().slice(0,10))) * DAY_PX_DYN;
-      const right = Math.min(totalDays, daysBetween(displayMin, mEnd.toISOString().slice(0,10))) * DAY_PX_DYN;
-      months.push({ label: cur.toLocaleDateString(localeStr, {month:'short',year:'2-digit'}), left, width: right - left });
-      cur.setMonth(cur.getMonth()+1);
+      const right = Math.min(totalDays, daysBetween(displayMin, mEnd.toISOString().slice(0,10)) + 1) * DAY_PX_DYN;
+      months.push({ label: cur.toLocaleDateString(localeStr, {month:'short', year:'2-digit'}), left, width: right - left });
+      cur.setMonth(cur.getMonth() + 1);
     }
   }
 
@@ -396,7 +405,7 @@ export default function GanttView({ data, updateData, initialProjectId, onMounte
               </div>
 
               {/* Chart */}
-              <div style={{ flex:1, position:'relative', minWidth: chartW }}>
+              <div style={{ width:chartW, flexShrink:0, position:'relative' }}>
                 {/* Bars area */}
                 <div style={{ position:'relative', width:chartW }}>
                   {/* Grid lines */}
