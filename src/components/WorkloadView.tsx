@@ -16,6 +16,7 @@ export default function WorkloadView({ data, updateData }: Props) {
   const [editingWorkload, setEditingWorkload] = useState<WorkloadEntry | null>(null);
   const [editingAlloc, setEditingAlloc] = useState<AllocationEntry | null>(null);
   const [isNew, setIsNew] = useState(false);
+  const [inlineEdit, setInlineEdit] = useState<{ id: string; field: string } | null>(null);
 
   const months = MONTHS_2026_2028.filter(m => m.startsWith(yearFilter));
 
@@ -30,6 +31,24 @@ export default function WorkloadView({ data, updateData }: Props) {
   const filteredAllocs = data.allocations.filter(a =>
     projectIds.includes(a.projectId)
   );
+
+  const updateWorkloadMonth = (id: string, month: string, value: string) => {
+    const v = parseFloat(value);
+    const workloads = data.workloads.map(w => w.id === id
+      ? { ...w, monthly: { ...w.monthly, [month]: isNaN(v) ? 0 : v } }
+      : w
+    );
+    updateData({ ...data, workloads });
+  };
+
+  const updateAllocMonth = (id: string, month: string, value: string) => {
+    const v = parseFloat(value);
+    const allocations = data.allocations.map(a => a.id === id
+      ? { ...a, monthly: { ...a.monthly, [month]: isNaN(v) ? 0 : v } }
+      : a
+    );
+    updateData({ ...data, allocations });
+  };
 
   // --- Workload CRUD ---
   const saveWorkload = () => {
@@ -152,8 +171,17 @@ export default function WorkloadView({ data, updateData }: Props) {
                           .reduce((s, a) => s + (a.monthly[m] ?? 0), 0);
                         const cls = need === 0 ? 'cap-cell cap-zero' : covered >= need ? 'cap-cell cap-ok' : covered > 0 ? 'cap-cell cap-under' : 'cap-cell cap-over';
                         return (
-                          <td key={m} className={cls} title={`Besoin: ${need}j | Couvert: ${covered}j`}>
-                            {need > 0 ? need : '—'}
+                          <td key={m} className={cls + ' cell-edit'}
+                            title={`Besoin: ${need}j | Couvert: ${covered}j`}
+                            onClick={() => setInlineEdit({ id: w.id, field: 'w_' + m })}>
+                            {inlineEdit?.id === w.id && inlineEdit.field === 'w_' + m
+                              ? <input type="number" min={0} step={0.5} className="cell-input" autoFocus defaultValue={need || ''}
+                                  style={{ minWidth: 44, width: 50, textAlign: 'center' }}
+                                  onBlur={e => { updateWorkloadMonth(w.id, m, e.target.value); setInlineEdit(null); }}
+                                  onKeyDown={e => { if (e.key === 'Enter') { updateWorkloadMonth(w.id, m, (e.target as HTMLInputElement).value); setInlineEdit(null); } if (e.key === 'Escape') setInlineEdit(null); }}
+                                  onClick={e => e.stopPropagation()} />
+                              : need > 0 ? need : '—'
+                            }
                           </td>
                         );
                       })}
@@ -213,8 +241,16 @@ export default function WorkloadView({ data, updateData }: Props) {
                         const cap = staff?.capacity[m] ?? 0;
                         const cls = alloc === 0 ? 'cap-cell cap-zero' : alloc > cap ? 'cap-cell cap-over' : 'cap-cell cap-ok';
                         return (
-                          <td key={m} className={cls}>
-                            {alloc > 0 ? alloc : '—'}
+                          <td key={m} className={cls + ' cell-edit'}
+                            onClick={() => setInlineEdit({ id: a.id, field: 'a_' + m })}>
+                            {inlineEdit?.id === a.id && inlineEdit.field === 'a_' + m
+                              ? <input type="number" min={0} step={0.5} className="cell-input" autoFocus defaultValue={alloc || ''}
+                                  style={{ minWidth: 44, width: 50, textAlign: 'center' }}
+                                  onBlur={e => { updateAllocMonth(a.id, m, e.target.value); setInlineEdit(null); }}
+                                  onKeyDown={e => { if (e.key === 'Enter') { updateAllocMonth(a.id, m, (e.target as HTMLInputElement).value); setInlineEdit(null); } if (e.key === 'Escape') setInlineEdit(null); }}
+                                  onClick={e => e.stopPropagation()} />
+                              : alloc > 0 ? alloc : '—'
+                            }
                           </td>
                         );
                       })}

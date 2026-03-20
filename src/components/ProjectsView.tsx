@@ -28,6 +28,12 @@ export default function ProjectsView({ data, updateData }: Props) {
   const [editing, setEditing] = useState<Project | null>(null);
   const [isNew, setIsNew] = useState(false);
   const [viewMode, setViewMode] = useState<'list' | 'gantt'>('list');
+  const [inlineEdit, setInlineEdit] = useState<{ id: string; field: string } | null>(null);
+
+  const updateField = (id: string, field: string, value: any) => {
+    const projects = data.projects.map(p => p.id === id ? { ...p, [field]: value || null } : p);
+    updateData({ ...data, projects });
+  };
 
   const filtered = data.projects.filter(p => {
     const matchSearch = !search || p.name.toLowerCase().includes(search.toLowerCase()) || (p.projectManager ?? '').toLowerCase().includes(search.toLowerCase());
@@ -113,18 +119,79 @@ export default function ProjectsView({ data, updateData }: Props) {
             <tbody>
               {filtered.map(p => (
                 <tr key={p.id}>
-                  <td style={{ fontWeight: 500, maxWidth: 260, overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.name}</td>
-                  <td><span className="badge badge-blue">{p.domain}</span></td>
+                  <td className="cell-edit" style={{ fontWeight: 500, maxWidth: 260 }} onClick={() => setInlineEdit({ id: p.id, field: 'name' })}>
+                    {inlineEdit?.id === p.id && inlineEdit.field === 'name'
+                      ? <input className="cell-input" autoFocus defaultValue={p.name}
+                          onBlur={e => { updateField(p.id, 'name', e.target.value); setInlineEdit(null); }}
+                          onKeyDown={e => { if (e.key === 'Enter' || e.key === 'Escape') { if (e.key === 'Enter') updateField(p.id, 'name', (e.target as HTMLInputElement).value); setInlineEdit(null); } }}
+                          onClick={e => e.stopPropagation()} style={{ minWidth: 180 }} />
+                      : <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', display: 'block', maxWidth: 240 }}>{p.name}</span>
+                    }
+                  </td>
+                  <td className="cell-edit" onClick={() => setInlineEdit({ id: p.id, field: 'domain' })}>
+                    {inlineEdit?.id === p.id && inlineEdit.field === 'domain'
+                      ? <select className="cell-select" autoFocus defaultValue={p.domain}
+                          onChange={e => { updateField(p.id, 'domain', e.target.value); setInlineEdit(null); }}
+                          onBlur={() => setInlineEdit(null)}
+                          onClick={e => e.stopPropagation()}>
+                          {DOMAINS.map(d => <option key={d} value={d}>{d}</option>)}
+                        </select>
+                      : <span className="badge badge-blue">{p.domain}</span>
+                    }
+                  </td>
                   <td style={{ color: 'var(--text-muted)', fontSize: 12 }}>{p.requestType}</td>
-                  <td style={{ color: 'var(--text-muted)' }}>{p.leadDept}</td>
+                  <td className="cell-edit" style={{ color: 'var(--text-muted)' }} onClick={() => setInlineEdit({ id: p.id, field: 'leadDept' })}>
+                    {inlineEdit?.id === p.id && inlineEdit.field === 'leadDept'
+                      ? <select className="cell-select" autoFocus defaultValue={p.leadDept}
+                          onChange={e => { updateField(p.id, 'leadDept', e.target.value); setInlineEdit(null); }}
+                          onBlur={() => setInlineEdit(null)} onClick={e => e.stopPropagation()}>
+                          {DEPARTMENTS.map(d => <option key={d} value={d}>{d}</option>)}
+                        </select>
+                      : p.leadDept}
+                  </td>
                   <td style={{ color: 'var(--text-muted)', fontSize: 12 }}>{p.sponsor}</td>
                   <td>{p.projectManager || '—'}</td>
                   <td>{p.priority ? <span className="badge badge-gray">P{p.priority}</span> : '—'}</td>
                   <td>{p.complexity ? <span className="badge badge-gray">C{p.complexity}</span> : '—'}</td>
-                  <td>{p.status ? <span className={`badge ${STATUS_BADGE[p.status] ?? 'badge-gray'}`}>{p.status.replace(/^\d-/, '')}</span> : '—'}</td>
-                  <td style={{ color: 'var(--text-muted)', fontSize: 12 }}>{p.startDate ? p.startDate.slice(0, 7) : '—'}</td>
-                  <td style={{ color: 'var(--text-muted)', fontSize: 12 }}>{p.goLive ? p.goLive.slice(0, 7) : '—'}</td>
-                  <td style={{ color: 'var(--text-muted)', fontSize: 12 }}>{p.hypercare ? p.hypercare.slice(0, 7) : '—'}</td>
+                  <td className="cell-edit" onClick={() => setInlineEdit({ id: p.id, field: 'status' })}>
+                    {inlineEdit?.id === p.id && inlineEdit.field === 'status'
+                      ? <select className="cell-select" autoFocus defaultValue={p.status ?? ''}
+                          onChange={e => { updateField(p.id, 'status', e.target.value); setInlineEdit(null); }}
+                          onBlur={() => setInlineEdit(null)}
+                          onClick={e => e.stopPropagation()}>
+                          <option value="">—</option>
+                          {STATUSES.map(s => <option key={s} value={s}>{s.replace(/^\d-/, '')}</option>)}
+                        </select>
+                      : p.status ? <span className={`badge ${STATUS_BADGE[p.status] ?? 'badge-gray'}`}>{p.status.replace(/^\d-/, '')}</span> : <span style={{color:'var(--text-faint)'}}>—</span>
+                    }
+                  </td>
+                  <td className="cell-edit" style={{ fontSize: 12 }} onClick={() => setInlineEdit({ id: p.id, field: 'startDate' })}>
+                    {inlineEdit?.id === p.id && inlineEdit.field === 'startDate'
+                      ? <input type="date" className="cell-input" autoFocus defaultValue={p.startDate ?? ''}
+                          onBlur={e => { updateField(p.id, 'startDate', e.target.value); setInlineEdit(null); }}
+                          onKeyDown={e => { if (e.key === 'Enter' || e.key === 'Escape') setInlineEdit(null); }}
+                          onClick={e => e.stopPropagation()} style={{ minWidth: 130 }} />
+                      : <span style={{color:'var(--text-muted)'}}>{p.startDate ? p.startDate.slice(0, 7) : '—'}</span>
+                    }
+                  </td>
+                  <td className="cell-edit" style={{ fontSize: 12 }} onClick={() => setInlineEdit({ id: p.id, field: 'goLive' })}>
+                    {inlineEdit?.id === p.id && inlineEdit.field === 'goLive'
+                      ? <input type="date" className="cell-input" autoFocus defaultValue={p.goLive ?? ''}
+                          onBlur={e => { updateField(p.id, 'goLive', e.target.value); setInlineEdit(null); }}
+                          onKeyDown={e => { if (e.key === 'Enter' || e.key === 'Escape') setInlineEdit(null); }}
+                          onClick={e => e.stopPropagation()} style={{ minWidth: 130 }} />
+                      : <span style={{color:'var(--text-muted)'}}>{p.goLive ? p.goLive.slice(0, 7) : '—'}</span>
+                    }
+                  </td>
+                  <td className="cell-edit" style={{ fontSize: 12 }} onClick={() => setInlineEdit({ id: p.id, field: 'hypercare' })}>
+                    {inlineEdit?.id === p.id && inlineEdit.field === 'hypercare'
+                      ? <input type="date" className="cell-input" autoFocus defaultValue={(p as any).hypercare ?? ''}
+                          onBlur={e => { updateField(p.id, 'hypercare', e.target.value); setInlineEdit(null); }}
+                          onKeyDown={e => { if (e.key === 'Enter' || e.key === 'Escape') setInlineEdit(null); }}
+                          onClick={e => e.stopPropagation()} style={{ minWidth: 130 }} />
+                      : <span style={{color:'var(--text-muted)'}}>{(p as any).hypercare ? (p as any).hypercare.slice(0, 7) : '—'}</span>
+                    }
+                  </td>
                   <td>
                     <div style={{ display: 'flex', gap: 4 }}>
                       <button className="btn btn-ghost btn-sm" onClick={() => { setEditing({ ...p }); setIsNew(false); }}>{t('edit_btn')}</button>

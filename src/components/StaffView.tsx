@@ -19,6 +19,21 @@ export default function StaffView({ data, updateData }: Props) {
   const [editing, setEditing] = useState<Staff | null>(null);
   const [isNew, setIsNew] = useState(false);
   const [yearFilter, setYearFilter] = useState('2026');
+  const [inlineEdit, setInlineEdit] = useState<{ id: string; field: string } | null>(null);
+
+  const updateStaffField = (id: string, field: string, value: any) => {
+    const staff = data.staff.map(s => s.id === id ? { ...s, [field]: value } : s);
+    updateData({ ...data, staff });
+  };
+
+  const updateCapacity = (id: string, month: string, value: string) => {
+    const v = parseFloat(value);
+    const staff = data.staff.map(s => s.id === id
+      ? { ...s, capacity: { ...s.capacity, [month]: isNaN(v) ? 0 : v } }
+      : s
+    );
+    updateData({ ...data, staff });
+  };
 
   const months = MONTHS_2026_2028.filter(m => m.startsWith(yearFilter));
 
@@ -116,9 +131,14 @@ export default function StaffView({ data, updateData }: Props) {
 
                 return (
                   <tr key={s.id}>
-                    <td className="sticky-left" style={{ fontWeight: 500 }}>
-                      {s.name}
-                      {s.type === 'External' && <span className="badge badge-yellow" style={{ marginLeft: 6, fontSize: 10 }}>{t('field_ext')}</span>}
+                    <td className="sticky-left cell-edit" style={{ fontWeight: 500 }} onClick={() => setInlineEdit({ id: s.id, field: 'name' })}>
+                      {inlineEdit?.id === s.id && inlineEdit.field === 'name'
+                        ? <input className="cell-input" autoFocus defaultValue={s.name}
+                            onBlur={e => { updateStaffField(s.id, 'name', e.target.value); setInlineEdit(null); }}
+                            onKeyDown={e => { if (e.key === 'Enter' || e.key === 'Escape') setInlineEdit(null); }}
+                            onClick={e => e.stopPropagation()} style={{ minWidth: 140 }} />
+                        : <>{s.name}{s.type === 'External' && <span className="badge badge-yellow" style={{ marginLeft: 6, fontSize: 10 }}>{t('field_ext')}</span>}</>
+                      }
                     </td>
                     <td><span className="badge badge-blue">{s.profile}</span></td>
                     <td style={{ color: 'var(--text-muted)', fontSize: 12 }}>{s.type === 'Internal' ? t('internal') : t('external_label')}</td>
@@ -131,9 +151,16 @@ export default function StaffView({ data, updateData }: Props) {
                       else if (alloc > cap) cls += ' cap-over';
                       else if (alloc > 0) cls += ' cap-ok';
                       return (
-                        <td key={m} className={cls} title={alloc > 0 ? `${String(t('capacity_cap_alloc')).replace('{cap}', String(cap)).replace('{alloc}', String(alloc))}` : `Cap: ${cap}j`}>
-                          {cap > 0 ? cap : '—'}
-                          {alloc > 0 && <div style={{ fontSize: 10, opacity: 0.7 }}>{alloc}j</div>}
+                        <td key={m} className={cls + ' cell-edit'} title={alloc > 0 ? `${String(t('capacity_cap_alloc')).replace('{cap}', String(cap)).replace('{alloc}', String(alloc))}` : `Cap: ${cap}j`}
+                          onClick={() => setInlineEdit({ id: s.id, field: 'cap_' + m })}>
+                          {inlineEdit?.id === s.id && inlineEdit.field === 'cap_' + m
+                            ? <input type="number" min={0} step={0.5} className="cell-input" autoFocus defaultValue={cap || ''}
+                                style={{ minWidth: 48, width: 52, textAlign: 'center' }}
+                                onBlur={e => { updateCapacity(s.id, m, e.target.value); setInlineEdit(null); }}
+                                onKeyDown={e => { if (e.key === 'Enter') { updateCapacity(s.id, m, (e.target as HTMLInputElement).value); setInlineEdit(null); } if (e.key === 'Escape') setInlineEdit(null); }}
+                                onClick={e => e.stopPropagation()} />
+                            : <>{cap > 0 ? cap : '—'}{alloc > 0 && <div style={{ fontSize: 10, opacity: 0.7 }}>{alloc}j</div>}</>
+                          }
                         </td>
                       );
                     })}
