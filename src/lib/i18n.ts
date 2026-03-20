@@ -464,6 +464,7 @@ export const translations = {
     new_btn: 'Nouveau',
     phase_hint: 'Durée avec sous-phases',
     milestone_hint: 'Date ponctuelle',
+    add_allocation_btn: '+ Affecter ressource',
   },
   en: {
     nav_dashboard: 'Dashboard',
@@ -919,6 +920,7 @@ export const translations = {
     new_btn: 'New',
     phase_hint: 'Duration with subphases',
     milestone_hint: 'Single date event',
+    add_allocation_btn: '+ Assign resource',
   },
   pt: {
     nav_dashboard: 'Painel',
@@ -1374,6 +1376,7 @@ export const translations = {
     new_btn: 'Novo',
     phase_hint: 'Duração com subfases',
     milestone_hint: 'Data pontual',
+    add_allocation_btn: '+ Atribuir recurso',
   },
   zh: {
     nav_dashboard: '仪表板',
@@ -1829,6 +1832,7 @@ export const translations = {
     new_btn: '新建',
     phase_hint: '带子阶段的持续时间',
     milestone_hint: '单次日期事件',
+    add_allocation_btn: '+ 分配资源',
   },
 } as const;
 

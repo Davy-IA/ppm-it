@@ -117,7 +117,7 @@ export default function WorkloadView({ data, updateData }: Props) {
               const staff = data.staff[0];
               setEditingAlloc({ id: '', projectId: proj?.id ?? '', projectName: proj?.name ?? '', profile: 'FUNC', staffId: staff?.id ?? '', staffName: staff?.name ?? '', monthly: {} });
               setIsNew(true);
-            }}>+ Affecter ressource</button>
+            }}>{t('add_allocation_btn')}</button>
           )}
         </div>
       </div>
