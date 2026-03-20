@@ -59,7 +59,7 @@ function ResetPasswordForm() {
             </svg>
           </div>
           <h1 style={{ fontSize: 20, fontWeight: 800, color: '#1a1a2e', letterSpacing: '-0.02em' }}>Réinitialisation</h1>
-          <p style={{ color: '#6b7280', fontSize: 13, marginTop: 4 }}>PPM·IT — Sécurité du compte</p>
+          <p style={{ color: '#6b7280', fontSize: 13, marginTop: 4 }}>PPM — Sécurité du compte</p>
         </div>
 
         <div style={{ background: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.9)', borderRadius: 16, padding: 28, boxShadow: '0 2px 16px rgba(99,102,241,0.07)' }}>

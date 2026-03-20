@@ -97,7 +97,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   colorTheme: 'indigo',
   logo: null,
   logoDark: null,
-  appName: 'PPM·IT',
+  appName: 'PPM',
   budgetUrl: 'https://www.sapanalytics.cloud',
   domains: ['APPLI', 'INFRA', 'INNOV', 'DATA'],
   profiles: ['PM', 'FUNC', 'DEV', 'INFRA', 'DATA', 'QA', 'DESIGN'],
