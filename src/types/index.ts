@@ -88,7 +88,20 @@ export interface Milestone {
   isAutoGoLive?: boolean; // if true, date is synced from project.goLive
 }
 
+// Per-space overrides for value lists and milestone types
+export interface SpaceConfig {
+  domains?: string[];
+  profiles?: string[];
+  statuses?: string[];
+  departments?: string[];
+  countries?: string[];
+  requestTypes?: string[];
+  sponsors?: string[];
+  milestoneTypes?: string[];
+}
+
 export interface AppData {
+  spaceConfig?: SpaceConfig;
   staff: Staff[];
   projects: Project[];
   workloads: WorkloadEntry[];

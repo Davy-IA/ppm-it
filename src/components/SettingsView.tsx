@@ -19,6 +19,7 @@ export default function SettingsView({ data, updateData, spaces, onRefreshSpaces
   const [saved, setSaved] = useState(false);
   const [activeTab, setActiveTab] = useState<'identity' | 'theme' | 'lists' | 'lang' | 'users' | 'spaces' | 'milestones'>('identity');
   const [spacesList, setSpacesList] = useState<Space[]>(spaces);
+  const [selectedSpaceId, setSelectedSpaceId] = useState<string>('__global__');
   // Keep local list in sync when parent prop updates
   useEffect(() => { setSpacesList(spaces); }, [spaces]);
   const logoRef = useRef<HTMLInputElement>(null);
@@ -247,33 +248,104 @@ export default function SettingsView({ data, updateData, spaces, onRefreshSpaces
       )}
 
       {/* LISTS TAB — admin only */}
-      {activeTab === 'lists' && isAdmin && (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, maxWidth: 900 }}>
-          {LISTS.map(({ key, labelKey }) => {
-            const values: string[] = (settings as any)[key] ?? [];
-            return (
-              <div key={key} className="card">
-                <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span>{t(labelKey as any)}</span>
-                  <span className="badge badge-gray">{values.length}</span>
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 10, maxHeight: 220, overflowY: 'auto' }}>
-                  {values.map((v, i) => (
-                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <input className="input" value={v} style={{ flex: 1 }}
-                        onChange={e => { const n = [...values]; n[i] = e.target.value; updateList(key, n); }}
-                        onBlur={showSaved} />
-                      <button className="btn-icon" style={{ flexShrink: 0, color: 'var(--danger)' }}
-                        onClick={() => { updateList(key, values.filter((_, j) => j !== i)); showSaved(); }}>✕</button>
+      {activeTab === 'lists' && isAdmin && (() => {
+        const isGlobal = selectedSpaceId === '__global__';
+        const spaceData = !isGlobal ? data : null;
+        const spaceConfig = (spaceData as any)?.spaceConfig ?? {};
+
+        const getValues = (key: string): string[] => {
+          if (!isGlobal && spaceConfig[key] !== undefined) return spaceConfig[key];
+          return (settings as any)[key] ?? [];
+        };
+
+        const updateListForScope = (key: string, vals: string[]) => {
+          if (isGlobal) {
+            updateList(key as any, vals);
+          } else {
+            const newConfig = { ...spaceConfig, [key]: vals };
+            updateData({ ...data, spaceConfig: newConfig } as any);
+            showSaved();
+          }
+        };
+
+        const resetToGlobal = (key: string) => {
+          const newConfig = { ...spaceConfig };
+          delete newConfig[key];
+          updateData({ ...data, spaceConfig: newConfig } as any);
+          showSaved();
+        };
+
+        return (
+          <div>
+            {/* Space selector */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20, padding: '12px 16px', background: 'var(--bg3)', borderRadius: 10, border: '1px solid var(--border)' }}>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.5" stroke="var(--accent)" strokeWidth="1.5"/><path d="M8 1.5C8 1.5 5 5 5 8s3 6.5 3 6.5M8 1.5C8 1.5 11 5 11 8s-3 6.5-3 6.5M1.5 8h13" stroke="var(--accent)" strokeWidth="1.3"/></svg>
+              <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-muted)' }}>{t('scope_label')}</span>
+              <select className="input" value={selectedSpaceId} onChange={e => setSelectedSpaceId(e.target.value)} style={{ maxWidth: 220, fontWeight: 600 }}>
+                <option value="__global__">🌐 {t('global_values')}</option>
+                {spacesList.map(s => <option key={s.id} value={s.id}>{s.icon} {s.name}</option>)}
+              </select>
+              {!isGlobal && (
+                <span style={{ fontSize: 11, color: 'var(--accent)', background: 'var(--accent-subtle)', padding: '3px 10px', borderRadius: 20, fontWeight: 600 }}>
+                  {t('space_override_active')}
+                </span>
+              )}
+              <span style={{ fontSize: 12, color: 'var(--text-faint)', marginLeft: 8 }}>{t('space_override_hint')}</span>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, maxWidth: 900 }}>
+              {LISTS.map(({ key, labelKey }) => {
+                const values: string[] = getValues(key);
+                const isOverridden = !isGlobal && spaceConfig[key] !== undefined;
+                const globalValues: string[] = (settings as any)[key] ?? [];
+                return (
+                  <div key={key} className="card" style={{ borderColor: isOverridden ? 'var(--accent)' : undefined }}>
+                    <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span>{t(labelKey as any)}</span>
+                      <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                        {isOverridden && <span className="badge badge-blue" style={{ fontSize: 10 }}>{t('overridden')}</span>}
+                        {isOverridden && (
+                          <button className="btn btn-ghost btn-sm" style={{ fontSize: 10, padding: '2px 8px' }}
+                            onClick={() => resetToGlobal(key)} title={t('reset_to_global') as string}>
+                            ↩ {t('reset_to_global')}
+                          </button>
+                        )}
+                        <span className="badge badge-gray">{values.length}</span>
+                      </div>
                     </div>
-                  ))}
-                </div>
-                <button className="btn btn-ghost btn-sm" style={{ width: '100%' }} onClick={() => updateList(key, [...values, ''])}>{t('add_value')}</button>
-              </div>
-            );
-          })}
-        </div>
-      )}
+                    {!isGlobal && !isOverridden && (
+                      <div style={{ fontSize: 11, color: 'var(--text-faint)', marginBottom: 10, padding: '6px 10px', background: 'var(--bg3)', borderRadius: 6 }}>
+                        {t('using_global_values')} — <button style={{ color: 'var(--accent)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 11, fontFamily: 'inherit', fontWeight: 600 }}
+                          onClick={() => updateListForScope(key, [...globalValues])}>
+                          {t('customize_for_space')}
+                        </button>
+                      </div>
+                    )}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 10, maxHeight: 220, overflowY: 'auto' }}>
+                      {values.map((v, i) => (
+                        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <input className="input" value={v} style={{ flex: 1 }}
+                            onChange={e => { const n = [...values]; n[i] = e.target.value; updateListForScope(key, n); }}
+                            onBlur={showSaved}
+                            disabled={!isGlobal && !isOverridden} />
+                          {(isGlobal || isOverridden) && (
+                            <button className="btn-icon" style={{ flexShrink: 0, color: 'var(--danger)' }}
+                              onClick={() => { updateListForScope(key, values.filter((_, j) => j !== i)); }}>✕</button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                    {(isGlobal || isOverridden) && (
+                      <button className="btn btn-ghost btn-sm" style={{ width: '100%' }}
+                        onClick={() => updateListForScope(key, [...values, ''])}>{t('add_value')}</button>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })()}
 
       {/* SPACES TAB — admin only */}
       {activeTab === 'spaces' && isAdmin && (
@@ -282,38 +354,77 @@ export default function SettingsView({ data, updateData, spaces, onRefreshSpaces
 
       {/* USERS TAB — admin only */}
 
-      {activeTab === 'milestones' && isAdmin && (
-        <div style={{ maxWidth: 600 }}>
-          <div className="card">
-            <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 4 }}>{t('settings_tab_milestones')}</div>
-            <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 16 }}>{t('milestone_type')}</div>
-            {(settings.milestoneTypes ?? []).map((mt: string, idx: number) => (
-              <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                <span style={{ width: 10, height: 10, background: '#f59e0b', transform: 'rotate(45deg)', display: 'inline-block', borderRadius: 1, flexShrink: 0 }} />
-                <input className="input" value={mt} style={{ flex: 1 }}
-                  onChange={e => {
-                    const types = [...(settings.milestoneTypes ?? [])];
-                    types[idx] = e.target.value;
-                    updateSettings({ milestoneTypes: types } as any);
-                  }}
-                  onBlur={showSaved}
-                />
-                <button className="btn btn-danger btn-sm" onClick={() => {
-                  const types = (settings.milestoneTypes ?? []).filter((_: string, i: number) => i !== idx);
-                  updateSettings({ milestoneTypes: types } as any);
-                  showSaved();
-                }}>✕</button>
+      {activeTab === 'milestones' && isAdmin && (() => {
+        const isGlobal = selectedSpaceId === '__global__';
+        const spaceConfig = (data as any)?.spaceConfig ?? {};
+        const globalTypes: string[] = settings.milestoneTypes ?? [];
+        const spaceTypes: string[] | undefined = !isGlobal ? spaceConfig['milestoneTypes'] : undefined;
+        const types: string[] = spaceTypes ?? globalTypes;
+        const isOverridden = !isGlobal && spaceTypes !== undefined;
+
+        const updateTypes = (newTypes: string[]) => {
+          if (isGlobal) {
+            updateSettings({ milestoneTypes: newTypes } as any);
+          } else {
+            updateData({ ...data, spaceConfig: { ...spaceConfig, milestoneTypes: newTypes } } as any);
+          }
+          showSaved();
+        };
+
+        return (
+          <div style={{ maxWidth: 600 }}>
+            {/* Space selector */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20, padding: '12px 16px', background: 'var(--bg3)', borderRadius: 10, border: '1px solid var(--border)' }}>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.5" stroke="var(--accent)" strokeWidth="1.5"/><path d="M8 1.5C8 1.5 5 5 5 8s3 6.5 3 6.5M8 1.5C8 1.5 11 5 11 8s-3 6.5-3 6.5M1.5 8h13" stroke="var(--accent)" strokeWidth="1.3"/></svg>
+              <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-muted)' }}>{t('scope_label')}</span>
+              <select className="input" value={selectedSpaceId} onChange={e => setSelectedSpaceId(e.target.value)} style={{ maxWidth: 220, fontWeight: 600 }}>
+                <option value="__global__">🌐 {t('global_values')}</option>
+                {spacesList.map(s => <option key={s.id} value={s.id}>{s.icon} {s.name}</option>)}
+              </select>
+              {isOverridden && <span style={{ fontSize: 11, color: 'var(--accent)', background: 'var(--accent-subtle)', padding: '3px 10px', borderRadius: 20, fontWeight: 600 }}>{t('space_override_active')}</span>}
+            </div>
+
+            <div className="card">
+              <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span>{t('settings_tab_milestones')}</span>
+                {isOverridden && (
+                  <button className="btn btn-ghost btn-sm" style={{ fontSize: 11 }}
+                    onClick={() => { const c2 = { ...spaceConfig }; delete c2['milestoneTypes']; updateData({ ...data, spaceConfig: c2 } as any); showSaved(); }}>
+                    ↩ {t('reset_to_global')}
+                  </button>
+                )}
               </div>
-            ))}
-            <button className="btn btn-ghost btn-sm" style={{ marginTop: 8 }} onClick={() => {
-              const types = [...(settings.milestoneTypes ?? []), t('milestone_type') as string];
-              updateSettings({ milestoneTypes: types } as any);
-            }}>
-              {t('add_milestone_type')}
-            </button>
+              <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 16 }}>{t('milestone_type')}</div>
+              {!isGlobal && !isOverridden && (
+                <div style={{ fontSize: 11, color: 'var(--text-faint)', marginBottom: 12, padding: '6px 10px', background: 'var(--bg3)', borderRadius: 6 }}>
+                  {t('using_global_values')} — <button style={{ color: 'var(--accent)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 11, fontFamily: 'inherit', fontWeight: 600 }}
+                    onClick={() => updateTypes([...globalTypes])}>
+                    {t('customize_for_space')}
+                  </button>
+                </div>
+              )}
+              {types.map((mt: string, idx: number) => (
+                <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                  <span style={{ width: 10, height: 10, background: 'var(--accent2)', transform: 'rotate(45deg)', display: 'inline-block', borderRadius: 1, flexShrink: 0 }} />
+                  <input className="input" value={mt} style={{ flex: 1 }}
+                    onChange={e => { const n = [...types]; n[idx] = e.target.value; updateTypes(n); }}
+                    onBlur={showSaved}
+                    disabled={!isGlobal && !isOverridden} />
+                  {(isGlobal || isOverridden) && (
+                    <button className="btn btn-danger btn-sm" onClick={() => updateTypes(types.filter((_: string, i: number) => i !== idx))}>✕</button>
+                  )}
+                </div>
+              ))}
+              {(isGlobal || isOverridden) && (
+                <button className="btn btn-ghost btn-sm" style={{ marginTop: 8 }}
+                  onClick={() => updateTypes([...types, ''])}>
+                  + {t('add_milestone_type')}
+                </button>
+              )}
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
       {activeTab === 'users' && isAdmin && (
         <UsersManager spaces={spacesList.map(s => ({ id: s.id, name: s.name, color: s.color }))} />
       )}
