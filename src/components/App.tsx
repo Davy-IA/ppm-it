@@ -21,7 +21,7 @@ export default function App() {
   const { user, loading: authLoading, token } = useAuth();
   const [spaces, setSpaces] = useState<Space[]>([]);
   const [currentSpace, setCurrentSpace] = useState<Space | null>(null);
-  const [view, setView] = useState<View>('dashboard');
+  const [view, setView] = useState<View>('projects');
   const [data, setData] = useState<AppData>({ ...INITIAL_DATA, projects: [], staff: [], workloads: [], allocations: [], ganttPhases: [] });
   const [saving, setSaving] = useState(false);
   const [spacesLoading, setSpacesLoading] = useState(false);

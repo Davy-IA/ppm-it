@@ -108,12 +108,12 @@ export default function TopNav({ view, setView, saving, data, currentSpace, onCh
   const [showProfile, setShowProfile] = useState(false);
 
   const NAV_ITEMS = [
-    { id: 'dashboard', labelKey: 'nav_dashboard', icon: Icons.dashboard },
     { id: 'projects',  labelKey: 'nav_projects',  icon: Icons.projects },
     { id: 'gantt',     labelKey: 'nav_planning',   icon: Icons.gantt },
     { id: 'staff',     labelKey: 'nav_staff',      icon: Icons.staff },
     { id: 'workload',  labelKey: 'nav_workload',   icon: Icons.workload },
     ...(settings.budgetUrl ? [{ id: 'budget', labelKey: 'nav_budget', icon: Icons.budget, external: settings.budgetUrl }] : []),
+    { id: 'dashboard', labelKey: 'nav_dashboard', icon: Icons.dashboard },
     ...(user?.role !== 'member' ? [{ id: 'settings', labelKey: 'nav_settings', icon: Icons.settings }] : []),
   ];
 
