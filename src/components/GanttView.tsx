@@ -377,16 +377,16 @@ export default function GanttView({ data, updateData, initialProjectId, onMounte
         </div>
       ) : (
         <div style={{ border:'1px solid var(--border)', borderRadius:'var(--radius)', background:'var(--bg2)', boxShadow:'var(--shadow-sm)', marginTop: 12 }}>
-          <div style={{ overflowX:'auto' }}>
+          <div style={{ overflow:'auto', maxHeight:'calc(100vh - 280px)' }}>
             <div style={{ minWidth: LEFT_W + chartW }}>
-              {/* Sticky header row */}
-              <div style={{ display:'flex', background:'var(--bg3)', borderBottom:'2px solid var(--border)' }}>
-                <div style={{ width:LEFT_W, minWidth:LEFT_W, flexShrink:0, borderRight:'1px solid var(--border)', height:40, display:'flex', alignItems:'center', padding:'0 16px', position:'sticky', left:0, zIndex:25, background:'var(--bg3)' }}>
+              {/* Sticky header row — same as Portfolio Gantt */}
+              <div style={{ display:'flex', background:'var(--bg3)', borderBottom:'2px solid var(--border)', position:'sticky', top:0, zIndex:6 }}>
+                <div style={{ width:LEFT_W, minWidth:LEFT_W, flexShrink:0, borderRight:'1px solid var(--border)', height:36, display:'flex', alignItems:'center', padding:'0 16px', position:'sticky', left:0, zIndex:25, background:'var(--bg3)' }}>
                   <span style={{ fontSize:11, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.07em', color:'var(--text-faint)' }}>{t('structure')}</span>
                 </div>
-                <div style={{ width:chartW, flexShrink:0, position:'relative', height:40 }}>
+                <div style={{ width:chartW, flexShrink:0, position:'relative', height:36 }}>
                   {months.map((m,i) => (
-                    <div key={i} style={{ position:'absolute', left:m.left, width:m.width, height:'100%', display:'flex', alignItems:'center', justifyContent:'center', borderRight:'1px solid var(--border)', fontSize:11, fontWeight:700, color:'var(--text-muted)', textTransform:'capitalize' }}>{m.label}</div>
+                    <div key={i} style={{ position:'absolute', left:m.left, width:m.width, height:'100%', display:'flex', alignItems:'center', justifyContent:'center', borderLeft:'1px solid var(--border)', fontSize:11, fontWeight:700, color:'var(--text-muted)', textTransform:'capitalize' as const, overflow:'hidden' }}>{m.label}</div>
                   ))}
                 </div>
               </div>
@@ -427,7 +427,6 @@ export default function GanttView({ data, updateData, initialProjectId, onMounte
 
               {/* Chart */}
               <div style={{ width:chartW, flexShrink:0, position:'relative' }}>
-                {/* Bars area */}
                 <div style={{ position:'relative', width:chartW }}>
                   {/* Grid lines */}
                   {months.map((m,i) => <div key={i} style={{ position:'absolute', left:m.left, top:0, bottom:0, width:1, background:'var(--border)', zIndex:1 }}/>)}
