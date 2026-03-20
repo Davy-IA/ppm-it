@@ -314,7 +314,7 @@ export default function GanttView({ data, updateData }: Props) {
               )}
               {!overdue && ganttEnd && goLive && (
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 600, color: 'var(--success)', background: 'var(--success-subtle)', border: '1px solid var(--success)', borderRadius: 20, padding: '3px 12px' }}>
-                  ✓ {t('gantt_ok').replace('{end}', fmt(ganttEnd??'')).replace('{golive}', fmt(endDeadline??''))}
+                  {t('gantt_ok').replace('{end}', fmt(ganttEnd??'')).replace('{golive}', fmt(endDeadline??''))}
                 </span>
               )}
             </div>
