@@ -140,9 +140,37 @@ export default function StaffView({ data, updateData }: Props) {
                         : <>{s.name}{s.type === 'External' && <span className="badge badge-yellow" style={{ marginLeft: 6, fontSize: 10 }}>{t('field_ext')}</span>}</>
                       }
                     </td>
-                    <td><span className="badge badge-blue">{s.profile}</span></td>
-                    <td style={{ color: 'var(--text-muted)', fontSize: 12 }}>{s.type === 'Internal' ? t('internal') : t('external_label')}</td>
-                    <td style={{ color: 'var(--text-muted)' }}>{s.entity}</td>
+                    <td className="cell-edit" onClick={() => setInlineEdit({ id: s.id, field: 'profile' })}>
+                      {inlineEdit?.id === s.id && inlineEdit.field === 'profile'
+                        ? <select className="cell-select" autoFocus defaultValue={s.profile}
+                            onChange={e => { updateStaffField(s.id, 'profile', e.target.value); setInlineEdit(null); }}
+                            onBlur={() => setInlineEdit(null)} onClick={e => e.stopPropagation()}>
+                            {PROFILES.map(p => <option key={p} value={p}>{p}</option>)}
+                          </select>
+                        : <span className="badge badge-blue">{s.profile}</span>
+                      }
+                    </td>
+                    <td className="cell-edit" style={{ fontSize: 12 }} onClick={() => setInlineEdit({ id: s.id, field: 'type' })}>
+                      {inlineEdit?.id === s.id && inlineEdit.field === 'type'
+                        ? <select className="cell-select" autoFocus defaultValue={s.type}
+                            onChange={e => { updateStaffField(s.id, 'type', e.target.value); setInlineEdit(null); }}
+                            onBlur={() => setInlineEdit(null)} onClick={e => e.stopPropagation()}>
+                            <option value="Internal">{t('internal')}</option>
+                            <option value="External">{t('contract_external')}</option>
+                          </select>
+                        : <span style={{color:'var(--text-muted)'}}>{s.type === 'Internal' ? t('internal') : t('external_label')}</span>
+                      }
+                    </td>
+                    <td className="cell-edit" style={{ color: 'var(--text-muted)' }} onClick={() => setInlineEdit({ id: s.id, field: 'entity' })}>
+                      {inlineEdit?.id === s.id && inlineEdit.field === 'entity'
+                        ? <select className="cell-select" autoFocus defaultValue={s.entity}
+                            onChange={e => { updateStaffField(s.id, 'entity', e.target.value); setInlineEdit(null); }}
+                            onBlur={() => setInlineEdit(null)} onClick={e => e.stopPropagation()}>
+                            {COUNTRIES.map(c => <option key={c} value={c}>{c}</option>)}
+                          </select>
+                        : s.entity
+                      }
+                    </td>
                     {months.map(m => {
                       const cap = s.capacity[m] ?? 0;
                       const alloc = allocated[m] ?? 0;
