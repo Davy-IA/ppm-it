@@ -8,7 +8,7 @@ import { useSettings } from '@/lib/context';
 interface Props { data: AppData; updateData: (d: AppData) => void; }
 
 const EMPTY_STAFF: Omit<Staff, 'id'> = {
-  name: '', type: 'Internal', department: 'IT', entity: 'FR', profile: 'FUNC', capacity: {},
+  name: '', type: 'Internal', department: 'IT', entity: 'FR', profile: 'FUNC', capacity: {}, partnerId: null, userId: null,
 };
 
 export default function StaffView({ data, updateData }: Props) {
@@ -233,11 +233,30 @@ export default function StaffView({ data, updateData }: Props) {
                 </div>
                 <div>
                   <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>{t('field_contract')}</label>
-                  <select className="input" value={editing.type} onChange={e => setEditing({ ...editing, type: e.target.value as 'Internal' | 'External' })}>
+                  <select className="input" value={editing.type} onChange={e => setEditing({ ...editing, type: e.target.value as 'Internal' | 'External', partnerId: e.target.value === 'Internal' ? null : editing.partnerId })}>
                     <option value="Internal">{t('internal')}</option>
                     <option value="External">{t('contract_external')}</option>
                   </select>
                 </div>
+                {editing.type === 'External' && (
+                  <div>
+                    <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>{t('partner_company')}</label>
+                    <select className="input" value={editing.partnerId ?? ''} onChange={e => setEditing({ ...editing, partnerId: e.target.value || null })}>
+                      <option value="">— {t('no_partner')} —</option>
+                      {(data.partners ?? []).map(p => <option key={p.id} value={p.id}>{p.name} ({p.type})</option>)}
+                    </select>
+                  </div>
+                )}
+                {editing.type === 'External' && (
+                  <div>
+                    <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>{t('link_to_user')}</label>
+                    <select className="input" value={(editing as any).userId ?? ''} onChange={e => setEditing({ ...editing, userId: e.target.value || null } as any)}>
+                      <option value="">— {t('no_linked_user')} —</option>
+                      {/* PPM users will be fetched — for now show placeholder */}
+                    </select>
+                    <div style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 3 }}>{t('link_user_hint')}</div>
+                  </div>
+                )}
                 <div>
                   <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>{t('field_entity')}</label>
                   <select className="input" value={editing.entity} onChange={e => setEditing({ ...editing, entity: e.target.value })}>

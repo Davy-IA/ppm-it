@@ -7,6 +7,7 @@ import { COLOR_THEMES, AppSettings } from '@/lib/settings';
 import { LOCALES } from '@/lib/i18n';
 import UsersManager from './UsersManager';
 import SpacesManager from './SpacesManager';
+import PartnersManager from './PartnersManager';
 
 interface Space { id: string; name: string; description: string; color: string; icon: string; active: boolean; }
 interface Props { data: AppData; updateData: (d: AppData) => void; spaces: Space[]; onRefreshSpaces?: () => void; }
@@ -17,7 +18,7 @@ export default function SettingsView({ data, updateData, spaces, onRefreshSpaces
   const { settings, updateSettings, t } = useSettings();
   const { user, token } = useAuth();
   const [saved, setSaved] = useState(false);
-  const [activeTab, setActiveTab] = useState<'identity' | 'theme' | 'lists' | 'lang' | 'users' | 'spaces' | 'milestones'>('identity');
+  const [activeTab, setActiveTab] = useState<'identity' | 'theme' | 'lists' | 'lang' | 'users' | 'spaces' | 'partners' | 'milestones'>('identity');
   const [spacesList, setSpacesList] = useState<Space[]>(spaces);
   const [selectedSpaceId, setSelectedSpaceId] = useState<string>('__global__');
   // Keep local list in sync when parent prop updates
@@ -77,6 +78,7 @@ export default function SettingsView({ data, updateData, spaces, onRefreshSpaces
     { id: 'lang',       label: t('settings_tab_lang'),       show: true },
     { id: 'users',      label: t('settings_tab_users'),      show: !!isAdmin },
     { id: 'spaces',     label: t('settings_tab_spaces'),     show: !!isAdmin },
+    { id: 'partners',   label: t('settings_tab_partners'),   show: !!isAdmin },
     { id: 'lists',      label: t('settings_tab_lists'),      show: !!isAdmin },
     { id: 'milestones', label: t('settings_tab_milestones'), show: !!isAdmin },
   ].filter(t => t.show);
@@ -352,7 +354,10 @@ export default function SettingsView({ data, updateData, spaces, onRefreshSpaces
         <SpacesManager spaces={spacesList} onRefresh={refreshSpaces} />
       )}
 
-      {/* USERS TAB — admin only */}
+      {/* PARTNERS TAB */}
+      {activeTab === 'partners' && isAdmin && (
+        <PartnersManager data={data} updateData={updateData} />
+      )}
 
       {activeTab === 'milestones' && isAdmin && (() => {
         const isGlobal = selectedSpaceId === '__global__';
@@ -426,7 +431,7 @@ export default function SettingsView({ data, updateData, spaces, onRefreshSpaces
         );
       })()}
       {activeTab === 'users' && isAdmin && (
-        <UsersManager spaces={spacesList.map(s => ({ id: s.id, name: s.name, color: s.color }))} />
+        <UsersManager spaces={spacesList.map(s => ({ id: s.id, name: s.name, color: s.color }))} partners={(data.partners ?? []).map(p => ({ id: p.id, name: p.name, type: p.type }))} />
       )}
     </div>
   );

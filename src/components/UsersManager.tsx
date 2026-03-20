@@ -5,13 +5,14 @@ import { formatMonth, formatDate, formatDateTime } from '@/lib/locale-utils';
 import { useAuth } from '@/lib/auth-context';
 
 interface Space { id: string; name: string; color: string; }
-interface User { id: string; email: string; first_name: string; last_name: string; role: string; active: boolean; last_login: string | null; spaces: Space[]; }
+interface User { id: string; email: string; first_name: string; last_name: string; role: string; active: boolean; last_login: string | null; spaces: Space[]; is_external?: boolean; partner_id?: string | null; }
 
 const ROLE_BADGES: Record<string, string> = { superadmin: 'badge-red', admin: 'badge-purple', global: 'badge-yellow', member: 'badge-blue' };
 
-interface Props { spaces: Space[]; }
+interface PartnerItem { id: string; name: string; type: string; }
+interface Props { spaces: Space[]; partners?: PartnerItem[]; }
 
-export default function UsersManager({ spaces }: Props) {
+export default function UsersManager({ spaces, partners = [] }: Props) {
   const { token, user: me } = useAuth();
   const { t, settings } = useSettings();
   const locale = settings.locale ?? 'fr';
@@ -66,6 +67,8 @@ export default function UsersManager({ spaces }: Props) {
       firstName: editing.first_name,
       lastName: editing.last_name,
       role: editing.role ?? 'member',
+      isExternal: (editing as any).is_external ?? false,
+      partnerId: (editing as any).partner_id ?? null,
       active: editing.active ?? true,
       password: editing.password,
       spaceIds: editing.spaceIds ?? [],
@@ -106,6 +109,7 @@ export default function UsersManager({ spaces }: Props) {
                   <td>
                     <div style={{ fontWeight: 600 }}>{u.first_name} {u.last_name}</div>
                     <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{u.email}</div>
+                    {u.is_external && <span className="badge badge-yellow" style={{ fontSize: 9, marginTop: 2 }}>External</span>}
                   </td>
                   <td><span className={`badge ${ROLE_BADGES[u.role] ?? 'badge-gray'}`}>{t(('role_' + u.role) as any) ?? u.role}</span></td>
                   <td>
@@ -158,6 +162,26 @@ export default function UsersManager({ spaces }: Props) {
                 <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: 6 }}>{t('user_email')} *</label>
                 <input className="input" type="email" value={editing.email ?? ''} onChange={e => setEditing({ ...editing, email: e.target.value })} disabled={!isNew} style={{ opacity: isNew ? 1 : 0.6 }} />
               </div>
+              {/* External flag + partner */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', borderRadius: 8, border: `2px solid ${(editing as any).is_external ? 'var(--warning)' : 'var(--border)'}`, background: (editing as any).is_external ? 'rgba(245,158,11,0.07)' : 'var(--bg3)', cursor: 'pointer' }}
+                onClick={() => setEditing({ ...editing, is_external: !(editing as any).is_external, partner_id: !(editing as any).is_external ? (editing as any).partner_id : null } as any)}>
+                <div style={{ width: 18, height: 18, borderRadius: 4, border: `2px solid ${(editing as any).is_external ? 'var(--warning)' : 'var(--border)'}`, background: (editing as any).is_external ? 'var(--warning)' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  {(editing as any).is_external && <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M1.5 5l2.5 2.5 5-5" stroke="white" strokeWidth="1.8" strokeLinecap="round"/></svg>}
+                </div>
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 600 }}>{t('user_is_external')}</div>
+                  <div style={{ fontSize: 11, color: 'var(--text-faint)' }}>{t('user_is_external_hint')}</div>
+                </div>
+              </div>
+              {(editing as any).is_external && partners.length > 0 && (
+                <div>
+                  <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: 6 }}>{t('partner_company')}</label>
+                  <select className="input" value={(editing as any).partner_id ?? ''} onChange={e => setEditing({ ...editing, partner_id: e.target.value || null } as any)}>
+                    <option value="">— {t('no_partner')} —</option>
+                    {partners.map(p => <option key={p.id} value={p.id}>{p.name} ({p.type})</option>)}
+                  </select>
+                </div>
+              )}
               <div>
                 <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: 6 }}>{isNew ? t('user_password_new') + ' *' : t('user_password_change')}</label>
                 <input className="input" type="password" placeholder={isNew ? t('password_min_chars') : '••••••••'} value={editing.password ?? ''} onChange={e => setEditing({ ...editing, password: e.target.value })} />

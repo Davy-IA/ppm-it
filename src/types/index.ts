@@ -1,3 +1,10 @@
+export interface Partner {
+  id: string;
+  name: string;
+  type: 'Consulting' | 'Agency' | 'Freelance' | 'Software' | 'Other';
+  contact?: string;
+}
+
 export interface Staff {
   id: string;
   name: string;
@@ -6,6 +13,8 @@ export interface Staff {
   entity: string;
   profile: string;
   capacity: Record<string, number>;
+  partnerId?: string | null;   // linked partner company
+  userId?: string | null;      // linked PPM user account (optional)
 }
 
 export interface Project {
@@ -102,6 +111,7 @@ export interface SpaceConfig {
 
 export interface AppData {
   spaceConfig?: SpaceConfig;
+  partners: Partner[];
   staff: Staff[];
   projects: Project[];
   workloads: WorkloadEntry[];
