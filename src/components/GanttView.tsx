@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useSettings } from '@/lib/context';
 import { formatMonth, formatDate, formatDateTime } from '@/lib/locale-utils';
 import { AppData, GanttPhase, GanttSubphase, Milestone } from '@/types';
@@ -72,6 +72,17 @@ export default function GanttView({ data, updateData }: Props) {
   const [editMilestone, setEditMilestone] = useState<Milestone | null>(null);
   const [isNewMilestone, setIsNewMilestone] = useState(false);
   const [showNewMenu, setShowNewMenu] = useState(false);
+  const stickyRef = useRef<HTMLDivElement>(null);
+  const [stickyH, setStickyH] = useState(57);
+
+  useEffect(() => {
+    const el = stickyRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => setStickyH(el.offsetHeight));
+    ro.observe(el);
+    setStickyH(el.offsetHeight);
+    return () => ro.disconnect();
+  }, [phases.length, range]);
   const [statusFilter, setStatusFilter] = useState('');
   const [domainFilter, setDomainFilter] = useState('');
   const [deptFilter, setDeptFilter] = useState('');
@@ -144,7 +155,7 @@ export default function GanttView({ data, updateData }: Props) {
 
   return (
     <div className="animate-in">
-      <div className="page-sticky-header">
+      <div className="page-sticky-header" ref={stickyRef}>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
           {/* Pre-filters */}
           <select className="input" value={statusFilter} onChange={e => { setStatusFilter(e.target.value); setSelProj(''); }} style={{ maxWidth: 155 }}>
@@ -267,10 +278,10 @@ export default function GanttView({ data, updateData }: Props) {
       ) : (
         <div style={{ border:'1px solid var(--border)', borderRadius:'var(--radius)', overflow:'hidden', background:'var(--bg2)', boxShadow:'var(--shadow-sm)' }}>
           <div style={{ overflowX:'auto' }}>
-            <div style={{ display:'flex', minWidth: LEFT_W + chartW }}>
+            <div style={{ display:'flex', minWidth: LEFT_W + chartW, position: 'relative' }}>
               {/* Labels */}
               <div style={{ width:LEFT_W, minWidth:LEFT_W, borderRight:'1px solid var(--border)', flexShrink:0 }}>
-                <div style={{ height:40, background:'var(--bg3)', borderBottom:'1px solid var(--border)', display:'flex', alignItems:'center', padding:'0 16px' }}>
+                <div style={{ height:40, background:'var(--bg3)', borderBottom:'1px solid var(--border)', display:'flex', alignItems:'center', padding:'0 16px', position:'sticky', top: stickyH, zIndex: 9 }}>
                   <span style={{ fontSize:11, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.07em', color:'var(--text-faint)' }}>{t('structure')}</span>
                 </div>
                 {phases.map(ph => (
@@ -307,7 +318,7 @@ export default function GanttView({ data, updateData }: Props) {
               {/* Chart */}
               <div style={{ flex:1, position:'relative', minWidth: chartW }}>
                 {/* Month headers */}
-                <div style={{ height:40, background:'var(--bg3)', borderBottom:'1px solid var(--border)', position:'relative' }}>
+                <div style={{ height:40, background:'var(--bg3)', borderBottom:'1px solid var(--border)', position:'sticky', top: stickyH, zIndex: 9 }}>
                   {months.map((m,i) => (
                     <div key={i} style={{ position:'absolute', left:m.left, width:m.width, height:'100%', display:'flex', alignItems:'center', justifyContent:'center', borderRight:'1px solid var(--border)', fontSize:11, fontWeight:700, color:'var(--text-muted)', textTransform:'capitalize' }}>{m.label}</div>
                   ))}
