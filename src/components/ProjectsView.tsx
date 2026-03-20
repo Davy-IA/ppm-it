@@ -163,8 +163,8 @@ export default function ProjectsView({ data, updateData }: Props) {
       {viewMode === 'gantt' && <PortfolioGantt data={data} filtered={filtered} t={t} />}
 
       {/* Table */}
-      {viewMode === 'list' && <div className="card" style={{ padding: 0, overflow: 'hidden', marginTop: 16 }}>
-        <div style={{ overflowX: 'auto' }}>
+      {viewMode === 'list' && <div className="card" style={{ padding: 0, overflow: 'visible', marginTop: 16 }}>
+        <div style={{ overflow: 'auto', maxHeight: 'calc(100vh - 170px)' }}>
           <table className="data-table">
             <thead>
               <tr>
@@ -445,8 +445,8 @@ function PortfolioGantt({ data, filtered, t }: { data: AppData; filtered: Projec
   };
 
   return (
-    <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-      <div style={{ overflowX: 'auto' }}>
+    <div className="card" style={{ padding: 0, overflow: 'visible' }}>
+      <div style={{ overflow: 'auto', maxHeight: 'calc(100vh - 170px)' }}>
         <div style={{ minWidth: LEFT_W + chartW + 40, position: 'relative' }}>
 
           {/* Month header */}

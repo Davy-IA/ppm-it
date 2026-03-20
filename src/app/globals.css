@@ -546,9 +546,10 @@ body { background: var(--bg-gradient) !important; min-height: 100vh; }
 }
 
 /* ── Sticky table header (thead) ─────────────────────────── */
+/* NOTE: works only when parent card does NOT have overflow:hidden */
 .data-table thead tr th {
   position: sticky;
-  top: 56px; /* height of page-sticky-header toolbar */
+  top: 0; /* relative to the nearest scroll container = inner overflowX div */
   z-index: 10;
   background: var(--bg3);
   border-bottom: 2px solid var(--border);
