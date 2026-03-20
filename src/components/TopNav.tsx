@@ -333,36 +333,37 @@ function ProfilePanel({ user, onClose, t, token, refreshUser, updateUser }: { us
     reader.readAsDataURL(file);
   };
 
-  const save = async () => {
-    setErr(''); setMsg('');
-    if (newPw && newPw !== confirmPw) { setErr(String(t('error_passwords_no_match'))); return; }
-    if (newPw && newPw.length < 8) { setErr(String(t('error_password_too_short'))); return; }
-    if (newPw && !curPw) { setErr(String(t('error_current_password_required'))); return; }
+  const saveAvatar = async () => {
+    if (!avatar) return;
     setSaving(true);
-
-    // Save avatar if changed (null == undefined treated as same)
-    const currentAvatar = (user as any)?.avatar ?? null;
-    if (avatar !== currentAvatar) {
+    setErr(''); setMsg('');
+    try {
       const r = await fetch('/api/auth/me-update', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ avatar }),
       });
       const d = await r.json();
-      if (!d.ok) {
-        setSaving(false);
-        if (d.error === 'migration_needed') {
-          setErr('⚠ Migration SQL requise dans Supabase : ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar TEXT;');
-        } else {
-          setErr(d.message || d.error || 'Erreur lors de la sauvegarde de l\'avatar');
-        }
-        return;
+      if (d.ok) {
+        updateUser({ avatar });
+        setMsg(String(t('avatar_saved')));
+      } else if (d.error === 'migration_needed') {
+        setErr('Migration SQL requise : ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar TEXT;');
+      } else {
+        setErr(d.message || d.error || 'Erreur sauvegarde avatar');
       }
-      // Update user in context immediately — no reload needed
-      updateUser({ avatar });
+    } catch {
+      setErr('Erreur réseau');
     }
+    setSaving(false);
+  };
 
-    // Save password separately
+  const save = async () => {
+    setErr(''); setMsg('');
+    if (newPw && newPw !== confirmPw) { setErr(String(t('error_passwords_no_match'))); return; }
+    if (newPw && newPw.length < 8) { setErr(String(t('error_password_too_short'))); return; }
+    if (newPw && !curPw) { setErr(String(t('error_current_password_required'))); return; }
+    setSaving(true);
     if (newPw) {
       const r = await fetch('/api/auth/me-update', {
         method: 'PATCH',
@@ -372,7 +373,6 @@ function ProfilePanel({ user, onClose, t, token, refreshUser, updateUser }: { us
       const d = await r.json();
       if (!d.ok) { setSaving(false); setErr(d.error || 'Error saving password'); return; }
     }
-
     setSaving(false);
     setMsg(String(t('avatar_saved')));
     setCurPw(''); setNewPw(''); setConfirmPw('');
@@ -401,12 +401,20 @@ function ProfilePanel({ user, onClose, t, token, refreshUser, updateUser }: { us
             <div>
               <div style={{ fontWeight: 700, fontSize: 13 }}>{user?.firstName} {user?.lastName}</div>
               <div style={{ fontSize: 11, color: 'var(--text-faint)' }}>{user?.email}</div>
-              <button onClick={() => avatarRef.current?.click()} style={{ fontSize: 11, color: 'var(--accent)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginTop: 3, fontFamily: 'inherit' }}>
-                {t('change_avatar')}
-              </button>
-              {avatar && (
-                <button onClick={() => setAvatar(null)} style={{ fontSize: 11, color: 'var(--danger)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginTop: 3, marginLeft: 8, fontFamily: 'inherit' }}>
-                  {t('remove')}
+              <div style={{ display: 'flex', gap: 8, marginTop: 4, flexWrap: 'wrap' }}>
+                <button onClick={() => avatarRef.current?.click()} style={{ fontSize: 11, color: 'var(--accent)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: 'inherit' }}>
+                  {t('change_avatar')}
+                </button>
+                {avatar && (
+                  <button onClick={() => setAvatar(null)} style={{ fontSize: 11, color: 'var(--danger)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: 'inherit' }}>
+                    {t('remove')}
+                  </button>
+                )}
+              </div>
+              {avatar && avatar !== ((user as any)?.avatar ?? null) && (
+                <button className="btn btn-primary" onClick={saveAvatar} disabled={saving}
+                  style={{ marginTop: 8, fontSize: 11, padding: '4px 12px' }}>
+                  {saving ? '⏳…' : '💾 ' + t('save_photo')}
                 </button>
               )}
             </div>
@@ -425,9 +433,11 @@ function ProfilePanel({ user, onClose, t, token, refreshUser, updateUser }: { us
           {err && <div style={{ background: 'var(--danger-subtle)', color: 'var(--danger)', borderRadius: 8, padding: '8px 10px', fontSize: 12 }}>⚠ {err}</div>}
           {msg && <div style={{ background: 'var(--success-subtle)', color: 'var(--success)', borderRadius: 8, padding: '8px 10px', fontSize: 12 }}>✓ {msg}</div>}
 
-          <button className="btn btn-primary" onClick={save} disabled={saving} style={{ width: '100%', fontSize: 13 }}>
-            {saving ? '⏳…' : t('save')}
-          </button>
+          {newPw && (
+            <button className="btn btn-primary" onClick={save} disabled={saving} style={{ width: '100%', fontSize: 13 }}>
+              {saving ? '⏳…' : t('save')}
+            </button>
+          )}
         </div>
       </div>
     </>
