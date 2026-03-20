@@ -519,6 +519,7 @@ export const translations = {
     copy_resource: 'Copier cette ressource',
     chart_workload_need: 'Besoin charge',
     chart_allocated: 'Affecté',
+    scale_semester: 'Semestre',
   },
   en: {
     nav_dashboard: 'Dashboard',
@@ -1029,6 +1030,7 @@ export const translations = {
     copy_resource: 'Copy this resource',
     chart_workload_need: 'Workload need',
     chart_allocated: 'Assigned',
+    scale_semester: 'Semester',
   },
   pt: {
     nav_dashboard: 'Painel',
@@ -1539,6 +1541,7 @@ export const translations = {
     copy_resource: 'Copiar recurso',
     chart_workload_need: 'Carga necessária',
     chart_allocated: 'Atribuído',
+    scale_semester: 'Semestre',
   },
   zh: {
     nav_dashboard: '仪表板',
@@ -2049,6 +2052,7 @@ export const translations = {
     copy_resource: '复制资源',
     chart_workload_need: '工作量需求',
     chart_allocated: '已分配',
+    scale_semester: '半年',
   },
 } as const;
 

@@ -86,7 +86,7 @@ export default function GanttView({ data, updateData, initialProjectId, onMounte
   const [editMilestone, setEditMilestone] = useState<Milestone | null>(null);
   const [isNewMilestone, setIsNewMilestone] = useState(false);
   const [showNewMenu, setShowNewMenu] = useState(false);
-  const [timeScale, setTimeScale] = useState<'week' | 'month' | 'year'>('month');
+  const [timeScale, setTimeScale] = useState<'week' | 'month' | 'semester' | 'year'>('month');
   const [showScaleMenu, setShowScaleMenu] = useState(false);
   const [confirmAction, setConfirmAction] = useState<(() => void) | null>(null);
 
@@ -140,16 +140,18 @@ export default function GanttView({ data, updateData, initialProjectId, onMounte
 
   // ── Chart
   // Dynamic px per day based on time scale
-  const DAY_PX_DYN = timeScale === 'week' ? 42 : timeScale === 'month' ? 17 : 4;
+  const DAY_PX_DYN = timeScale === 'week' ? 42 : timeScale === 'month' ? 17 : timeScale === 'semester' ? 4 : 1.5;
 
   // Always use real phase start/end as origin — never shift minDate
   const minDate = range?.start ?? new Date().toISOString().slice(0,10);
   const maxDate = range?.end ?? addDays(minDate, 90);
   // For year view: extend to cover full calendar years around the project
-  const displayMin = timeScale === 'year' && range
+  const displayMin = (timeScale === 'year' || timeScale === 'semester') && range
     ? `${new Date(range.start).getFullYear()}-01-01`
     : minDate;
   const displayMax = timeScale === 'year' && range
+    ? `${Math.max(new Date(range.end).getFullYear(), new Date(range.start).getFullYear() + 2)}-12-31`
+    : timeScale === 'semester' && range
     ? `${new Date(range.end).getFullYear()}-12-31`
     : addDays(maxDate, 14);
   const totalDays = Math.max(daysBetween(displayMin, displayMax), 60);
@@ -247,18 +249,18 @@ export default function GanttView({ data, updateData, initialProjectId, onMounte
             <button onClick={() => setShowScaleMenu(m => !m)}
               style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '6px 11px', borderRadius: 8, border: '1.5px solid var(--border)', background: 'var(--bg2)', color: 'var(--text-muted)', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
               <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M1 6h10M1 3h10M1 9h6" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg>
-              {timeScale === 'week' ? t('scale_week') : timeScale === 'month' ? t('scale_month') : t('scale_year')}
+              {timeScale === 'week' ? t('scale_week') : timeScale === 'month' ? t('scale_month') : timeScale === 'semester' ? t('scale_semester') : t('scale_year')}
               <svg width="8" height="8" viewBox="0 0 8 8" fill="none"><path d="M1 3l3 3 3-3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg>
             </button>
             {showScaleMenu && (
               <>
                 <div style={{ position: 'fixed', inset: 0, zIndex: 49 }} onClick={() => setShowScaleMenu(false)} />
                 <div style={{ position: 'absolute', right: 0, top: 'calc(100% + 4px)', background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 10, boxShadow: '0 8px 24px rgba(99,102,241,0.15)', zIndex: 50, overflow: 'hidden', minWidth: 140 }}>
-                  {(['week', 'month', 'year'] as const).map(scale => (
+                  {(['week', 'month', 'semester', 'year'] as const).map(scale => (
                     <button key={scale} onClick={() => { setTimeScale(scale); setShowScaleMenu(false); }}
                       style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '9px 14px', border: 'none', background: timeScale === scale ? 'var(--accent-subtle)' : 'none', color: timeScale === scale ? 'var(--accent)' : 'var(--text)', cursor: 'pointer', fontSize: 13, fontWeight: timeScale === scale ? 700 : 400, fontFamily: 'inherit', textAlign: 'left' }}>
                       {timeScale === scale && <span style={{ color: 'var(--accent)', fontSize: 10 }}>✓</span>}
-                      {scale === 'week' ? t('scale_week') : scale === 'month' ? t('scale_month') : t('scale_year')}
+                      {scale === 'week' ? t('scale_week') : scale === 'month' ? t('scale_month') : scale === 'semester' ? t('scale_semester') : t('scale_year')}
                     </button>
                   ))}
                 </div>

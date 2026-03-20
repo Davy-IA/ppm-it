@@ -442,7 +442,6 @@ export default function ProjectsView({ data, updateData, setView, onNavigateToPl
 // ─── Portfolio Gantt View ────────────────────────────────────────────────────
 // ── Portfolio Gantt ──────────────────────────────────────────────────────────
 function PortfolioGantt({ data, filtered, t }: { data: AppData; filtered: Project[]; t: Function }) {
-  const [zoom, setZoom] = useState(1); // 0.5=2 years, 1=1 year, 2=6 months
   const now = new Date();
 
   // Compute display range from filtered projects or default to current year
@@ -454,9 +453,7 @@ function PortfolioGantt({ data, filtered, t }: { data: AppData; filtered: Projec
   const rangeStart = `${new Date(minProjDate).getFullYear()}-01-01`;
   const rangeEnd   = `${new Date(maxProjDate).getFullYear()}-12-31`;
 
-  // Zoom: 1 = fit all projects, higher = zoom in (fewer months visible)
-  const BASE_DAY = 2.5;
-  const DAY = BASE_DAY * zoom;
+  const DAY = 2.8;
   const LEFT_W = 220;
   const today = now.toISOString().slice(0, 10);
 
@@ -468,40 +465,15 @@ function PortfolioGantt({ data, filtered, t }: { data: AppData; filtered: Projec
   const todayX = Math.max(0, daysBetween(rangeStart, today)) * DAY;
   const ROW_H = 38;
 
-  // Build month/quarter columns depending on zoom
+  // Month columns with year label
   const months: { label: string; left: number; width: number }[] = [];
-  if (zoom >= 3) {
-    // Week columns
-    let cur = new Date(rangeStart);
-    const dow = cur.getDay();
-    cur.setDate(cur.getDate() - (dow === 0 ? 6 : dow - 1));
-    while (cur.toISOString().slice(0,10) <= rangeEnd) {
-      const wEnd = new Date(cur); wEnd.setDate(wEnd.getDate() + 6);
-      const left = Math.max(0, daysBetween(rangeStart, cur.toISOString().slice(0,10))) * DAY;
-      const right = Math.min(totalDays, daysBetween(rangeStart, wEnd.toISOString().slice(0,10))) * DAY;
-      months.push({ label: cur.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }), left, width: right - left });
-      cur.setDate(cur.getDate() + 7);
-    }
-  } else if (zoom <= 0.4) {
-    // Year columns
-    let yr = new Date(rangeStart).getFullYear();
-    const endYr = new Date(rangeEnd).getFullYear();
-    while (yr <= endYr) {
-      const left = Math.max(0, daysBetween(rangeStart, `${yr}-01-01`)) * DAY;
-      const right = Math.min(totalDays, daysBetween(rangeStart, `${yr}-12-31`)) * DAY;
-      months.push({ label: String(yr), left, width: right - left });
-      yr++;
-    }
-  } else {
-    // Month columns
-    let cur = new Date(rangeStart); cur.setDate(1);
-    while (cur.toISOString().slice(0,10) <= rangeEnd) {
-      const mEnd = new Date(cur.getFullYear(), cur.getMonth()+1, 0);
-      const left = Math.max(0, daysBetween(rangeStart, cur.toISOString().slice(0,10))) * DAY;
-      const right = Math.min(totalDays, daysBetween(rangeStart, mEnd.toISOString().slice(0,10))) * DAY;
-      months.push({ label: cur.toLocaleDateString('fr-FR', { month: 'short', year: '2-digit' }), left, width: right - left });
-      cur.setMonth(cur.getMonth()+1);
-    }
+  let cur = new Date(rangeStart); cur.setDate(1);
+  while (cur.toISOString().slice(0,10) <= rangeEnd) {
+    const mEnd = new Date(cur.getFullYear(), cur.getMonth()+1, 0);
+    const left = Math.max(0, daysBetween(rangeStart, cur.toISOString().slice(0,10))) * DAY;
+    const right = Math.min(totalDays, daysBetween(rangeStart, mEnd.toISOString().slice(0,10))) * DAY;
+    months.push({ label: cur.toLocaleDateString('fr-FR', { month: 'short', year: '2-digit' }), left, width: right - left });
+    cur.setMonth(cur.getMonth()+1);
   }
 
   const statusColor: Record<string, string> = {
@@ -514,18 +486,8 @@ function PortfolioGantt({ data, filtered, t }: { data: AppData; filtered: Projec
   };
 
   return (
-    <>
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 6, marginBottom: 8 }}>
-      <span style={{ fontSize: 11, color: 'var(--text-faint)', marginRight: 4 }}>Zoom</span>
-      <button onClick={() => setZoom(z => Math.max(0.25, +(z / 1.5).toFixed(2)))}
-        title="Zoom out" style={{ width: 28, height: 28, border: '1px solid var(--border)', borderRadius: 6, background: 'var(--bg2)', cursor: 'pointer', fontSize: 16, color: 'var(--text-muted)', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>−</button>
-      <button onClick={() => setZoom(1)}
-        title="Réinitialiser" style={{ padding: '0 8px', height: 28, border: '1px solid var(--border)', borderRadius: 6, background: 'var(--bg2)', cursor: 'pointer', fontSize: 11, color: 'var(--text-muted)', fontFamily: 'inherit' }}>1:1</button>
-      <button onClick={() => setZoom(z => Math.min(6, +(z * 1.5).toFixed(2)))}
-        title="Zoom in" style={{ width: 28, height: 28, border: '1px solid var(--border)', borderRadius: 6, background: 'var(--bg2)', cursor: 'pointer', fontSize: 16, color: 'var(--text-muted)', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>+</button>
-    </div>
-    <div className="card" style={{ padding: 0, overflow: 'visible' }}>
-      <div style={{ overflow: 'auto', maxHeight: 'calc(100vh - 210px)' }}>
+    <div className="card" style={{ padding: 0, overflow: 'visible', marginTop: 16 }}>
+      <div style={{ overflow: 'auto', maxHeight: 'calc(100vh - 170px)' }}>
         <div style={{ minWidth: LEFT_W + chartW + 40 }}>
 
           {/* Month header */}
@@ -621,6 +583,5 @@ function PortfolioGantt({ data, filtered, t }: { data: AppData; filtered: Projec
         </div>
       </div>
     </div>
-    </>
   );
 }
