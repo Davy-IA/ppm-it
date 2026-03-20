@@ -24,6 +24,13 @@ export default function ProjectsView({ data, updateData }: Props) {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [domainFilter, setDomainFilter] = useState('');
+  const [showFilters, setShowFilters] = useState(false);
+  const [advFilters, setAdvFilters] = useState<Record<string, string>>({});
+
+  const setAdv = (key: string, val: string) =>
+    setAdvFilters(prev => val ? { ...prev, [key]: val } : Object.fromEntries(Object.entries(prev).filter(([k]) => k !== key)));
+
+  const activeFilterCount = Object.keys(advFilters).length + (statusFilter ? 1 : 0) + (domainFilter ? 1 : 0);
   const { t } = useSettings();
   const [editing, setEditing] = useState<Project | null>(null);
   const [isNew, setIsNew] = useState(false);
@@ -39,7 +46,11 @@ export default function ProjectsView({ data, updateData }: Props) {
     const matchSearch = !search || p.name.toLowerCase().includes(search.toLowerCase()) || (p.projectManager ?? '').toLowerCase().includes(search.toLowerCase());
     const matchStatus = !statusFilter || p.status === statusFilter;
     const matchDomain = !domainFilter || p.domain === domainFilter;
-    return matchSearch && matchStatus && matchDomain;
+    const matchAdv = Object.entries(advFilters).every(([key, val]) => {
+      const pVal = String((p as any)[key] ?? '').toLowerCase();
+      return pVal.includes(val.toLowerCase());
+    });
+    return matchSearch && matchStatus && matchDomain && matchAdv;
   });
 
   const save = () => {
@@ -89,18 +100,67 @@ export default function ProjectsView({ data, updateData }: Props) {
         </div>
       </div>
 
-      {/* Filters */}
-      <div style={{ display: 'flex', gap: 10, marginBottom: 16 }}>
-        <input className="input" placeholder={t('search')} value={search} onChange={e => setSearch(e.target.value)} style={{ maxWidth: 280 }} />
-        <select className="input" value={statusFilter} onChange={e => setStatusFilter(e.target.value)} style={{ maxWidth: 180 }}>
+      {/* Filters bar */}
+      <div style={{ display: 'flex', gap: 10, marginBottom: showFilters ? 0 : 16, flexWrap: 'wrap', alignItems: 'center' }}>
+        <input className="input" placeholder={t('search')} value={search} onChange={e => setSearch(e.target.value)} style={{ maxWidth: 260 }} />
+        <select className="input" value={statusFilter} onChange={e => setStatusFilter(e.target.value)} style={{ maxWidth: 170 }}>
           <option value="">{t('all_statuses')}</option>
           {STATUSES.map(s => <option key={s} value={s}>{s.replace(/^\d-/, '')}</option>)}
         </select>
-        <select className="input" value={domainFilter} onChange={e => setDomainFilter(e.target.value)} style={{ maxWidth: 140 }}>
+        <select className="input" value={domainFilter} onChange={e => setDomainFilter(e.target.value)} style={{ maxWidth: 130 }}>
           <option value="">{t('all_domains')}</option>
           {DOMAINS.map(d => <option key={d} value={d}>{d}</option>)}
         </select>
+        {/* Advanced filters button */}
+        <button
+          onClick={() => setShowFilters(f => !f)}
+          style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 12px', borderRadius: 8, border: `1.5px solid ${activeFilterCount > 0 ? 'var(--accent)' : 'var(--border)'}`, background: activeFilterCount > 0 ? 'var(--accent-subtle)' : 'var(--bg2)', color: activeFilterCount > 0 ? 'var(--accent)' : 'var(--text-muted)', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.15s' }}>
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M1 3h11M3 6.5h7M5 10h3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+          {t('filters_btn')}
+          {activeFilterCount > 0 && <span style={{ background: 'var(--accent)', color: '#fff', borderRadius: 10, padding: '1px 6px', fontSize: 10, fontWeight: 700 }}>{activeFilterCount}</span>}
+        </button>
+        {activeFilterCount > 0 && (
+          <button onClick={() => { setAdvFilters({}); setStatusFilter(''); setDomainFilter(''); }}
+            style={{ fontSize: 11, color: 'var(--danger)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 600 }}>
+            ✕ {t('clear_filters')}
+          </button>
+        )}
+        <span style={{ marginLeft: 'auto', fontSize: 12, color: 'var(--text-faint)' }}>
+          {filtered.length} / {data.projects.length} {t('projects_count')}
+        </span>
       </div>
+
+      {/* Advanced filters panel */}
+      {showFilters && (
+        <div style={{ background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 12, padding: 16, marginBottom: 16, display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 12 }}>
+          {[
+            { key: 'requestType', label: t('type'), opts: REQUEST_TYPES },
+            { key: 'leadDept', label: t('lead_dept'), opts: DEPARTMENTS },
+            { key: 'leadCountry', label: t('country'), opts: COUNTRIES },
+            { key: 'sponsor', label: t('field_sponsor'), opts: SPONSORS },
+            { key: 'projectManager', label: t('project_manager'), opts: data.projects.map(p => p.projectManager).filter((v, i, a) => v && a.indexOf(v) === i) as string[] },
+            { key: 'priority', label: t('priority'), opts: ['1','2','3','4','5'] },
+            { key: 'complexity', label: t('complexity'), opts: ['1','2','3','4','5'] },
+          ].map(({ key, label, opts }) => (
+            <div key={key}>
+              <label style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '0.07em', display: 'block', marginBottom: 5 }}>{label}</label>
+              <select className="input" value={advFilters[key] ?? ''} onChange={e => setAdv(key, e.target.value)} style={{ fontSize: 12 }}>
+                <option value="">— {t('all')} —</option>
+                {opts.map(o => <option key={o} value={o}>{key === 'priority' ? `P${o}` : key === 'complexity' ? `C${o}` : o}</option>)}
+              </select>
+            </div>
+          ))}
+          {/* Free text filters */}
+          {[
+            { key: 'name', label: t('project_name') },
+          ].map(({ key, label }) => (
+            <div key={key}>
+              <label style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '0.07em', display: 'block', marginBottom: 5 }}>{label}</label>
+              <input className="input" value={advFilters[key] ?? ''} onChange={e => setAdv(key, e.target.value)} placeholder={`Filter...`} style={{ fontSize: 12 }} />
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Gantt Portfolio View */}
       {viewMode === 'gantt' && <PortfolioGantt data={data} filtered={filtered} t={t} />}

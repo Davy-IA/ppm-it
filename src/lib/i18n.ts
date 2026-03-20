@@ -465,6 +465,9 @@ export const translations = {
     phase_hint: 'Durée avec sous-phases',
     milestone_hint: 'Date ponctuelle',
     add_allocation_btn: '+ Affecter ressource',
+    filters_btn: 'Filtres',
+    clear_filters: 'Effacer',
+    projects_count: 'projets',
   },
   en: {
     nav_dashboard: 'Dashboard',
@@ -921,6 +924,9 @@ export const translations = {
     phase_hint: 'Duration with subphases',
     milestone_hint: 'Single date event',
     add_allocation_btn: '+ Assign resource',
+    filters_btn: 'Filters',
+    clear_filters: 'Clear',
+    projects_count: 'projects',
   },
   pt: {
     nav_dashboard: 'Painel',
@@ -1377,6 +1383,9 @@ export const translations = {
     phase_hint: 'Duração com subfases',
     milestone_hint: 'Data pontual',
     add_allocation_btn: '+ Atribuir recurso',
+    filters_btn: 'Filtros',
+    clear_filters: 'Limpar',
+    projects_count: 'projetos',
   },
   zh: {
     nav_dashboard: '仪表板',
@@ -1833,6 +1842,9 @@ export const translations = {
     phase_hint: '带子阶段的持续时间',
     milestone_hint: '单次日期事件',
     add_allocation_btn: '+ 分配资源',
+    filters_btn: '筛选',
+    clear_filters: '清除',
+    projects_count: '项目',
   },
 } as const;
 
