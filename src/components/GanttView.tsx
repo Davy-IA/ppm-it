@@ -276,20 +276,22 @@ export default function GanttView({ data, updateData }: Props) {
           <div style={{fontSize:13}}>{t('no_phases_cta')}</div>
         </div>
       ) : (
-        <div style={{ border:'1px solid var(--border)', borderRadius:'var(--radius)', overflow:'hidden', background:'var(--bg2)', boxShadow:'var(--shadow-sm)' }}>
-          {/* Sticky header row - outside the horizontal scroll container */}
-          <div style={{ position:'sticky', top: stickyH, zIndex: 15, background:'var(--bg3)', borderBottom:'1px solid var(--border)', display:'flex', minWidth: LEFT_W + chartW }}>
-            <div style={{ width:LEFT_W, minWidth:LEFT_W, flexShrink:0, borderRight:'1px solid var(--border)', height:40, display:'flex', alignItems:'center', padding:'0 16px' }}>
-              <span style={{ fontSize:11, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.07em', color:'var(--text-faint)' }}>{t('structure')}</span>
-            </div>
-            <div style={{ flex:1, position:'relative', height:40, overflow:'hidden' }}>
-              {months.map((m,i) => (
-                <div key={i} style={{ position:'absolute', left:m.left, width:m.width, height:'100%', display:'flex', alignItems:'center', justifyContent:'center', borderRight:'1px solid var(--border)', fontSize:11, fontWeight:700, color:'var(--text-muted)', textTransform:'capitalize' }}>{m.label}</div>
-              ))}
-            </div>
-          </div>
+        <div style={{ border:'1px solid var(--border)', borderRadius:'var(--radius)', background:'var(--bg2)', boxShadow:'var(--shadow-sm)' }}>
           <div style={{ overflowX:'auto' }}>
-            <div style={{ display:'flex', minWidth: LEFT_W + chartW, position: 'relative' }}>
+            <div style={{ minWidth: LEFT_W + chartW }}>
+              {/* Sticky header row */}
+              <div style={{ display:'flex', position:'sticky', top: stickyH, zIndex: 9, background:'var(--bg3)', borderBottom:'2px solid var(--border)' }}>
+                <div style={{ width:LEFT_W, minWidth:LEFT_W, flexShrink:0, borderRight:'1px solid var(--border)', height:40, display:'flex', alignItems:'center', padding:'0 16px' }}>
+                  <span style={{ fontSize:11, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.07em', color:'var(--text-faint)' }}>{t('structure')}</span>
+                </div>
+                <div style={{ flex:1, position:'relative', height:40 }}>
+                  {months.map((m,i) => (
+                    <div key={i} style={{ position:'absolute', left:m.left, width:m.width, height:'100%', display:'flex', alignItems:'center', justifyContent:'center', borderRight:'1px solid var(--border)', fontSize:11, fontWeight:700, color:'var(--text-muted)', textTransform:'capitalize' }}>{m.label}</div>
+                  ))}
+                </div>
+              </div>
+              {/* Body row */}
+              <div style={{ display:'flex' }}>
               {/* Labels */}
               <div style={{ width:LEFT_W, minWidth:LEFT_W, borderRight:'1px solid var(--border)', flexShrink:0 }}>
                 {phases.map(ph => (
@@ -393,6 +395,7 @@ export default function GanttView({ data, updateData }: Props) {
                   })}
                 </div>
               </div>
+              </div>{/* end body flex row */}
             </div>
           </div>
         </div>
