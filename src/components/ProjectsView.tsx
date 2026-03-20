@@ -259,7 +259,7 @@ export default function ProjectsView({ data, updateData, setView, onNavigateToPl
                     onMouseLeave={e => (e.currentTarget.style.background = rowBg)}>
 
                     {/* PROJECT NAME — sticky */}
-                    <div style={{ width: 260, minWidth: 260, flexShrink: 0, padding: '10px 14px', position: 'sticky', left: 0, zIndex: 20, background: 'inherit', borderRight: '1px solid var(--border)', cursor: 'pointer', fontWeight: 500 }}
+                    <div style={{ width: 260, minWidth: 260, flexShrink: 0, padding: '10px 14px', position: 'sticky', left: 0, zIndex: 20, background: 'inherit', borderRight: '1px solid var(--border)', cursor: 'pointer' }}
                       onClick={() => setInlineEdit({ id: p.id, field: 'name' })}>
                       {inlineEdit?.id === p.id && inlineEdit.field === 'name'
                         ? <input className="cell-input" autoFocus defaultValue={p.name}
@@ -331,21 +331,21 @@ export default function ProjectsView({ data, updateData, setView, onNavigateToPl
                     </div>
 
                     {/* START DATE */}
-                    <div style={{ width: 95, minWidth: 95, flexShrink: 0, padding: '10px 8px', fontSize: 12, color: 'var(--text-muted)', borderRight: '1px solid var(--border)', cursor: 'pointer' }} onClick={() => setInlineEdit({ id: p.id, field: 'startDate' })}>
+                    <div style={{ width: 95, minWidth: 95, flexShrink: 0, padding: '10px 8px', borderRight: '1px solid var(--border)', cursor: 'pointer' }} onClick={() => setInlineEdit({ id: p.id, field: 'startDate' })}>
                       {inlineEdit?.id === p.id && inlineEdit.field === 'startDate'
                         ? <input type="date" className="cell-input" autoFocus defaultValue={p.startDate ?? ''} onBlur={e => { updateField(p.id, 'startDate', e.target.value); setInlineEdit(null); }} onKeyDown={e => { if (e.key === 'Enter' || e.key === 'Escape') setInlineEdit(null); }} onClick={e => e.stopPropagation()} style={{ minWidth: 120 }} />
                         : p.startDate ? p.startDate.slice(0, 7) : '—'}
                     </div>
 
                     {/* GO-LIVE */}
-                    <div style={{ width: 95, minWidth: 95, flexShrink: 0, padding: '10px 8px', fontSize: 12, color: 'var(--text-muted)', borderRight: '1px solid var(--border)', cursor: 'pointer' }} onClick={() => setInlineEdit({ id: p.id, field: 'goLive' })}>
+                    <div style={{ width: 95, minWidth: 95, flexShrink: 0, padding: '10px 8px', borderRight: '1px solid var(--border)', cursor: 'pointer' }} onClick={() => setInlineEdit({ id: p.id, field: 'goLive' })}>
                       {inlineEdit?.id === p.id && inlineEdit.field === 'goLive'
                         ? <input type="date" className="cell-input" autoFocus defaultValue={p.goLive ?? ''} onBlur={e => { updateField(p.id, 'goLive', e.target.value); setInlineEdit(null); }} onKeyDown={e => { if (e.key === 'Enter' || e.key === 'Escape') setInlineEdit(null); }} onClick={e => e.stopPropagation()} style={{ minWidth: 120 }} />
                         : p.goLive ? p.goLive.slice(0, 7) : '—'}
                     </div>
 
                     {/* HYPERCARE */}
-                    <div style={{ width: 95, minWidth: 95, flexShrink: 0, padding: '10px 8px', fontSize: 12, color: 'var(--text-muted)', borderRight: '1px solid var(--border)', cursor: 'pointer' }} onClick={() => setInlineEdit({ id: p.id, field: 'hypercare' })}>
+                    <div style={{ width: 95, minWidth: 95, flexShrink: 0, padding: '10px 8px', borderRight: '1px solid var(--border)', cursor: 'pointer' }} onClick={() => setInlineEdit({ id: p.id, field: 'hypercare' })}>
                       {inlineEdit?.id === p.id && inlineEdit.field === 'hypercare'
                         ? <input type="date" className="cell-input" autoFocus defaultValue={(p as any).hypercare ?? ''} onBlur={e => { updateField(p.id, 'hypercare', e.target.value); setInlineEdit(null); }} onKeyDown={e => { if (e.key === 'Enter' || e.key === 'Escape') setInlineEdit(null); }} onClick={e => e.stopPropagation()} style={{ minWidth: 120 }} />
                         : (p as any).hypercare ? (p as any).hypercare.slice(0, 7) : '—'}
