@@ -20,6 +20,7 @@ export default function SettingsView({ data, updateData, spaces, onRefreshSpaces
   const { user, token } = useAuth();
   const [saved, setSaved] = useState(false);
   const [confirmAction, setConfirmAction] = useState<(() => void) | null>(null);
+  const [editingList, setEditingList] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'identity' | 'theme' | 'lists' | 'lang' | 'users' | 'spaces' | 'partners' | 'milestones'>('identity');
   const [spacesList, setSpacesList] = useState<Space[]>(spaces);
   const [selectedSpaceId, setSelectedSpaceId] = useState<string>('__global__');
@@ -64,15 +65,15 @@ export default function SettingsView({ data, updateData, spaces, onRefreshSpaces
   };
 
   const LISTS: { key: ListKey; labelKey: string }[] = [
-    { key: 'milestoneTypes', labelKey: 'settings_milestones' },
-    { key: 'partnerTypes', labelKey: 'settings_partner_types' },
-    { key: 'domains', labelKey: 'settings_domains' },
-    { key: 'profiles', labelKey: 'settings_profiles' },
-    { key: 'statuses', labelKey: 'settings_statuses' },
-    { key: 'departments', labelKey: 'settings_depts' },
-    { key: 'countries', labelKey: 'settings_countries' },
-    { key: 'requestTypes', labelKey: 'settings_request_types' },
-    { key: 'sponsors', labelKey: 'settings_sponsors' },
+    { key: 'domains',       labelKey: 'settings_domains' },
+    { key: 'profiles',      labelKey: 'settings_profiles' },
+    { key: 'statuses',      labelKey: 'settings_statuses' },
+    { key: 'departments',   labelKey: 'settings_depts' },
+    { key: 'countries',     labelKey: 'settings_countries' },
+    { key: 'requestTypes',  labelKey: 'settings_request_types' },
+    { key: 'sponsors',      labelKey: 'settings_sponsors' },
+    { key: 'milestoneTypes',labelKey: 'settings_milestones' },
+    { key: 'partnerTypes',  labelKey: 'settings_partner_types' },
   ];
 
   const ALL_TABS = [
@@ -298,56 +299,93 @@ export default function SettingsView({ data, updateData, spaces, onRefreshSpaces
               <span style={{ fontSize: 12, color: 'var(--text-faint)', marginLeft: 8 }}>{t('space_override_hint')}</span>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, maxWidth: 900 }}>
+            {/* Grid of clickable list cards */}
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginBottom: 20 }}>
               {LISTS.map(({ key, labelKey }) => {
                 const values: string[] = getValues(key);
                 const isOverridden = !isGlobal && spaceConfig[key] !== undefined;
-                const globalValues: string[] = (settings as any)[key] ?? [];
                 return (
-                  <div key={key} className="card" style={{ borderColor: isOverridden ? 'var(--accent)' : undefined }}>
-                    <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span>{t(labelKey as any)}</span>
-                      <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                        {isOverridden && <span className="badge badge-blue" style={{ fontSize: 10 }}>{t('overridden')}</span>}
+                  <button key={key}
+                    onClick={() => setEditingList(key)}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: 10,
+                      padding: '10px 16px', borderRadius: 10, cursor: 'pointer',
+                      border: `1.5px solid ${isOverridden ? 'var(--accent)' : 'var(--border)'}`,
+                      background: isOverridden ? 'var(--accent-subtle)' : 'var(--bg2)',
+                      fontFamily: 'inherit', transition: 'all 0.15s',
+                    }}
+                    onMouseEnter={e => (e.currentTarget.style.borderColor = 'var(--accent)')}
+                    onMouseLeave={e => (e.currentTarget.style.borderColor = isOverridden ? 'var(--accent)' : 'var(--border)')}>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>{t(labelKey as any)}</span>
+                    <span className="badge badge-gray">{values.length}</span>
+                    {isOverridden && <span className="badge badge-blue" style={{ fontSize: 10 }}>{t('overridden')}</span>}
+                    <svg width="11" height="11" viewBox="0 0 11 11" fill="none" style={{ color: 'var(--text-faint)', marginLeft: 2 }}><path d="M4 2l3 3-3 3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Inline edit modal for selected list */}
+            {editingList && (() => {
+              const { labelKey } = LISTS.find(l => l.key === editingList)!;
+              const values: string[] = getValues(editingList);
+              const isOverridden = !isGlobal && spaceConfig[editingList] !== undefined;
+              const globalValues: string[] = (settings as any)[editingList] ?? [];
+              return (
+                <>
+                  <div style={{ position: 'fixed', inset: 0, background: 'rgba(15,17,30,0.5)', zIndex: 998 }} onClick={() => setEditingList(null)} />
+                  <div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 999,
+                    background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 14,
+                    boxShadow: '0 12px 40px rgba(0,0,0,0.2)', width: 440, maxHeight: '80vh', display: 'flex', flexDirection: 'column' }}>
+                    <div style={{ padding: '18px 22px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div>
+                        <div style={{ fontWeight: 700, fontSize: 15 }}>{t(labelKey as any)}</div>
+                        {!isGlobal && !isOverridden && (
+                          <div style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 3 }}>
+                            {t('using_global_values')} —{' '}
+                            <button style={{ color: 'var(--accent)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 11, fontFamily: 'inherit', fontWeight: 600 }}
+                              onClick={() => updateListForScope(editingList, [...globalValues])}>
+                              {t('customize_for_space')}
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                      <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                         {isOverridden && (
                           <button className="btn btn-ghost btn-sm" style={{ fontSize: 10, padding: '2px 8px' }}
-                            onClick={() => resetToGlobal(key)} title={t('reset_to_global') as string}>
+                            onClick={() => { resetToGlobal(editingList); }} title={t('reset_to_global') as string}>
                             ↩ {t('reset_to_global')}
                           </button>
                         )}
-                        <span className="badge badge-gray">{values.length}</span>
+                        <button className="btn-icon" onClick={() => setEditingList(null)}>✕</button>
                       </div>
                     </div>
-                    {!isGlobal && !isOverridden && (
-                      <div style={{ fontSize: 11, color: 'var(--text-faint)', marginBottom: 10, padding: '6px 10px', background: 'var(--bg3)', borderRadius: 6 }}>
-                        {t('using_global_values')} — <button style={{ color: 'var(--accent)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 11, fontFamily: 'inherit', fontWeight: 600 }}
-                          onClick={() => updateListForScope(key, [...globalValues])}>
-                          {t('customize_for_space')}
-                        </button>
-                      </div>
-                    )}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 10, maxHeight: 220, overflowY: 'auto' }}>
+                    <div style={{ padding: '16px 22px', overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
                       {values.map((v, i) => (
                         <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                           <input className="input" value={v} style={{ flex: 1 }}
-                            onChange={e => { const n = [...values]; n[i] = e.target.value; updateListForScope(key, n); }}
+                            onChange={e => { const n = [...values]; n[i] = e.target.value; updateListForScope(editingList, n); }}
                             onBlur={showSaved}
                             disabled={!isGlobal && !isOverridden} />
                           {(isGlobal || isOverridden) && (
                             <button className="btn-icon" style={{ flexShrink: 0, color: 'var(--danger)' }}
-                              onClick={() => setConfirmAction(() => { updateListForScope(key, values.filter((_, j) => j !== i)); })}><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 3.5h9M5 3.5V2.5h3v1M10.5 3.5l-.7 7H3.2l-.7-7" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg></button>
+                              onClick={() => setConfirmAction(() => { updateListForScope(editingList, values.filter((_, j) => j !== i)); })}>
+                              <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 3.5h9M5 3.5V2.5h3v1M10.5 3.5l-.7 7H3.2l-.7-7" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                            </button>
                           )}
                         </div>
                       ))}
                     </div>
                     {(isGlobal || isOverridden) && (
-                      <button className="btn btn-ghost btn-sm" style={{ width: '100%' }}
-                        onClick={() => updateListForScope(key, [...values, ''])}>{t('add_value')}</button>
+                      <div style={{ padding: '12px 22px', borderTop: '1px solid var(--border)' }}>
+                        <button className="btn btn-ghost btn-sm" style={{ width: '100%' }}
+                          onClick={() => updateListForScope(editingList, [...values, ''])}>{t('add_value')}</button>
+                      </div>
                     )}
                   </div>
-                );
-              })}
-            </div>
+                </>
+              );
+            })()}
           </div>
         );
       })()}
