@@ -566,7 +566,7 @@ function PortfolioGantt({ data, filtered, t, timeScale }: { data: AppData; filte
           <div style={{ minWidth: LEFT_W + chartW }}>
             {/* Header row — sticky */}
             <div style={{ display: 'flex', background: 'var(--bg3)', borderBottom: '2px solid var(--border)', position: 'sticky', top: 0, zIndex: 6 }}>
-              <div style={{ width: LEFT_W, minWidth: LEFT_W, flexShrink: 0, height: 40, display: 'flex', alignItems: 'center', padding: '0 14px', fontSize: 11, fontWeight: 700, color: 'var(--text-faint)', textTransform: 'uppercase' as const, letterSpacing: '0.07em', position: 'sticky', left: 0, zIndex: 25, background: 'var(--bg3)', borderRight: '1px solid var(--border)' }}>
+              <div style={{ width: LEFT_W, minWidth: LEFT_W, flexShrink: 0, height: 36, display: 'flex', alignItems: 'center', padding: '0 14px', fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' as const, letterSpacing: '0.07em', position: 'sticky', left: 0, zIndex: 25, background: 'var(--bg3)', borderRight: '1px solid var(--border)' }}>
                 {t('project_name')}
               </div>
               <div style={{ width: chartW, flexShrink: 0, position: 'relative', height: 40 }}>
