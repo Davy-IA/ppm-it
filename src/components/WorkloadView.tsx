@@ -241,15 +241,15 @@ export default function WorkloadView({ data, updateData }: Props) {
                         // Month in range?
                         const mStart = m + '-01';
                         const mEnd = m + '-31';
-                        const inRange = !hasDateRange
-                          ? false
-                          : mEnd >= projStart! && mStart <= projEnd!;
-                        const outOfRange = hasDateRange && !inRange;
-                        // Cell class: if has value use standard, else if in range use tint, else zero
+                        // If no dates → all blocked. If dates → only in-range is editable
+                        const inRange = hasDateRange
+                          ? mEnd >= projStart! && mStart <= projEnd!
+                          : false;
+                        const outOfRange = !inRange; // always out if no dates
                         const cls = outOfRange
                           ? 'cap-cell cap-zero'
                           : need === 0
-                            ? inRange ? 'cap-cell cap-in-range' : 'cap-cell cap-zero'
+                            ? 'cap-cell cap-in-range'
                             : covered >= need ? 'cap-cell cap-ok' : covered > 0 ? 'cap-cell cap-under' : 'cap-cell cap-over';
                         return (
                           <td key={m} className={cls + (outOfRange ? '' : ' cell-edit')}
@@ -330,12 +330,14 @@ export default function WorkloadView({ data, updateData }: Props) {
                         const cap = staff?.capacity[m] ?? 0;
                         const mStart = m + '-01';
                         const mEnd = m + '-31';
-                        const inRange = !hasDateRange ? false : mEnd >= projStart! && mStart <= projEnd!;
-                        const outOfRange = hasDateRange && !inRange;
+                        const inRange = hasDateRange
+                          ? mEnd >= projStart! && mStart <= projEnd!
+                          : false;
+                        const outOfRange = !inRange;
                         const cls = outOfRange
                           ? 'cap-cell cap-zero'
                           : alloc === 0
-                            ? inRange ? 'cap-cell cap-in-range' : 'cap-cell cap-zero'
+                            ? 'cap-cell cap-in-range'
                             : alloc > cap ? 'cap-cell cap-over' : 'cap-cell cap-ok';
                         return (
                           <td key={m} className={cls + (outOfRange ? '' : ' cell-edit')}
