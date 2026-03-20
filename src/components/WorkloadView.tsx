@@ -335,12 +335,17 @@ export default function WorkloadView({ data, updateData }: Props) {
                           .filter(al => al.staffId === a.staffId)
                           .reduce((s, al) => s + (al.monthly[m] ?? 0), 0);
                         const remaining = Math.max(0, cap - totalAllocated);
+                        // Workload for same project+profile+month
+                        const workloadNeed = data.workloads
+                          .filter(w => w.projectId === a.projectId && w.profile === a.profile)
+                          .reduce((s, w) => s + (w.monthly[m] ?? 0), 0);
                         const mStart = m + '-01';
                         const mEnd = m + '-31';
                         const inRange = hasDateRange
                           ? mEnd >= projStart! && mStart <= projEnd!
                           : false;
-                        const outOfRange = !inRange;
+                        // Blocked if out of project range OR no workload on this month
+                        const outOfRange = !inRange || workloadNeed === 0;
                         const cls = outOfRange
                           ? 'cap-cell cap-zero'
                           : alloc === 0
