@@ -1,5 +1,5 @@
 'use client';
-import { useState, useRef, useEffect } from 'react';
+import { useState } from 'react';
 import { useSettings } from '@/lib/context';
 import { formatMonth, formatDate, formatDateTime } from '@/lib/locale-utils';
 import { AppData, GanttPhase, GanttSubphase, Milestone } from '@/types';
@@ -72,17 +72,7 @@ export default function GanttView({ data, updateData }: Props) {
   const [editMilestone, setEditMilestone] = useState<Milestone | null>(null);
   const [isNewMilestone, setIsNewMilestone] = useState(false);
   const [showNewMenu, setShowNewMenu] = useState(false);
-  const stickyRef = useRef<HTMLDivElement>(null);
-  const [stickyH, setStickyH] = useState(57);
 
-  useEffect(() => {
-    const el = stickyRef.current;
-    if (!el) return;
-    const ro = new ResizeObserver(() => setStickyH(el.offsetHeight));
-    ro.observe(el);
-    setStickyH(el.offsetHeight);
-    return () => ro.disconnect();
-  }, []);
   const [statusFilter, setStatusFilter] = useState('');
   const [domainFilter, setDomainFilter] = useState('');
   const [deptFilter, setDeptFilter] = useState('');
@@ -155,7 +145,7 @@ export default function GanttView({ data, updateData }: Props) {
 
   return (
     <div className="animate-in">
-      <div className="page-sticky-header" ref={stickyRef}>
+      <div className="page-sticky-header">
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
           {/* Pre-filters */}
           <select className="input" value={statusFilter} onChange={e => { setStatusFilter(e.target.value); setSelProj(''); }} style={{ maxWidth: 155 }}>
@@ -280,7 +270,7 @@ export default function GanttView({ data, updateData }: Props) {
           <div style={{ overflowX:'auto' }}>
             <div style={{ minWidth: LEFT_W + chartW }}>
               {/* Sticky header row */}
-              <div style={{ display:'flex', position:'sticky', top: stickyH, zIndex: 9, background:'var(--bg3)', borderBottom:'2px solid var(--border)' }}>
+              <div style={{ display:'flex', background:'var(--bg3)', borderBottom:'2px solid var(--border)' }}>
                 <div style={{ width:LEFT_W, minWidth:LEFT_W, flexShrink:0, borderRight:'1px solid var(--border)', height:40, display:'flex', alignItems:'center', padding:'0 16px' }}>
                   <span style={{ fontSize:11, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.07em', color:'var(--text-faint)' }}>{t('structure')}</span>
                 </div>
