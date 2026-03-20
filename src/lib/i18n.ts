@@ -469,6 +469,9 @@ export const translations = {
     clear_filters: 'Effacer',
     projects_count: 'projets',
     profiles_label: 'profils',
+    workload_lines: 'lignes charge',
+    alloc_lines: 'affectations',
+    year: 'Année',
   },
   en: {
     nav_dashboard: 'Dashboard',
@@ -929,6 +932,9 @@ export const translations = {
     clear_filters: 'Clear',
     projects_count: 'projects',
     profiles_label: 'profiles',
+    workload_lines: 'workload lines',
+    alloc_lines: 'assignments',
+    year: 'Year',
   },
   pt: {
     nav_dashboard: 'Painel',
@@ -1389,6 +1395,9 @@ export const translations = {
     clear_filters: 'Limpar',
     projects_count: 'projetos',
     profiles_label: 'perfis',
+    workload_lines: 'linhas carga',
+    alloc_lines: 'atribuições',
+    year: 'Ano',
   },
   zh: {
     nav_dashboard: '仪表板',
@@ -1849,6 +1858,9 @@ export const translations = {
     clear_filters: '清除',
     projects_count: '项目',
     profiles_label: '角色',
+    workload_lines: '工作量行',
+    alloc_lines: '分配',
+    year: '年份',
   },
 } as const;
 

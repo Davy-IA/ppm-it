@@ -17,6 +17,10 @@ export default function WorkloadView({ data, updateData }: Props) {
   const [editingAlloc, setEditingAlloc] = useState<AllocationEntry | null>(null);
   const [isNew, setIsNew] = useState(false);
   const [inlineEdit, setInlineEdit] = useState<{ id: string; field: string } | null>(null);
+  const [showFilters, setShowFilters] = useState(false);
+  const [profileFilter, setProfileFilter] = useState('');
+  const [staffFilter, setStaffFilter] = useState('');
+  const [deptFilter, setDeptFilter] = useState('');
 
   const months = MONTHS_2026_2028.filter(m => m.startsWith(yearFilter));
 
@@ -26,10 +30,14 @@ export default function WorkloadView({ data, updateData }: Props) {
   const projectIds = filteredProjects.map(p => p.id);
 
   const filteredWorkloads = data.workloads.filter(w =>
-    projectIds.includes(w.projectId)
+    projectIds.includes(w.projectId) &&
+    (!profileFilter || w.profile === profileFilter)
   );
   const filteredAllocs = data.allocations.filter(a =>
-    projectIds.includes(a.projectId)
+    projectIds.includes(a.projectId) &&
+    (!profileFilter || a.profile === profileFilter) &&
+    (!staffFilter || a.staffId === staffFilter) &&
+    (!deptFilter || (data.staff.find(s => s.id === a.staffId)?.department ?? '') === deptFilter)
   );
 
   const updateWorkloadMonth = (id: string, month: string, value: string) => {
@@ -93,6 +101,7 @@ export default function WorkloadView({ data, updateData }: Props) {
   };
 
   const monthLabel = (m: string) => formatMonth(m, locale);
+  const activeFilters = [projectFilter, profileFilter, staffFilter, deptFilter].filter(Boolean).length;
 
   return (
     <div className="animate-in">
@@ -123,8 +132,8 @@ export default function WorkloadView({ data, updateData }: Props) {
       </div>
 
       {/* Filters + tabs */}
-      <div style={{ display: 'flex', gap: 10, marginBottom: 16, flexWrap: 'wrap' }}>
-        <select className="input" value={projectFilter} onChange={e => setProjectFilter(e.target.value)} style={{ maxWidth: 300 }}>
+      <div style={{ display: 'flex', gap: 10, marginBottom: showFilters ? 0 : 16, flexWrap: 'wrap', alignItems: 'center' }}>
+        <select className="input" value={projectFilter} onChange={e => setProjectFilter(e.target.value)} style={{ maxWidth: 280 }}>
           <option value="">{t('all_projects')}</option>
           {data.projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
         </select>
@@ -137,7 +146,69 @@ export default function WorkloadView({ data, updateData }: Props) {
           <button className={`btn btn-sm ${tab === 'workload' ? 'btn-primary' : 'btn-ghost'}`} onClick={() => setTab('workload')}>{t('planned_load')}</button>
           <button className={`btn btn-sm ${tab === 'allocation' ? 'btn-primary' : 'btn-ghost'}`} onClick={() => setTab('allocation')}>{t('assignments')}</button>
         </div>
+        {/* Advanced filters button */}
+        <button onClick={() => setShowFilters(f => !f)}
+          style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 12px', borderRadius: 8, border: `1.5px solid ${activeFilters > 0 ? 'var(--accent)' : 'var(--border)'}`, background: activeFilters > 0 ? 'var(--accent-subtle)' : 'var(--bg2)', color: activeFilters > 0 ? 'var(--accent)' : 'var(--text-muted)', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.15s' }}>
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M1 3h11M3 6.5h7M5 10h3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+          {t('filters_btn')}
+          {activeFilters > 0 && <span style={{ background: 'var(--accent)', color: '#fff', borderRadius: 10, padding: '1px 6px', fontSize: 10, fontWeight: 700 }}>{activeFilters}</span>}
+        </button>
+        {activeFilters > 0 && (
+          <button onClick={() => { setProjectFilter(''); setProfileFilter(''); setStaffFilter(''); setDeptFilter(''); }}
+            style={{ fontSize: 11, color: 'var(--danger)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 600 }}>
+            ✕ {t('clear_filters')}
+          </button>
+        )}
+        <span style={{ marginLeft: 'auto', fontSize: 12, color: 'var(--text-faint)' }}>
+          {tab === 'workload' ? `${filteredWorkloads.length} ${t('workload_lines')}` : `${filteredAllocs.length} ${t('alloc_lines')}`}
+        </span>
       </div>
+
+      {/* Advanced filter panel */}
+      {showFilters && (
+        <div style={{ background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 12, padding: 16, marginBottom: 16, display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 12 }}>
+          <div>
+            <label style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-faint)', textTransform: 'uppercase' as const, letterSpacing: '0.07em', display: 'block', marginBottom: 5 }}>{t('profile')}</label>
+            <select className="input" value={profileFilter} onChange={e => setProfileFilter(e.target.value)} style={{ fontSize: 12 }}>
+              <option value="">— {t('all')} —</option>
+              {PROFILES.map(p => <option key={p} value={p}>{p}</option>)}
+            </select>
+          </div>
+          {tab === 'allocation' && (
+            <div>
+              <label style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-faint)', textTransform: 'uppercase' as const, letterSpacing: '0.07em', display: 'block', marginBottom: 5 }}>{t('resource')}</label>
+              <select className="input" value={staffFilter} onChange={e => setStaffFilter(e.target.value)} style={{ fontSize: 12 }}>
+                <option value="">— {t('all')} —</option>
+                {data.staff.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+              </select>
+            </div>
+          )}
+          {tab === 'allocation' && (
+            <div>
+              <label style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-faint)', textTransform: 'uppercase' as const, letterSpacing: '0.07em', display: 'block', marginBottom: 5 }}>{t('field_dept')}</label>
+              <select className="input" value={deptFilter} onChange={e => setDeptFilter(e.target.value)} style={{ fontSize: 12 }}>
+                <option value="">— {t('all')} —</option>
+                {data.staff.map(s => s.department).filter((v, i, a) => v && a.indexOf(v) === i).sort().map(d => <option key={d} value={d}>{d}</option>)}
+              </select>
+            </div>
+          )}
+          <div>
+            <label style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-faint)', textTransform: 'uppercase' as const, letterSpacing: '0.07em', display: 'block', marginBottom: 5 }}>{t('project_name')}</label>
+            <select className="input" value={projectFilter} onChange={e => setProjectFilter(e.target.value)} style={{ fontSize: 12 }}>
+              <option value="">— {t('all')} —</option>
+              {data.projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+            </select>
+          </div>
+          <div>
+            <label style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-faint)', textTransform: 'uppercase' as const, letterSpacing: '0.07em', display: 'block', marginBottom: 5 }}>{t('year')}</label>
+            <select className="input" value={yearFilter} onChange={e => setYearFilter(e.target.value)} style={{ fontSize: 12 }}>
+              <option value="2026">2026</option>
+              <option value="2027">2027</option>
+              <option value="2028">2028</option>
+            </select>
+          </div>
+        </div>
+      )}
 
       {/* WORKLOAD TABLE */}
       {tab === 'workload' && (
