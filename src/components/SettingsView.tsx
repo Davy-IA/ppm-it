@@ -32,7 +32,7 @@ export default function SettingsView({ data, updateData, spaces, onRefreshSpaces
   const handleLogo = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 512000) { alert('Max 500kb'); return; }
+    if (file.size > 512000) { alert(String(t('max_file_size'))); return; }
     const reader = new FileReader();
     reader.onload = () => { updateSettings({ logo: reader.result as string }); showSaved(); };
     reader.readAsDataURL(file);
@@ -41,7 +41,7 @@ export default function SettingsView({ data, updateData, spaces, onRefreshSpaces
   const handleLogoDark = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 512000) { alert('Max 500kb'); return; }
+    if (file.size > 512000) { alert(String(t('max_file_size'))); return; }
     const reader = new FileReader();
     reader.onload = () => { updateSettings({ logoDark: reader.result as string } as any); showSaved(); };
     reader.readAsDataURL(file);
@@ -101,7 +101,7 @@ export default function SettingsView({ data, updateData, spaces, onRefreshSpaces
             </div>
           ) : (
             <div style={{ padding: '6px 12px', background: 'var(--bg3)', borderRadius: 8, fontSize: 12, color: 'var(--text-muted)', fontWeight: 500 }}>
-              👤 Membre — paramètres personnels uniquement
+              {t('member_settings_hint')}
             </div>
           )}
         </div>

@@ -124,7 +124,7 @@ export default function GanttView({ data, updateData }: Props) {
           {data.projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
         </select>
         {project?.startDate && <span className="badge badge-blue">{t('gantt_start')} : {fmt(project.startDate)}</span>}
-        {goLive && <span className="badge badge-purple">Go-Live : {fmt(goLive)}</span>}
+        {goLive && <span className="badge badge-purple">{t('go_live')} : {fmt(goLive)}</span>}
         <span className="badge badge-gray">{phases.length} {t('gantt_phases').toLowerCase()} · {phases.reduce((s,p)=>s+p.subphases.length,0)} {t('gantt_subphases').toLowerCase()}</span>
       </div>
 
@@ -218,7 +218,7 @@ export default function GanttView({ data, updateData }: Props) {
 
                   {/* Today */}
                   {todayX>=0 && todayX<=chartW && <div style={{ position:'absolute', left:todayX, top:0, bottom:0, width:2, background:'var(--accent)', opacity:0.7, zIndex:6 }}>
-                    <div style={{ position:'absolute', top:2, left:3, background:'var(--accent)', color:'#fff', fontSize:9, fontWeight:700, padding:'2px 5px', borderRadius:4, whiteSpace:'nowrap' }}>Aujourd'hui</div>
+                    <div style={{ position:'absolute', top:2, left:3, background:'var(--accent)', color:'#fff', fontSize:9, fontWeight:700, padding:'2px 5px', borderRadius:4, whiteSpace:'nowrap' }}>{t('today')}</div>
                   </div>}
 
                   {/* Go-live */}
@@ -273,22 +273,22 @@ export default function GanttView({ data, updateData }: Props) {
             </div>
             <div style={{padding:24,display:'flex',flexDirection:'column',gap:16}}>
               <div>
-                <label style={{fontSize:12,color:'var(--text-muted)',fontWeight:600,display:'block',marginBottom:6}}>Nom de la phase *</label>
+                <label style={{fontSize:12,color:'var(--text-muted)',fontWeight:600,display:'block',marginBottom:6}}>{t('field_phase_name')}</label>
                 <input className="input" value={editPhase.name} onChange={e=>setEditPhase({...editPhase,name:e.target.value})} placeholder="Ex: Cadrage & Discovery"/>
               </div>
               <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:14}}>
                 <div>
                   <label style={{fontSize:12,color:'var(--text-muted)',fontWeight:600,display:'block',marginBottom:6}}>{t('field_start')}</label>
                   <input type="date" className="input" value={editPhase.startDate} onChange={e=>setEditPhase({...editPhase,startDate:e.target.value})} disabled={!!editPhase.dependsOn} style={{opacity:editPhase.dependsOn?0.5:1}}/>
-                  {editPhase.dependsOn && <div style={{fontSize:11,color:'var(--text-faint)',marginTop:4}}>Calculée automatiquement</div>}
+                  {editPhase.dependsOn && <div style={{fontSize:11,color:'var(--text-faint)',marginTop:4}}>{t('gantt_calculated_from')} automatiquement</div>}
                 </div>
                 <div>
-                  <label style={{fontSize:12,color:'var(--text-muted)',fontWeight:600,display:'block',marginBottom:6}}>Durée (jours)</label>
+                  <label style={{fontSize:12,color:'var(--text-muted)',fontWeight:600,display:'block',marginBottom:6}}>{t('field_duration')}</label>
                   <input type="number" min={1} className="input" value={editPhase.duration} onChange={e=>setEditPhase({...editPhase,duration:parseInt(e.target.value)||1})}/>
                 </div>
               </div>
               <div>
-                <label style={{fontSize:12,color:'var(--text-muted)',fontWeight:600,display:'block',marginBottom:6}}>Dépend de (commence après…)</label>
+                <label style={{fontSize:12,color:'var(--text-muted)',fontWeight:600,display:'block',marginBottom:6}}>{t('field_depends_on')}</label>
                 <select className="input" value={editPhase.dependsOn??''} onChange={e=>setEditPhase({...editPhase,dependsOn:e.target.value||null})}>
                   <option value="">{t('no_dependency')}</option>
                   {phases.filter(p=>p.id!==editPhase.id).map(p=><option key={p.id} value={p.id}>{p.name}</option>)}
@@ -354,8 +354,8 @@ function SubForm({ initial, phase, onSave, onClose }: { initial: GanttSubphase; 
     <>
       <div style={{padding:24,display:'flex',flexDirection:'column',gap:16}}>
         <div>
-          <label style={{fontSize:12,color:'var(--text-muted)',fontWeight:600,display:'block',marginBottom:6}}>Nom *</label>
-          <input className="input" value={form.name} onChange={e=>setForm({...form,name:e.target.value})} placeholder="Ex: Ateliers métier"/>
+          <label style={{fontSize:12,color:'var(--text-muted)',fontWeight:600,display:'block',marginBottom:6}}>{t('field_name_required')}</label>
+          <input className="input" value={form.name} onChange={e=>setForm({...form,name:e.target.value})} {...{placeholder: String(t('phase_name_placeholder'))}}/>
         </div>
         <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:14}}>
           <div>
@@ -363,7 +363,7 @@ function SubForm({ initial, phase, onSave, onClose }: { initial: GanttSubphase; 
             <input type="date" className="input" value={form.startDate} onChange={e=>setForm({...form,startDate:e.target.value})} disabled={!!form.dependsOn} style={{opacity:form.dependsOn?0.5:1}}/>
           </div>
           <div>
-            <label style={{fontSize:12,color:'var(--text-muted)',fontWeight:600,display:'block',marginBottom:6}}>Durée (jours)</label>
+            <label style={{fontSize:12,color:'var(--text-muted)',fontWeight:600,display:'block',marginBottom:6}}>{t('field_duration')}</label>
             <input type="number" min={1} className="input" value={form.duration} onChange={e=>setForm({...form,duration:parseInt(e.target.value)||1})}/>
           </div>
         </div>

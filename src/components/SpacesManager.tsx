@@ -85,7 +85,7 @@ export default function SpacesManager({ spaces, onRefresh }: Props) {
             </div>
             <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div>
-                <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: 6 }}>Nom *</label>
+                <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: 6 }}>{t('field_space_name')}</label>
                 <input className="input" value={editing.name ?? ''} onChange={e => setEditing({ ...editing, name: e.target.value })} placeholder="Ex: Retail, Finance, Supply Chain…" />
               </div>
               <div>
@@ -124,10 +124,10 @@ export default function SpacesManager({ spaces, onRefresh }: Props) {
               <div style={{ background: 'var(--danger-subtle)', border: '1px solid var(--danger)', borderRadius: 8, padding: '12px 14px', marginBottom: 16 }}>
                 <div style={{ fontWeight: 700, color: 'var(--danger)', marginBottom: 4 }}>{t('delete_space_warning')}</div>
                 <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>
-                  Supprimer <strong>"{confirmDelete.name}"</strong> supprimera également toutes ses données (projets, ressources, Gantt…).
+                  Supprimer <strong>"{confirmDelete.name}"</strong> {t('delete_space_warning')} (projets, ressources, Gantt…).
                 </div>
               </div>
-              <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>Êtes-vous sûr de vouloir continuer ?</div>
+              <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>{t('confirm_continue')}</div>
             </div>
             <div style={{ padding: '16px 24px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
               <button className="btn btn-ghost" onClick={() => setConfirmDelete(null)}>{t('cancel')}</button>

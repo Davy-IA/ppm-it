@@ -118,7 +118,7 @@ export default function StaffView({ data, updateData }: Props) {
                   <tr key={s.id}>
                     <td className="sticky-left" style={{ fontWeight: 500 }}>
                       {s.name}
-                      {s.type === 'External' && <span className="badge badge-yellow" style={{ marginLeft: 6, fontSize: 10 }}>Ext.</span>}
+                      {s.type === 'External' && <span className="badge badge-yellow" style={{ marginLeft: 6, fontSize: 10 }}>{t('field_ext')}</span>}
                     </td>
                     <td><span className="badge badge-blue">{s.profile}</span></td>
                     <td style={{ color: 'var(--text-muted)', fontSize: 12 }}>{s.type === 'Internal' ? t('internal') : t('external_label')}</td>
@@ -131,7 +131,7 @@ export default function StaffView({ data, updateData }: Props) {
                       else if (alloc > cap) cls += ' cap-over';
                       else if (alloc > 0) cls += ' cap-ok';
                       return (
-                        <td key={m} className={cls} title={alloc > 0 ? `Cap: ${cap}j | Alloué: ${alloc}j` : `Cap: ${cap}j`}>
+                        <td key={m} className={cls} title={alloc > 0 ? `${String(t('capacity_cap_alloc')).replace('{cap}', String(cap)).replace('{alloc}', String(alloc))}` : `Cap: ${cap}j`}>
                           {cap > 0 ? cap : '—'}
                           {alloc > 0 && <div style={{ fontSize: 10, opacity: 0.7 }}>{alloc}j</div>}
                         </td>
@@ -163,7 +163,7 @@ export default function StaffView({ data, updateData }: Props) {
               {/* Info fields */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 14, marginBottom: 24 }}>
                 <div style={{ gridColumn: '1/-1' }}>
-                  <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>Nom complet *</label>
+                  <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>{t('field_fullname')}</label>
                   <input className="input" value={editing.name} onChange={e => setEditing({ ...editing, name: e.target.value })} />
                 </div>
                 <div>
@@ -186,7 +186,7 @@ export default function StaffView({ data, updateData }: Props) {
                   </select>
                 </div>
                 <div>
-                  <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>Département</label>
+                  <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>{t('field_dept')}</label>
                   <select className="input" value={editing.department} onChange={e => setEditing({ ...editing, department: e.target.value })}>
                     {DEPARTMENTS.map(d => <option key={d}>{d}</option>)}
                   </select>
@@ -197,7 +197,7 @@ export default function StaffView({ data, updateData }: Props) {
               {['2026', '2027', '2028'].map(year => (
                 <div key={year} style={{ marginBottom: 20 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>Disponibilité {year}</div>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>{t('availability_year').replace('{year}', String(year))}</div>
                     <button className="btn btn-ghost btn-sm" onClick={() => fillYear(21)}>{t('btn_fill21')}</button>
                     <button className="btn btn-ghost btn-sm" onClick={() => fillYear(0)}>{t('btn_clear')}</button>
                   </div>

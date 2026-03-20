@@ -62,7 +62,7 @@ export default function GlobalPortfolio({ spaces, onBack }: Props) {
           <button onClick={onBack} className="btn btn-ghost btn-sm">{t('back_to_spaces')}</button>
           <div>
             <h1 style={{ fontSize: 22, fontWeight: 800, letterSpacing: '-0.03em' }}>🌐 {t('global_portfolio')}</h1>
-            <p style={{ color: 'var(--text-muted)', fontSize: 13, marginTop: 2 }}>Vue consolidée de tous les espaces · {allProjects.length} projets · {allStaff.length} ressources</p>
+            <p style={{ color: 'var(--text-muted)', fontSize: 13, marginTop: 2 }}>{t('global_portfolio_subtitle2')}aces · {allProjects.length} projets · {allStaff.length} ressources</p>
           </div>
         </div>
         {/* Space legend */}

@@ -206,7 +206,7 @@ export default function WorkloadView({ data, updateData }: Props) {
                       <td><span className="badge badge-blue">{a.profile}</span></td>
                       <td>
                         <span style={{ fontWeight: 500 }}>{a.staffName}</span>
-                        {staff?.type === 'External' && <span className="badge badge-yellow" style={{ marginLeft: 6, fontSize: 10 }}>Ext.</span>}
+                        {staff?.type === 'External' && <span className="badge badge-yellow" style={{ marginLeft: 6, fontSize: 10 }}>{t('col_ext')}</span>}
                       </td>
                       {months.map(m => {
                         const alloc = a.monthly[m] ?? 0;
@@ -245,7 +245,7 @@ export default function WorkloadView({ data, updateData }: Props) {
             <div style={{ padding: 24 }}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 24 }}>
                 <div>
-                  <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>Projet *</label>
+                  <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>{t('field_project_required')}</label>
                   <select className="input" value={editingWorkload.projectId} onChange={e => {
                     const p = data.projects.find(x => x.id === e.target.value);
                     setEditingWorkload({ ...editingWorkload, projectId: e.target.value, projectName: p?.name ?? '' });
@@ -254,7 +254,7 @@ export default function WorkloadView({ data, updateData }: Props) {
                   </select>
                 </div>
                 <div>
-                  <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>Profil *</label>
+                  <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>{t('field_profile_required')}</label>
                   <select className="input" value={editingWorkload.profile} onChange={e => setEditingWorkload({ ...editingWorkload, profile: e.target.value })}>
                     {PROFILES.map(p => <option key={p}>{p}</option>)}
                   </select>
@@ -297,7 +297,7 @@ export default function WorkloadView({ data, updateData }: Props) {
             <div style={{ padding: 24 }}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 14, marginBottom: 24 }}>
                 <div>
-                  <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>Projet *</label>
+                  <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>{t('field_project_required')}</label>
                   <select className="input" value={editingAlloc.projectId} onChange={e => {
                     const p = data.projects.find(x => x.id === e.target.value);
                     setEditingAlloc({ ...editingAlloc, projectId: e.target.value, projectName: p?.name ?? '' });
@@ -306,13 +306,13 @@ export default function WorkloadView({ data, updateData }: Props) {
                   </select>
                 </div>
                 <div>
-                  <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>Profil *</label>
+                  <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>{t('field_profile_required')}</label>
                   <select className="input" value={editingAlloc.profile} onChange={e => setEditingAlloc({ ...editingAlloc, profile: e.target.value })}>
                     {PROFILES.map(p => <option key={p}>{p}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>Ressource *</label>
+                  <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>{t('field_resource_required')}</label>
                   <select className="input" value={editingAlloc.staffId} onChange={e => {
                     const s = data.staff.find(x => x.id === e.target.value);
                     setEditingAlloc({ ...editingAlloc, staffId: e.target.value, staffName: s?.name ?? '' });
@@ -324,7 +324,7 @@ export default function WorkloadView({ data, updateData }: Props) {
               {/* Show staff capacity hint */}
               {editingAlloc.staffId && (
                 <div style={{ background: 'var(--bg3)', borderRadius: 6, padding: '8px 12px', marginBottom: 16, fontSize: 12, color: 'var(--text-muted)' }}>
-                  Capacité de {editingAlloc.staffName} — voir les valeurs dans la grille ci-dessous
+                  {t('capacity_of_staff').replace('{name}', editingAlloc.staffName)}
                 </div>
               )}
               {['2026', '2027', '2028'].map(year => (

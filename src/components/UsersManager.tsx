@@ -47,7 +47,7 @@ export default function UsersManager({ spaces }: Props) {
     const d = await r.json();
     setResetLoading(false);
     if (d.ok) {
-      setResetMsg('✓ Mot de passe réinitialisé !');
+      setResetMsg(String(t('password_reset_success')));
       setPendingResets(prev => { const n = { ...prev }; delete n[resetUser.id]; return n; });
       setTimeout(() => { setResetUser(null); setResetPw(''); setResetMsg(''); }, 1500);
     } else {
@@ -227,7 +227,7 @@ export default function UsersManager({ spaces }: Props) {
                 </label>
                 <input
                   className="input" type="text"
-                  placeholder="Minimum 8 caractères"
+                  placeholder={String(t('placeholder_min_8'))}
                   value={resetPw}
                   onChange={e => setResetPw(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && handleAdminReset()}

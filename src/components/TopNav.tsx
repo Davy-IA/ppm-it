@@ -314,7 +314,7 @@ function ProfilePanel({ user, onClose, t, token }: { user: any; onClose: () => v
   const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 250_000) { setErr('Image too large (max 200kb)'); return; }
+    if (file.size > 250_000) { setErr(String(t('error_image_too_large'))); return; }
     const reader = new FileReader();
     reader.onload = () => setAvatar(reader.result as string);
     reader.readAsDataURL(file);
@@ -322,9 +322,9 @@ function ProfilePanel({ user, onClose, t, token }: { user: any; onClose: () => v
 
   const save = async () => {
     setErr(''); setMsg('');
-    if (newPw && newPw !== confirmPw) { setErr('Passwords do not match'); return; }
-    if (newPw && newPw.length < 8) { setErr('Password must be at least 8 characters'); return; }
-    if (newPw && !curPw) { setErr('Please enter your current password'); return; }
+    if (newPw && newPw !== confirmPw) { setErr(String(t('error_passwords_no_match'))); return; }
+    if (newPw && newPw.length < 8) { setErr(String(t('error_password_too_short'))); return; }
+    if (newPw && !curPw) { setErr(String(t('error_current_password_required'))); return; }
     setSaving(true);
 
     // Save avatar separately from password
@@ -358,7 +358,7 @@ function ProfilePanel({ user, onClose, t, token }: { user: any; onClose: () => v
     }
 
     setSaving(false);
-    setMsg('✓ Sauvegardé ! Rechargez la page pour voir le nouvel avatar.');
+    setMsg(String(t('avatar_saved')));
     setCurPw(''); setNewPw(''); setConfirmPw('');
   };
 

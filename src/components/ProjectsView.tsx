@@ -131,7 +131,7 @@ export default function ProjectsView({ data, updateData }: Props) {
             </div>
             <div style={{ padding: 24, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
               <div style={{ gridColumn: '1/-1' }}>
-                <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>Nom du projet *</label>
+                <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>{t('field_project_name')}</label>
                 <input className="input" value={editing.name} onChange={e => setEditing({ ...editing, name: e.target.value })} />
               </div>
               <div>
@@ -141,19 +141,19 @@ export default function ProjectsView({ data, updateData }: Props) {
                 </select>
               </div>
               <div>
-                <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>Type de demande</label>
+                <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>{t('field_request_type')}</label>
                 <select className="input" value={editing.requestType} onChange={e => setEditing({ ...editing, requestType: e.target.value })}>
                   {REQUEST_TYPES.map(r => <option key={r}>{r}</option>)}
                 </select>
               </div>
               <div>
-                <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>Département leader</label>
+                <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>{t('field_lead_dept')}</label>
                 <select className="input" value={editing.leadDept} onChange={e => setEditing({ ...editing, leadDept: e.target.value })}>
                   {DEPARTMENTS.map(d => <option key={d}>{d}</option>)}
                 </select>
               </div>
               <div>
-                <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>Pays</label>
+                <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>{t('field_country')}</label>
                 <select className="input" value={editing.leadCountry} onChange={e => setEditing({ ...editing, leadCountry: e.target.value })}>
                   {COUNTRIES.map(c => <option key={c}>{c}</option>)}
                 </select>
@@ -198,7 +198,7 @@ export default function ProjectsView({ data, updateData }: Props) {
                 <input type="date" className="input" value={editing.startDate ?? ''} onChange={e => setEditing({ ...editing, startDate: e.target.value || null })} />
               </div>
               <div>
-                <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>Go-Live</label>
+                <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>{t('go_live')}</label>
                 <input type="date" className="input" value={editing.goLive ?? ''} onChange={e => setEditing({ ...editing, goLive: e.target.value || null })} />
               </div>
             </div>

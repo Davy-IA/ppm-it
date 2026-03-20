@@ -140,7 +140,7 @@ export default function CapacityView({ data }: Props) {
               itemStyle={{ color: 'var(--text)' }}
             />
             <ReferenceLine y={0} stroke="var(--border)" />
-            <Bar dataKey="capacity" name="Capacité dispo" fill="rgba(61,126,255,0.25)" radius={[2,2,0,0]} />
+            <Bar dataKey="capacity" {...{name: String(t('chart_capacity_avail'))}} fill="rgba(61,126,255,0.25)" radius={[2,2,0,0]} />
             <Bar dataKey="workload" name="Besoin charge" radius={[2,2,0,0]}>
               {chartData.map((d, i) => (
                 <Cell key={i} fill={d.gap < 0 ? 'var(--danger)' : 'var(--success)'} />
@@ -179,13 +179,13 @@ export default function CapacityView({ data }: Props) {
                     <tr key={s.id}>
                       <td className="sticky-left" style={{ fontWeight: 500 }}>
                         {s.name}
-                        {s.type === 'External' && <span className="badge badge-yellow" style={{ marginLeft: 6, fontSize: 10 }}>Ext.</span>}
+                        {s.type === 'External' && <span className="badge badge-yellow" style={{ marginLeft: 6, fontSize: 10 }}>{t('col_ext')}</span>}
                       </td>
                       <td><span className="badge badge-blue">{s.profile}</span></td>
                       {months.map(m => {
                         const { cls, label } = cellColor(s.cap[m] ?? 0, s.alloc[m] ?? 0);
                         return (
-                          <td key={m} className={cls} title={`Cap: ${s.cap[m]}j | Alloué: ${s.alloc[m]}j`}>
+                          <td key={m} className={cls} title={`${String(t('capacity_cap_alloc')).replace('{cap}', String(s.cap[m]??0)).replace('{alloc}', String(s.alloc[m]??0))}`}>
                             {label}
                           </td>
                         );
