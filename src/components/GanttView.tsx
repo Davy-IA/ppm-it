@@ -127,20 +127,24 @@ export default function GanttView({ data, updateData }: Props) {
   // Dynamic px per day based on time scale
   const DAY_PX_DYN = timeScale === 'week' ? 42 : timeScale === 'month' ? 17 : 4;
 
-  // For year view: pad to cover full project duration nicely
-  const minDate = timeScale === 'year' && range
+  // Always use real phase start/end as origin — never shift minDate
+  const minDate = range?.start ?? new Date().toISOString().slice(0,10);
+  const maxDate = range?.end ?? addDays(minDate, 90);
+  // For year view: extend to cover full calendar years around the project
+  const displayMin = timeScale === 'year' && range
     ? `${new Date(range.start).getFullYear()}-01-01`
-    : range?.start ?? new Date().toISOString().slice(0,10);
-  const maxDate = timeScale === 'year' && range
+    : minDate;
+  const displayMax = timeScale === 'year' && range
     ? `${new Date(range.end).getFullYear()}-12-31`
-    : range?.end ?? addDays(minDate, 90);
-  const totalDays = Math.max(daysBetween(minDate, maxDate) + (timeScale === 'year' ? 0 : 14), 60);
+    : addDays(maxDate, 14);
+  const totalDays = Math.max(daysBetween(displayMin, displayMax), 60);
   const chartW = totalDays * DAY_PX_DYN;
   const LEFT_W = 260;
   const today = new Date().toISOString().slice(0,10);
-  const todayX = daysBetween(minDate, today) * DAY_PX_DYN;
-  const goLiveX = goLive ? daysBetween(minDate, goLive) * DAY_PX_DYN : null;
-  const hypercareX = hypercare ? daysBetween(minDate, hypercare) * DAY_PX_DYN : null;
+  // All X positions computed from displayMin (the visual origin)
+  const todayX = daysBetween(displayMin, today) * DAY_PX_DYN;
+  const goLiveX = goLive ? daysBetween(displayMin, goLive) * DAY_PX_DYN : null;
+  const hypercareX = hypercare ? daysBetween(displayMin, hypercare) * DAY_PX_DYN : null;
 
   // Time columns based on scale
   const months: { label: string; left: number; width: number }[] = [];
@@ -151,32 +155,32 @@ export default function GanttView({ data, updateData }: Props) {
     let cur = new Date(minDate);
     const dow = cur.getDay(); // 0=Sun
     cur.setDate(cur.getDate() - (dow === 0 ? 6 : dow - 1));
-    while (cur.toISOString().slice(0,10) <= addDays(minDate, totalDays)) {
+    while (cur.toISOString().slice(0,10) <= addDays(displayMin, totalDays)) {
       const wEnd = new Date(cur); wEnd.setDate(wEnd.getDate() + 6);
-      const left = Math.max(0, daysBetween(minDate, cur.toISOString().slice(0,10))) * DAY_PX_DYN;
-      const right = Math.min(totalDays, daysBetween(minDate, wEnd.toISOString().slice(0,10))) * DAY_PX_DYN;
+      const left = Math.max(0, daysBetween(displayMin, cur.toISOString().slice(0,10))) * DAY_PX_DYN;
+      const right = Math.min(totalDays, daysBetween(displayMin, wEnd.toISOString().slice(0,10))) * DAY_PX_DYN;
       const label = cur.toLocaleDateString(localeStr, { day: 'numeric', month: 'short' });
       months.push({ label, left, width: right - left });
       cur.setDate(cur.getDate() + 7);
     }
   } else if (timeScale === 'year') {
     // Quarter columns
-    let cur = new Date(minDate); cur.setMonth(Math.floor(cur.getMonth()/3)*3, 1);
-    while (cur.toISOString().slice(0,10) <= addDays(minDate, totalDays)) {
+    let cur = new Date(displayMin); cur.setMonth(Math.floor(cur.getMonth()/3)*3, 1);
+    while (cur.toISOString().slice(0,10) <= addDays(displayMin, totalDays)) {
       const qEnd = new Date(cur); qEnd.setMonth(qEnd.getMonth()+3, 0);
-      const left = Math.max(0, daysBetween(minDate, cur.toISOString().slice(0,10))) * DAY_PX_DYN;
-      const right = Math.min(totalDays, daysBetween(minDate, qEnd.toISOString().slice(0,10))) * DAY_PX_DYN;
+      const left = Math.max(0, daysBetween(displayMin, cur.toISOString().slice(0,10))) * DAY_PX_DYN;
+      const right = Math.min(totalDays, daysBetween(displayMin, qEnd.toISOString().slice(0,10))) * DAY_PX_DYN;
       const q = Math.floor(cur.getMonth()/3)+1;
       months.push({ label: `Q${q} ${cur.getFullYear()}`, left, width: right - left });
       cur.setMonth(cur.getMonth()+3);
     }
   } else {
     // Month columns (default)
-    let cur = new Date(minDate); cur.setDate(1);
-    while (cur.toISOString().slice(0,10) <= addDays(minDate, totalDays)) {
+    let cur = new Date(displayMin); cur.setDate(1);
+    while (cur.toISOString().slice(0,10) <= addDays(displayMin, totalDays)) {
       const mEnd = new Date(cur.getFullYear(), cur.getMonth()+1, 0);
-      const left = Math.max(0, daysBetween(minDate, cur.toISOString().slice(0,10))) * DAY_PX_DYN;
-      const right = Math.min(totalDays, daysBetween(minDate, mEnd.toISOString().slice(0,10))) * DAY_PX_DYN;
+      const left = Math.max(0, daysBetween(displayMin, cur.toISOString().slice(0,10))) * DAY_PX_DYN;
+      const right = Math.min(totalDays, daysBetween(displayMin, mEnd.toISOString().slice(0,10))) * DAY_PX_DYN;
       months.push({ label: cur.toLocaleDateString(localeStr, {month:'short',year:'2-digit'}), left, width: right - left });
       cur.setMonth(cur.getMonth()+1);
     }
@@ -401,7 +405,7 @@ export default function GanttView({ data, updateData }: Props) {
 
                   {/* Milestone diamonds ◆ on phase bars */}
                   {milestones.filter(m => !m.isAutoGoLive).map(m => {
-                    const mx = daysBetween(minDate, m.date) * DAY_PX_DYN;
+                    const mx = daysBetween(displayMin, m.date) * DAY_PX_DYN;
                     if (mx < -20 || mx > chartW + 20) return null;
                     return (
                       <div key={m.id}
@@ -416,7 +420,7 @@ export default function GanttView({ data, updateData }: Props) {
                   })}
 
                   {phases.map(ph => {
-                    const px = daysBetween(minDate, ph.startDate)*DAY_PX_DYN;
+                    const px = daysBetween(displayMin, ph.startDate)*DAY_PX_DYN;
                     const pw = Math.max(ph.duration*DAY_PX_DYN, 16);
                     return (
                       <div key={ph.id}>
@@ -430,8 +434,8 @@ export default function GanttView({ data, updateData }: Props) {
                         </div>
                         {/* Subphase rows */}
                         {!ph.collapsed && ph.subphases.map(sub => {
-                          const sx = daysBetween(minDate, sub.startDate)*DAY_PX;
-                          const sw = Math.max(sub.duration*DAY_PX, 10);
+                          const sx = daysBetween(displayMin, sub.startDate)*DAY_PX_DYN;
+                          const sw = Math.max(sub.duration*DAY_PX_DYN, 10);
                           return (
                             <div key={sub.id} style={{ position:'relative', height:34, borderBottom:'1px solid var(--border)', background:'var(--bg3)' }}>
                               <div style={{ position:'absolute', top:6, left:sx, width:sw, height:22, borderRadius:5, background:ph.color||'#10b981', opacity:0.72, cursor:'pointer', display:'flex', alignItems:'center', padding:'0 6px', zIndex:3, transition:'opacity 0.15s' }}
