@@ -144,7 +144,7 @@ export default function WorkloadView({ data, updateData }: Props) {
               const proj = data.projects[0];
               setEditingWorkload({ id: '', projectId: proj?.id ?? '', projectName: proj?.name ?? '', profile: 'FUNC', monthly: {} });
               setIsNew(true);
-            }}>{t('add_workload')}</button>
+            }}>{t('add_project_line')}</button>
           )}
           {tab === 'allocation' && (
             <button className="btn btn-primary" onClick={() => {
@@ -377,50 +377,36 @@ export default function WorkloadView({ data, updateData }: Props) {
       {/* WORKLOAD MODAL */}
       {editingWorkload && (
         <div className="modal-overlay" onClick={() => setEditingWorkload(null)}>
-          <div className="modal" style={{ maxWidth: 820 }} onClick={e => e.stopPropagation()}>
+          <div className="modal" style={{ maxWidth: 440 }} onClick={e => e.stopPropagation()}>
             <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h2 style={{ fontSize: 16, fontWeight: 700 }}>{isNew ? t('new_workload') : t('edit_workload')}</h2>
-              <button className="btn btn-ghost btn-sm" onClick={() => setEditingWorkload(null)}>✕</button>
-            </div>
-            <div style={{ padding: 24 }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 24 }}>
-                <div>
-                  <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>{t('field_project_required')}</label>
-                  <select className="input" value={editingWorkload.projectId} onChange={e => {
-                    const p = data.projects.find(x => x.id === e.target.value);
-                    setEditingWorkload({ ...editingWorkload, projectId: e.target.value, projectName: p?.name ?? '' });
-                  }}>
-                    {data.projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>{t('field_profile_required')}</label>
-                  <select className="input" value={editingWorkload.profile} onChange={e => setEditingWorkload({ ...editingWorkload, profile: e.target.value })}>
-                    {spaceProfiles.map(p => <option key={p}>{p}</option>)}
-                  </select>
-                </div>
+              <div>
+                <h2 style={{ fontSize: 16, fontWeight: 700 }}>{t('add_project_line')}</h2>
+                <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 3 }}>{t('add_project_line_hint')}</p>
               </div>
-              {['2026', '2027', '2028'].map(year => (
-                <div key={year} style={{ marginBottom: 20 }}>
-                  <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 10, color: 'var(--text)' }}>Charge {year} (jours)</div>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(12, 1fr)', gap: 6 }}>
-                    {MONTHS_2026_2028.filter(m => m.startsWith(year)).map(m => (
-                      <div key={m} style={{ textAlign: 'center' }}>
-                        <div style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 3 }}>{monthLabel(m)}</div>
-                        <input type="number" min={0} step={1} className="input"
-                          value={editingWorkload.monthly[m] ?? ''}
-                          onChange={e => updateMonthlyW(m, e.target.value)}
-                          style={{ textAlign: 'center', padding: '4px', fontFamily: 'DM Mono, monospace', fontSize: 13 }}
-                        />
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ))}
+              <button className="btn-icon" onClick={() => setEditingWorkload(null)}>✕</button>
             </div>
-            <div style={{ padding: '16px 24px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
+            <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 14 }}>
+              <div>
+                <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>{t('field_project_required')}</label>
+                <select className="input" value={editingWorkload.projectId} onChange={e => {
+                  const p = data.projects.find(x => x.id === e.target.value);
+                  setEditingWorkload({ ...editingWorkload, projectId: e.target.value, projectName: p?.name ?? '', monthly: {} });
+                }}>
+                  <option value="">— {t('select_project')} —</option>
+                  {data.projects.filter(p => p.startDate && (p.goLive || (p as any).hypercare)).map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                </select>
+                {editingWorkload.projectId === '' && <div style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 4 }}>{t('only_dated_projects')}</div>}
+              </div>
+              <div>
+                <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>{t('field_profile_required')}</label>
+                <select className="input" value={editingWorkload.profile} onChange={e => setEditingWorkload({ ...editingWorkload, profile: e.target.value })}>
+                  {spaceProfiles.map(p => <option key={p}>{p}</option>)}
+                </select>
+              </div>
+            </div>
+            <div style={{ padding: '14px 24px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
               <button className="btn btn-ghost" onClick={() => setEditingWorkload(null)}>{t('cancel')}</button>
-              <button className="btn btn-primary" onClick={saveWorkload}>{t('save')}</button>
+              <button className="btn btn-primary" disabled={!editingWorkload.projectId} onClick={saveWorkload}>{t('save')}</button>
             </div>
           </div>
         </div>
@@ -429,76 +415,45 @@ export default function WorkloadView({ data, updateData }: Props) {
       {/* ALLOCATION MODAL */}
       {editingAlloc && (
         <div className="modal-overlay" onClick={() => setEditingAlloc(null)}>
-          <div className="modal" style={{ maxWidth: 820 }} onClick={e => e.stopPropagation()}>
+          <div className="modal" style={{ maxWidth: 480 }} onClick={e => e.stopPropagation()}>
             <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h2 style={{ fontSize: 16, fontWeight: 700 }}>{isNew ? t('new_assignment') : t('edit_assignment')}</h2>
-              <button className="btn btn-ghost btn-sm" onClick={() => setEditingAlloc(null)}>✕</button>
-            </div>
-            <div style={{ padding: 24 }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 14, marginBottom: 24 }}>
-                <div>
-                  <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>{t('field_project_required')}</label>
-                  <select className="input" value={editingAlloc.projectId} onChange={e => {
-                    const p = data.projects.find(x => x.id === e.target.value);
-                    setEditingAlloc({ ...editingAlloc, projectId: e.target.value, projectName: p?.name ?? '' });
-                  }}>
-                    {data.projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>{t('field_profile_required')}</label>
-                  <select className="input" value={editingAlloc.profile} onChange={e => setEditingAlloc({ ...editingAlloc, profile: e.target.value })}>
-                    {spaceProfiles.map(p => <option key={p}>{p}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>{t('field_resource_required')}</label>
-                  <select className="input" value={editingAlloc.staffId} onChange={e => {
-                    const s = data.staff.find(x => x.id === e.target.value);
-                    setEditingAlloc({ ...editingAlloc, staffId: e.target.value, staffName: s?.name ?? '' });
-                  }}>
-                    {data.staff.map(s => <option key={s.id} value={s.id}>{s.name} ({s.profile})</option>)}
-                  </select>
-                </div>
+              <div>
+                <h2 style={{ fontSize: 16, fontWeight: 700 }}>{t('add_allocation_btn')}</h2>
+                <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 3 }}>{t('add_assignment_hint')}</p>
               </div>
-              {/* Show staff capacity hint */}
-              {editingAlloc.staffId && (
-                <div style={{ background: 'var(--bg3)', borderRadius: 6, padding: '8px 12px', marginBottom: 16, fontSize: 12, color: 'var(--text-muted)' }}>
-                  {t('capacity_of_staff').replace('{name}', editingAlloc.staffName)}
-                </div>
-              )}
-              {['2026', '2027', '2028'].map(year => (
-                <div key={year} style={{ marginBottom: 20 }}>
-                  <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 10, color: 'var(--text)' }}>Affectation {year} (jours)</div>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(12, 1fr)', gap: 6 }}>
-                    {MONTHS_2026_2028.filter(m => m.startsWith(year)).map(m => {
-                      const staff = data.staff.find(s => s.id === editingAlloc.staffId);
-                      const cap = staff?.capacity[m] ?? 0;
-                      const val = editingAlloc.monthly[m] ?? 0;
-                      const isOver = val > cap && cap > 0;
-                      return (
-                        <div key={m} style={{ textAlign: 'center' }}>
-                          <div style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 1 }}>{monthLabel(m)}</div>
-                          <div style={{ fontSize: 9, color: 'var(--text-faint)', marginBottom: 3 }}>/{cap}j</div>
-                          <input type="number" min={0} max={cap || 31} step={1} className="input"
-                            value={editingAlloc.monthly[m] ?? ''}
-                            onChange={e => updateMonthlyA(m, e.target.value)}
-                            style={{
-                              textAlign: 'center', padding: '4px',
-                              fontFamily: 'DM Mono, monospace', fontSize: 13,
-                              borderColor: isOver ? 'var(--danger)' : undefined,
-                            }}
-                          />
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              ))}
+              <button className="btn-icon" onClick={() => setEditingAlloc(null)}>✕</button>
             </div>
-            <div style={{ padding: '16px 24px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
+            <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 14 }}>
+              <div>
+                <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>{t('field_project_required')}</label>
+                <select className="input" value={editingAlloc.projectId} onChange={e => {
+                  const p = data.projects.find(x => x.id === e.target.value);
+                  setEditingAlloc({ ...editingAlloc, projectId: e.target.value, projectName: p?.name ?? '', monthly: {} });
+                }}>
+                  <option value="">— {t('select_project')} —</option>
+                  {data.projects.filter(p => p.startDate && (p.goLive || (p as any).hypercare)).map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                </select>
+              </div>
+              <div>
+                <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>{t('field_profile_required')}</label>
+                <select className="input" value={editingAlloc.profile} onChange={e => setEditingAlloc({ ...editingAlloc, profile: e.target.value })}>
+                  {spaceProfiles.map(p => <option key={p}>{p}</option>)}
+                </select>
+              </div>
+              <div>
+                <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>{t('field_resource_required')}</label>
+                <select className="input" value={editingAlloc.staffId} onChange={e => {
+                  const s = data.staff.find(x => x.id === e.target.value);
+                  setEditingAlloc({ ...editingAlloc, staffId: e.target.value, staffName: s?.name ?? '' });
+                }}>
+                  <option value="">— {t('select_resource')} —</option>
+                  {data.staff.map(s => <option key={s.id} value={s.id}>{s.name} ({s.profile})</option>)}
+                </select>
+              </div>
+            </div>
+            <div style={{ padding: '14px 24px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
               <button className="btn btn-ghost" onClick={() => setEditingAlloc(null)}>{t('cancel')}</button>
-              <button className="btn btn-primary" onClick={saveAlloc}>{t('save')}</button>
+              <button className="btn btn-primary" disabled={!editingAlloc.projectId || !editingAlloc.staffId} onClick={saveAlloc}>{t('save')}</button>
             </div>
           </div>
         </div>
