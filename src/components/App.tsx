@@ -5,7 +5,6 @@ import { INITIAL_DATA } from '@/lib/data';
 import { useAuth } from '@/lib/auth-context';
 import LoginScreen from './LoginScreen';
 import GlobalPortfolio from './GlobalPortfolio';
-import Sidebar from './Sidebar';
 import TopNav from './TopNav';
 import Dashboard from './Dashboard';
 import ProjectsView from './ProjectsView';
@@ -27,16 +26,15 @@ export default function App() {
   const [view, setView] = useState<View>('dashboard');
   const [data, setData] = useState<AppData>({ ...INITIAL_DATA, projects: [], staff: [], workloads: [], allocations: [], ganttPhases: [] });
   const [saving, setSaving] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
   const [spacesLoading, setSpacesLoading] = useState(false);
-  const [initialized, setInitialized] = useState(false);
+  const [spacesReady, setSpacesReady] = useState(false);
 
   // Bootstrap DB on first load
   useEffect(() => {
     fetch('/api/init').catch(() => {});
   }, []);
 
-  // Fetch spaces from API — reusable for initial load + after mutations
+  // Fetch spaces from API
   const fetchSpaces = useCallback(async () => {
     if (!user || !token) return;
     setSpacesLoading(true);
@@ -45,11 +43,26 @@ export default function App() {
       if (r.ok) { const d = await r.json(); if (d?.spaces) setSpaces(d.spaces); }
     } finally {
       setSpacesLoading(false);
+      setSpacesReady(true);
     }
   }, [user, token]);
 
-  // Load spaces once logged in
   useEffect(() => { fetchSpaces(); }, [fetchSpaces]);
+
+  // Auto-select space after spaces load — ALL hooks must be before any conditional return
+  useEffect(() => {
+    if (!spacesReady || currentSpace || spaces.length === 0) return;
+    const lastSpaceId = typeof window !== 'undefined' ? localStorage.getItem('ppm-last-space') : null;
+    const lastSpace = lastSpaceId ? spaces.find(s => s.id === lastSpaceId) : null;
+    setCurrentSpace(lastSpace || spaces[0]);
+  }, [spacesReady, spaces, currentSpace]);
+
+  // Save last used space
+  useEffect(() => {
+    if (currentSpace && currentSpace.id !== '__global__') {
+      localStorage.setItem('ppm-last-space', currentSpace.id);
+    }
+  }, [currentSpace]);
 
   // Load space data when space selected
   useEffect(() => {
@@ -78,30 +91,16 @@ export default function App() {
     saveData(newData);
   }, [saveData]);
 
+  // ── Conditional returns AFTER all hooks ──
   if (authLoading) {
     return <div style={{ height: '100vh', background: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', fontSize: 14 }}>⏳ Loading…</div>;
   }
 
   if (!user) return <LoginScreen />;
 
-  // Auto-select first space on first load (skip the space selector page)
-  useEffect(() => {
-    if (!currentSpace && spaces.length > 0 && !spacesLoading && initialized) {
-      // Restore last used space from localStorage
-      const lastSpaceId = localStorage.getItem('ppm-last-space');
-      const lastSpace = lastSpaceId ? spaces.find(s => s.id === lastSpaceId) : null;
-      setCurrentSpace(lastSpace || spaces[0]);
-    }
-  }, [spaces, spacesLoading, initialized, currentSpace]);
-
-  // Save last used space
-  useEffect(() => {
-    if (currentSpace && currentSpace.id !== '__global__') {
-      localStorage.setItem('ppm-last-space', currentSpace.id);
-    }
-  }, [currentSpace]);
-
-  if (!currentSpace) return <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-faint)', fontSize: 14 }}>⏳ Chargement…</div>;
+  if (!currentSpace) {
+    return <div style={{ height: '100vh', background: 'var(--bg-gradient)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-faint)', fontSize: 14 }}>⏳ Chargement…</div>;
+  }
 
   if (currentSpace.id === '__global__') {
     return <GlobalPortfolio spaces={spaces} onBack={() => setCurrentSpace(null)} />;
@@ -115,10 +114,7 @@ export default function App() {
         currentSpace={currentSpace}
         onChangeSpace={() => setCurrentSpace(null)}
         spaces={spaces}
-        onSelectSpace={(space) => {
-          if (space.id === '__global__') setCurrentSpace(space as any);
-          else setCurrentSpace(space as any);
-        }}
+        onSelectSpace={(space) => setCurrentSpace(space as any)}
       />
       <main className="app-content">
         {view === 'dashboard' && <Dashboard data={data} setView={setView} />}
