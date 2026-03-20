@@ -225,38 +225,37 @@ export default function GanttView({ data, updateData }: Props) {
             )}
           </div>
         </div>
+        {/* KPI row — second line of sticky header */}
+        {phases.length > 0 && range && (
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', paddingTop: 8, borderTop: '1px solid var(--border)', marginTop: 8 }}>
+            {[
+              { label: t('gantt_start'), value: fmt(range.start) },
+              { label: t('gantt_end'), value: fmt(ganttEnd!), danger: !!overdue },
+              { label: t('gantt_duration'), value: `${daysBetween(range.start, ganttEnd!)}${t('days')}` },
+              { label: t('gantt_phases'), value: `${phases.length} ${String(t('gantt_phases')).toLowerCase()}` },
+              { label: t('gantt_subphases'), value: `${phases.reduce((s,p)=>s+p.subphases.length,0)} ${String(t('gantt_subphases')).toLowerCase()}` },
+            ].map(k => (
+              <span key={k.label} style={{ fontSize: 12, fontWeight: 600, color: k.danger ? 'var(--danger)' : 'var(--text-muted)', background: 'var(--bg3)', border: `1px solid ${k.danger ? 'var(--danger)' : 'var(--border)'}`, borderRadius: 20, padding: '3px 10px', whiteSpace: 'nowrap' as const }}>
+                {k.label} : <span style={{ color: k.danger ? 'var(--danger)' : 'var(--text)', fontWeight: 700 }}>{k.value}</span>
+              </span>
+            ))}
+            <div style={{ marginLeft: 'auto' }}>
+              {overdue && ganttEnd && endDeadline && (
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 600, color: 'var(--danger)', background: 'var(--danger-subtle)', border: '1px solid var(--danger)', borderRadius: 20, padding: '3px 12px' }}>
+                  ⚠ {t('overdue_alert').replace('{end}', fmt(ganttEnd)).replace('{golive}', fmt(endDeadline))}
+                </span>
+              )}
+              {!overdue && ganttEnd && goLive && (
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 600, color: 'var(--success)', background: 'var(--success-subtle)', border: '1px solid var(--success)', borderRadius: 20, padding: '3px 12px' }}>
+                  ✓ {t('gantt_ok').replace('{end}', fmt(ganttEnd??'')).replace('{golive}', fmt(endDeadline??''))}
+                </span>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Compact info bar + coherence indicator */}
-      {phases.length > 0 && range && (
-        <div style={{ display: 'flex', gap: 8, marginBottom: 14, alignItems: 'center', flexWrap: 'wrap', padding: '8px 0' }}>
-          {/* Compact KPI pills */}
-          {[
-            { label: t('gantt_start'), value: fmt(range.start) },
-            { label: t('gantt_end'), value: fmt(ganttEnd!), danger: !!overdue },
-            { label: t('gantt_duration'), value: `${daysBetween(range.start, ganttEnd!)}${t('days')}` },
-            { label: t('gantt_phases'), value: `${phases.length} ${String(t('gantt_phases')).toLowerCase()}` },
-            { label: t('gantt_subphases'), value: `${phases.reduce((s,p)=>s+p.subphases.length,0)} ${String(t('gantt_subphases')).toLowerCase()}` },
-          ].map(k => (
-            <span key={k.label} style={{ fontSize: 12, fontWeight: 600, color: k.danger ? 'var(--danger)' : 'var(--text-muted)', background: 'var(--bg3)', border: `1px solid ${k.danger ? 'var(--danger)' : 'var(--border)'}`, borderRadius: 20, padding: '3px 10px', whiteSpace: 'nowrap' as const }}>
-              {k.label} : <span style={{ color: k.danger ? 'var(--danger)' : 'var(--text)', fontWeight: 700 }}>{k.value}</span>
-            </span>
-          ))}
-          {/* Coherence badge — pushed to right */}
-          <div style={{ marginLeft: 'auto' }}>
-            {overdue && ganttEnd && endDeadline && (
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 600, color: 'var(--danger)', background: 'var(--danger-subtle)', border: '1px solid var(--danger)', borderRadius: 20, padding: '4px 12px' }}>
-                ⚠ {t('overdue_alert').replace('{end}', fmt(ganttEnd)).replace('{golive}', fmt(endDeadline))}
-              </span>
-            )}
-            {!overdue && ganttEnd && goLive && (
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 600, color: 'var(--success)', background: 'var(--success-subtle)', border: '1px solid var(--success)', borderRadius: 20, padding: '4px 12px' }}>
-                ✓ {t('gantt_ok').replace('{end}', fmt(ganttEnd??'')).replace('{golive}', fmt(endDeadline??''))}
-              </span>
-            )}
-          </div>
-        </div>
-      )}
+
 
       {/* Gantt grid */}
       {phases.length === 0 ? (
