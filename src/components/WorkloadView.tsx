@@ -264,7 +264,7 @@ export default function WorkloadView({ data, updateData }: Props) {
                               : <>
                                 <span style={{ fontWeight: 700 }}>{need > 0 ? need : outOfRange ? '' : '—'}</span>
                                 {need > 0 && covered > 0 && (
-                                  <div style={{ fontSize: 10, color: 'var(--text-faint)', marginTop: 1 }}>
+                                  <div style={{ fontSize: 10, color: 'var(--text-faint)', marginTop: 1, fontWeight: 400 }}>
                                     {covered}{t('days_covered')}
                                   </div>
                                 )}
@@ -352,7 +352,7 @@ export default function WorkloadView({ data, updateData }: Props) {
                               : <>
                                 <span style={{ fontWeight: 700 }}>{alloc > 0 ? alloc : outOfRange ? '' : '—'}</span>
                                 {!outOfRange && cap > 0 && (
-                                  <div style={{ fontSize: 10, color: 'var(--text-faint)', marginTop: 1 }}>
+                                  <div style={{ fontSize: 10, color: 'var(--text-faint)', marginTop: 1, fontWeight: 400 }}>
                                     {cap}{t('days_available')}
                                   </div>
                                 )}
