@@ -49,7 +49,14 @@ export default function ProjectsView({ data, updateData, setView, onNavigateToPl
 
   const updateField = (id: string, field: string, value: any) => {
     const projects = data.projects.map(p => p.id === id ? { ...p, [field]: value || null } : p);
-    updateData({ ...data, projects });
+    // If renaming, propagate to workloads and allocations
+    if (field === 'name' && value) {
+      const workloads = data.workloads.map(w => w.projectId === id ? { ...w, projectName: value } : w);
+      const allocations = data.allocations.map(a => a.projectId === id ? { ...a, projectName: value } : a);
+      updateData({ ...data, projects, workloads, allocations });
+    } else {
+      updateData({ ...data, projects });
+    }
   };
 
   const filtered = data.projects.filter(p => {
@@ -75,7 +82,14 @@ export default function ProjectsView({ data, updateData, setView, onNavigateToPl
     } else {
       projects = data.projects.map(p => p.id === editing.id ? editing : p);
     }
-    updateData({ ...data, projects });
+    // Propagate name change to workloads and allocations (denormalized projectName)
+    const workloads = data.workloads.map(w =>
+      w.projectId === editing.id ? { ...w, projectName: editing.name } : w
+    );
+    const allocations = data.allocations.map(a =>
+      a.projectId === editing.id ? { ...a, projectName: editing.name } : a
+    );
+    updateData({ ...data, projects, workloads, allocations });
     setEditing(null);
     if (andPlan && onNavigateToPlanning) {
       onNavigateToPlanning(newId);
