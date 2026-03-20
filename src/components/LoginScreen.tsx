@@ -11,11 +11,22 @@ export default function LoginScreen() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [forgotMode, setForgotMode] = useState(false);
+  const [branding, setBranding] = useState<{ appName: string; logo: string | null; logoDark: string | null } | null>(null);
   const [resetSent, setResetSent] = useState(false);
   const [resetLoading, setResetLoading] = useState(false);
 
-  const appName = settings.appName || settings.appName || 'VEJA Project Management';
-  const logo = settings.logo;
+  // Fetch public branding from server (logo + name configured by admin)
+  useEffect(() => {
+    fetch('/api/settings?public=1')
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d?.appName) setBranding(d); })
+      .catch(() => {});
+  }, []);
+
+  // Use server branding if available, otherwise fall back to localStorage settings
+  const appName = branding?.appName || settings.appName || 'PPM';
+  const logo = branding?.logo || settings.logo;
+  const logoDark = (branding as any)?.logoDark || (settings as any)?.logoDark;
 
   const handleForgot = async () => {
     if (!email) return;
@@ -49,19 +60,21 @@ export default function LoginScreen() {
         {/* Logo + nom */}
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
           {logo ? (
-            <img
-              src={logo}
-              alt={appName}
-              style={{ height: 72, maxWidth: 240, objectFit: 'contain', margin: '0 auto 16px', display: 'block' }}
-            />
+            <div style={{ width: 80, height: 80, borderRadius: 20, background: '#ffffff', margin: '0 auto 16px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 20px rgba(0,0,0,0.10)', overflow: 'hidden' }}>
+              <img
+                src={logo}
+                alt={appName}
+                style={{ maxHeight: 64, maxWidth: 64, objectFit: 'contain' }}
+              />
+            </div>
           ) : (
             <div style={{
-              width: 64, height: 64, borderRadius: 18,
+              width: 72, height: 72, borderRadius: 20,
               background: 'var(--accent-gradient)',
               margin: '0 auto 16px',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               boxShadow: '0 8px 24px rgba(99,102,241,0.35)',
-              fontSize: 28, color: '#fff', fontWeight: 800,
+              fontSize: 30, color: '#fff', fontWeight: 800,
             }}>
               {appName.charAt(0).toUpperCase()}
             </div>
