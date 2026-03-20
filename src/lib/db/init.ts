@@ -21,7 +21,8 @@ export async function initDatabase() {
       .select();
 
     // Create superadmin user
-    const hash = await hashPassword('Admin2026!');
+    const adminPassword = process.env.ADMIN_INITIAL_PASSWORD || 'ChangeMe2026!';
+    const hash = await hashPassword(adminPassword);
     const { data: adminUser } = await supabaseAdmin
       .from('users')
       .insert({
@@ -66,7 +67,7 @@ export async function initDatabase() {
     return {
       ok: true,
       message: 'Database initialized',
-      credentials: { email: 'admin@veja.fr', password: 'Admin2026!' }
+      credentials: { email: 'admin@veja.fr', password: process.env.ADMIN_INITIAL_PASSWORD || 'ChangeMe2026!' }
     };
   } catch (err: any) {
     return { ok: false, error: err.message };
