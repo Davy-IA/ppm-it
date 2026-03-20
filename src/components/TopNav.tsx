@@ -301,8 +301,6 @@ export default function TopNav({ view, setView, saving, data, currentSpace, onCh
 // ── Profile Panel ──────────────────────────────────────────────
 function ProfilePanel({ user, onClose, t, token, refreshUser, updateUser }: { user: any; onClose: () => void; t: Function; token: string | null; refreshUser: () => Promise<void>; updateUser: (patch: any) => void }) {
   const [avatar, setAvatar] = useState<string | null>((user as any)?.avatar ?? null);
-  // Keep local state in sync if parent user updates
-  useEffect(() => { setAvatar((user as any)?.avatar ?? null); }, [(user as any)?.avatar]);
   const [curPw, setCurPw] = useState('');
   const [newPw, setNewPw] = useState('');
   const [confirmPw, setConfirmPw] = useState('');
@@ -362,7 +360,6 @@ function ProfilePanel({ user, onClose, t, token, refreshUser, updateUser }: { us
       }
       // Update user in context immediately — no reload needed
       updateUser({ avatar });
-      await refreshUser();
     }
 
     // Save password separately
