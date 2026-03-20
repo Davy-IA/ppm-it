@@ -464,7 +464,7 @@ function PortfolioGantt({ data, filtered, t }: { data: AppData; filtered: Projec
         <div style={{ minWidth: LEFT_W + chartW + 40, position: 'relative' }}>
 
           {/* Month header */}
-          <div style={{ display: 'flex', borderBottom: '1px solid var(--border)', background: 'var(--bg3)' }}>
+          <div style={{ display: 'flex', borderBottom: '1px solid var(--border)', background: 'var(--bg3)', position: 'sticky', top: 0, zIndex: 5 }}>
             <div style={{ width: LEFT_W, flexShrink: 0, padding: '8px 14px', fontSize: 11, fontWeight: 700, color: 'var(--text-faint)', textTransform: 'uppercase' as const, letterSpacing: '0.07em' }}>
               {t('project_name')}
             </div>
