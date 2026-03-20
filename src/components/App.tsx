@@ -7,6 +7,7 @@ import LoginScreen from './LoginScreen';
 import SpaceSelector from './SpaceSelector';
 import GlobalPortfolio from './GlobalPortfolio';
 import Sidebar from './Sidebar';
+import TopNav from './TopNav';
 import Dashboard from './Dashboard';
 import ProjectsView from './ProjectsView';
 import StaffView from './StaffView';
@@ -88,15 +89,14 @@ export default function App() {
   }
 
   return (
-    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
-      <Sidebar
+    <div className="app-shell">
+      <TopNav
         view={view} setView={setView}
-        open={sidebarOpen} setOpen={setSidebarOpen}
         saving={saving} data={data}
         currentSpace={currentSpace}
         onChangeSpace={() => setCurrentSpace(null)}
       />
-      <main style={{ flex: 1, overflow: 'auto', padding: '24px 28px', background: 'var(--bg)' }}>
+      <main className="app-content">
         {view === 'dashboard' && <Dashboard data={data} setView={setView} />}
         {view === 'projects' && <ProjectsView data={data} updateData={updateData} />}
         {view === 'gantt' && <GanttView data={data} updateData={updateData} />}
