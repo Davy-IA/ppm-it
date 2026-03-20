@@ -98,6 +98,7 @@ export default function StaffView({ data, updateData }: Props) {
 
   return (
     <div className="animate-in">
+      <div className="page-sticky-header">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
         <div>
           <h1 style={{ fontSize: 22, fontWeight: 700, letterSpacing: '-0.02em' }}>{t('staff_title')}</h1>
@@ -126,6 +127,8 @@ export default function StaffView({ data, updateData }: Props) {
       </div>
 
       {/* Capacity grid table */}
+      </div>
+
       <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
         <div style={{ overflowX: 'auto' }}>
           <table className="data-table">

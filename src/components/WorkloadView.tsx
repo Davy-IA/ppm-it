@@ -109,6 +109,7 @@ export default function WorkloadView({ data, updateData }: Props) {
 
   return (
     <div className="animate-in">
+      <div className="page-sticky-header">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
         <div>
           <h1 style={{ fontSize: 22, fontWeight: 700, letterSpacing: '-0.02em' }}>{t('workload_title')}</h1>
@@ -213,6 +214,8 @@ export default function WorkloadView({ data, updateData }: Props) {
           </div>
         </div>
       )}
+
+      </div>
 
       {/* WORKLOAD TABLE */}
       {tab === 'workload' && (

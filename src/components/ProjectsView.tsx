@@ -87,6 +87,7 @@ export default function ProjectsView({ data, updateData }: Props) {
 
   return (
     <div className="animate-in">
+      <div className="page-sticky-header">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
         <div>
           <h1 className="page-title">{t('projects_title')}</h1>
@@ -171,6 +172,8 @@ export default function ProjectsView({ data, updateData }: Props) {
           ))}
         </div>
       )}
+
+      </div>
 
       {/* Gantt Portfolio View */}
       {viewMode === 'gantt' && <PortfolioGantt data={data} filtered={filtered} t={t} />}

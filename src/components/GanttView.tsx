@@ -144,6 +144,7 @@ export default function GanttView({ data, updateData }: Props) {
 
   return (
     <div className="animate-in">
+      <div className="page-sticky-header">
       <div className="page-header">
         <div>
           <h1 className="page-title">{t('gantt_title')}</h1>
@@ -230,6 +231,8 @@ export default function GanttView({ data, updateData }: Props) {
         {project?.startDate && <span className="badge badge-blue">{t('gantt_start')} : {fmt(project.startDate)}</span>}
         {goLive && <span className="badge badge-purple">{t('go_live')} : {fmt(goLive)}</span>}
         <span className="badge badge-gray">{phases.length} {t('gantt_phases').toLowerCase()} · {phases.reduce((s,p)=>s+p.subphases.length,0)} {t('gantt_subphases').toLowerCase()}</span>
+      </div>
+
       </div>
 
       {/* Coherence alert */}

@@ -531,3 +531,20 @@ body { background: var(--bg-gradient) !important; min-height: 100vh; }
   cursor: pointer;
   box-shadow: 0 0 0 3px var(--accent-subtle);
 }
+
+/* ── Sticky page header (titre + filtres) ────────────────── */
+.page-sticky-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: var(--bg);
+  margin: -20px -28px 0;
+  padding: 16px 28px 12px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 16px;
+}
+
+/* Small shadow on scroll to show it's floating */
+.page-sticky-header.scrolled {
+  box-shadow: 0 2px 12px rgba(99,102,241,0.08);
+}
