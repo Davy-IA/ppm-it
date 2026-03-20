@@ -90,6 +90,7 @@ export interface AppSettings {
   countries: string[];
   requestTypes: string[];
   sponsors: string[];
+  milestoneTypes: string[];
 }
 
 export const DEFAULT_SETTINGS: AppSettings = {
@@ -105,6 +106,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   departments: ['DIRECTION', 'WHOLESALE', 'WEB', 'RETAIL', 'OMNICHANNEL', 'STUDIO', 'FINANCE', 'SUPPLY CHAIN', 'HR', 'IT', 'I&C / SOURCING', 'COMMUNICATION', 'DEV / PRODUCTION', 'VEJA VENTURES'],
   countries: ['FR', 'BR', 'DE', 'DK', 'ES', 'PT', 'SK', 'UK', 'US'],
   requestTypes: ['IT Project', 'Digital project', 'Infrastructure project', 'Security project', 'Data project', 'AI / Automation initiative', 'Support', 'Maintenance'],
+  milestoneTypes: ['Go-Live', 'Kick-off', 'UAT', 'Hypercare End', 'Go-No-Go', 'Steering Committee'],
   sponsors: ['Damien LABRY', 'Grégoire CHEVALIER', 'Anne-Sophie DROIT', 'Caroline BULLIOT KRIVANECK', 'François Ghislain MORILLION', 'Sebastien KOPP'],
 };
 

@@ -6,17 +6,19 @@ import { useSettings } from '@/lib/context';
 
 interface Props { data: AppData; updateData: (d: AppData) => void; }
 
-const EMPTY_PROJECT: Omit<Project, 'id'> = {
-  name: '', domain: 'APPLI', requestType: 'IT Project', leadDept: 'IT',
-  leadCountry: 'FR', sponsor: '', projectManager: '', priority: null,
-  complexity: null, roi: null, status: '2-Validated', startDate: null, goLive: null,
-};
-
 const STATUS_BADGE: Record<string, string> = {
   '1-To arbitrate': 'badge-gray', '2-Validated': 'badge-blue',
   '3-In progress': 'badge-green', '4-Frozen': 'badge-yellow',
   '5-Completed': 'badge-purple', '6-Aborted': 'badge-red',
 };
+
+const EMPTY_PROJECT: Omit<Project, 'id'> = {
+  name: '', domain: 'APPLI', requestType: 'IT Project', leadDept: 'IT',
+  leadCountry: 'FR', sponsor: '', projectManager: '', priority: null,
+  complexity: null, roi: null, status: '2-Validated', startDate: null, goLive: null, hypercare: null,
+};
+
+
 
 export default function ProjectsView({ data, updateData }: Props) {
   const [search, setSearch] = useState('');
@@ -25,6 +27,7 @@ export default function ProjectsView({ data, updateData }: Props) {
   const { t } = useSettings();
   const [editing, setEditing] = useState<Project | null>(null);
   const [isNew, setIsNew] = useState(false);
+  const [viewMode, setViewMode] = useState<'list' | 'gantt'>('list');
 
   const filtered = data.projects.filter(p => {
     const matchSearch = !search || p.name.toLowerCase().includes(search.toLowerCase()) || (p.projectManager ?? '').toLowerCase().includes(search.toLowerCase());
@@ -62,9 +65,22 @@ export default function ProjectsView({ data, updateData }: Props) {
           <h1 className="page-title">{t('projects_title')}</h1>
           <p style={{ color: 'var(--text-muted)', fontSize: 13, marginTop: 4 }}>{t('projects_subtitle_fmt').replace('{n}', String(data.projects.length))}</p>
         </div>
-        <button className="btn btn-primary" onClick={() => { setEditing({ id: '', ...EMPTY_PROJECT }); setIsNew(true); }}>
-          {t('new_project')}
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          {/* View toggle */}
+          <div style={{ display: 'flex', border: '1px solid var(--border)', borderRadius: 8, overflow: 'hidden' }}>
+            <button onClick={() => setViewMode('list')} style={{ padding: '6px 12px', fontSize: 12, fontWeight: 600, border: 'none', cursor: 'pointer', background: viewMode === 'list' ? 'var(--accent-gradient)' : 'var(--bg2)', color: viewMode === 'list' ? '#fff' : 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 5 }}>
+              <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><rect x="1" y="1" width="11" height="2" rx="1" fill="currentColor"/><rect x="1" y="5" width="11" height="2" rx="1" fill="currentColor"/><rect x="1" y="9" width="11" height="2" rx="1" fill="currentColor"/></svg>
+              {t('view_list')}
+            </button>
+            <button onClick={() => setViewMode('gantt')} style={{ padding: '6px 12px', fontSize: 12, fontWeight: 600, border: 'none', cursor: 'pointer', background: viewMode === 'gantt' ? 'var(--accent-gradient)' : 'var(--bg2)', color: viewMode === 'gantt' ? '#fff' : 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 5 }}>
+              <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><rect x="1" y="1" width="5" height="3" rx="1" fill="currentColor" opacity="0.5"/><rect x="1" y="5" width="8" height="3" rx="1" fill="currentColor"/><rect x="1" y="9" width="6" height="3" rx="1" fill="currentColor" opacity="0.7"/></svg>
+              {t('view_gantt')}
+            </button>
+          </div>
+          <button className="btn btn-primary" onClick={() => { setEditing({ id: '', ...EMPTY_PROJECT }); setIsNew(true); }}>
+            {t('new_project')}
+          </button>
+        </div>
       </div>
 
       {/* Filters */}
@@ -80,15 +96,18 @@ export default function ProjectsView({ data, updateData }: Props) {
         </select>
       </div>
 
+      {/* Gantt Portfolio View */}
+      {viewMode === 'gantt' && <PortfolioGantt data={data} filtered={filtered} t={t} />}
+
       {/* Table */}
-      <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+      {viewMode === 'list' && <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
         <div style={{ overflowX: 'auto' }}>
           <table className="data-table">
             <thead>
               <tr>
                 <th>{t('project_name')}</th><th>{t('domain')}</th><th>{t('type')}</th><th>{t('lead_dept')}</th>
                 <th>{t('sponsor')}</th><th>{t('project_manager')}</th><th>{t('priority')}</th>
-                <th>{t('complexity')}</th><th>{t('status')}</th><th>{t('start_date')}</th><th>{t('go_live')}</th><th></th>
+                <th>{t('complexity')}</th><th>{t('status')}</th><th>{t('start_date')}</th><th>{t('go_live')}</th><th>{t('hypercare_date')}</th><th></th>
               </tr>
             </thead>
             <tbody>
@@ -105,6 +124,7 @@ export default function ProjectsView({ data, updateData }: Props) {
                   <td>{p.status ? <span className={`badge ${STATUS_BADGE[p.status] ?? 'badge-gray'}`}>{p.status.replace(/^\d-/, '')}</span> : '—'}</td>
                   <td style={{ color: 'var(--text-muted)', fontSize: 12 }}>{p.startDate ? p.startDate.slice(0, 7) : '—'}</td>
                   <td style={{ color: 'var(--text-muted)', fontSize: 12 }}>{p.goLive ? p.goLive.slice(0, 7) : '—'}</td>
+                  <td style={{ color: 'var(--text-muted)', fontSize: 12 }}>{p.hypercare ? p.hypercare.slice(0, 7) : '—'}</td>
                   <td>
                     <div style={{ display: 'flex', gap: 4 }}>
                       <button className="btn btn-ghost btn-sm" onClick={() => { setEditing({ ...p }); setIsNew(false); }}>{t('edit_btn')}</button>
@@ -119,7 +139,7 @@ export default function ProjectsView({ data, updateData }: Props) {
             </tbody>
           </table>
         </div>
-      </div>
+      </div>}
 
       {/* Modal */}
       {editing && (
@@ -201,6 +221,11 @@ export default function ProjectsView({ data, updateData }: Props) {
                 <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>{t('go_live')}</label>
                 <input type="date" className="input" value={editing.goLive ?? ''} onChange={e => setEditing({ ...editing, goLive: e.target.value || null })} />
               </div>
+              <div>
+                <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>{t('hypercare_date')}</label>
+                <input type="date" className="input" value={(editing as any).hypercare ?? ''} onChange={e => setEditing({ ...editing, hypercare: (e.target.value || null) } as any)} />
+                <div style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 3 }}>{t('hypercare_hint')}</div>
+              </div>
             </div>
             <div style={{ padding: '16px 24px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
               <button className="btn btn-ghost" onClick={() => setEditing(null)}>{t('cancel')}</button>
@@ -209,6 +234,143 @@ export default function ProjectsView({ data, updateData }: Props) {
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+// ─── Portfolio Gantt View ────────────────────────────────────────────────────
+// ── Portfolio Gantt ──────────────────────────────────────────────────────────
+function PortfolioGantt({ data, filtered, t }: { data: AppData; filtered: Project[]; t: Function }) {
+  const now = new Date();
+  const yearStart = `${now.getFullYear()}-01-01`;
+  const yearEnd   = `${now.getFullYear()}-12-31`;
+  const DAY = 2.8;
+  const LEFT_W = 220;
+  const today = now.toISOString().slice(0, 10);
+
+  function daysBetween(a: string, b: string) {
+    return Math.round((new Date(b).getTime() - new Date(a).getTime()) / 86400000);
+  }
+  const totalDays = daysBetween(yearStart, yearEnd) + 1;
+  const chartW = totalDays * DAY;
+  const todayX = Math.max(0, daysBetween(yearStart, today)) * DAY;
+  const ROW_H = 38;
+
+  const months: { label: string; left: number; width: number }[] = [];
+  for (let m = 0; m < 12; m++) {
+    const mDate = new Date(now.getFullYear(), m, 1);
+    const mEnd  = new Date(now.getFullYear(), m + 1, 0);
+    const left  = daysBetween(yearStart, mDate.toISOString().slice(0, 10)) * DAY;
+    const right = daysBetween(yearStart, mEnd.toISOString().slice(0, 10)) * DAY;
+    months.push({ label: mDate.toLocaleDateString('fr-FR', { month: 'short' }), left, width: right - left });
+  }
+
+  const statusColor: Record<string, string> = {
+    '3-In progress': 'var(--success)',
+    '2-Validated': 'var(--accent)',
+    '1-To arbitrate': 'var(--text-faint)',
+    '4-Frozen': 'var(--warning)',
+    '5-Completed': 'var(--purple)',
+    '6-Aborted': 'var(--danger)',
+  };
+
+  return (
+    <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+      <div style={{ overflowX: 'auto' }}>
+        <div style={{ minWidth: LEFT_W + chartW + 40, position: 'relative' }}>
+
+          {/* Month header */}
+          <div style={{ display: 'flex', borderBottom: '1px solid var(--border)', background: 'var(--bg3)' }}>
+            <div style={{ width: LEFT_W, flexShrink: 0, padding: '8px 14px', fontSize: 11, fontWeight: 700, color: 'var(--text-faint)', textTransform: 'uppercase' as const, letterSpacing: '0.07em' }}>
+              {t('project_name')}
+            </div>
+            <div style={{ flex: 1, position: 'relative', height: 32 }}>
+              {months.map((m, i) => (
+                <div key={i} style={{ position: 'absolute', left: m.left, width: m.width, top: 0, bottom: 0, borderLeft: '1px solid var(--border)', display: 'flex', alignItems: 'center', paddingLeft: 6 }}>
+                  <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-faint)', textTransform: 'uppercase' as const, letterSpacing: '0.06em' }}>{m.label}</span>
+                </div>
+              ))}
+              {todayX >= 0 && todayX <= chartW && (
+                <div style={{ position: 'absolute', left: todayX, top: 0, bottom: 0, width: 2, background: 'var(--accent)', opacity: 0.5 }} />
+              )}
+            </div>
+          </div>
+
+          {/* Project rows */}
+          {filtered.map((p, idx) => {
+            const barStart = p.startDate ? Math.max(0, daysBetween(yearStart, p.startDate)) : null;
+            const barGl    = p.goLive    ? Math.min(totalDays, daysBetween(yearStart, p.goLive)) : null;
+            const hc       = (p as any).hypercare as string | null;
+            const barHc    = hc ? Math.min(totalDays, daysBetween(yearStart, hc)) : null;
+            const hasBar   = barStart !== null && barGl !== null;
+            const glX      = barGl !== null ? barGl * DAY : null;
+            const hcX      = barHc !== null ? barHc * DAY : null;
+            const color    = statusColor[p.status ?? ''] ?? 'var(--accent)';
+
+            return (
+              <div key={p.id} style={{ display: 'flex', borderBottom: '1px solid var(--border)', background: idx % 2 === 0 ? 'transparent' : 'var(--bg3)', minHeight: ROW_H }}>
+                <div style={{ width: LEFT_W, flexShrink: 0, padding: '0 14px', display: 'flex', alignItems: 'center' }}>
+                  <span style={{ fontSize: 12, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const, maxWidth: LEFT_W - 28 }} title={p.name}>{p.name}</span>
+                </div>
+                <div style={{ flex: 1, position: 'relative', height: ROW_H }}>
+                  {/* Grid lines */}
+                  {months.map((m, i) => (
+                    <div key={i} style={{ position: 'absolute', left: m.left, top: 0, bottom: 0, width: 1, background: 'var(--border)', opacity: 0.4 }} />
+                  ))}
+                  {/* Today */}
+                  {todayX >= 0 && todayX <= chartW && (
+                    <div style={{ position: 'absolute', left: todayX, top: 0, bottom: 0, width: 2, background: 'var(--accent)', opacity: 0.35, zIndex: 4 }} />
+                  )}
+                  {/* Main bar start → goLive */}
+                  {hasBar && barStart! * DAY <= chartW && barGl! * DAY >= 0 && (
+                    <div style={{ position: 'absolute', left: Math.max(0, barStart!) * DAY, width: Math.max(4, Math.min(chartW, barGl! * DAY) - Math.max(0, barStart!) * DAY), top: 9, height: 20, background: color, borderRadius: hcX ? '4px 0 0 4px' : '4px', zIndex: 3, opacity: 0.85 }} title={`${p.name}: ${p.startDate} → ${p.goLive}`} />
+                  )}
+                  {/* Hypercare bar goLive → hypercare */}
+                  {hasBar && glX !== null && hcX !== null && glX <= chartW && hcX >= 0 && (
+                    <div style={{ position: 'absolute', left: Math.max(0, glX), width: Math.max(4, Math.min(chartW, hcX) - Math.max(0, glX)), top: 9, height: 20, background: color, opacity: 0.22, borderRadius: '0 4px 4px 0', zIndex: 3, backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 3px, rgba(255,255,255,0.35) 3px, rgba(255,255,255,0.35) 6px)' }} title={`Hypercare: ${p.goLive} → ${hc}`} />
+                  )}
+                  {/* ◆ Go-live diamond */}
+                  {glX !== null && glX >= -4 && glX <= chartW + 4 && (
+                    <div style={{ position: 'absolute', left: glX - 7, top: '50%', transform: 'translateY(-50%) rotate(45deg)', width: 12, height: 12, background: color, border: '2px solid white', boxShadow: '0 1px 4px rgba(0,0,0,0.25)', zIndex: 5 }} title={`Go-Live: ${p.goLive}`} />
+                  )}
+                  {/* Manual milestones */}
+                  {(data.milestones ?? []).filter(m => m.projectId === p.id && !m.isAutoGoLive).map(m => {
+                    const mx = daysBetween(yearStart, m.date) * DAY;
+                    if (mx < -10 || mx > chartW + 10) return null;
+                    return (
+                      <div key={m.id} style={{ position: 'absolute', left: mx - 5, top: '50%', transform: 'translateY(-50%) rotate(45deg)', width: 9, height: 9, background: 'var(--accent2)', border: '1.5px solid white', zIndex: 5 }} title={`${m.name}: ${m.date}`} />
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
+
+          {filtered.length === 0 && (
+            <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-faint)' }}>{t('no_project')}</div>
+          )}
+        </div>
+      </div>
+
+      {/* Legend */}
+      <div style={{ padding: '10px 16px', borderTop: '1px solid var(--border)', display: 'flex', gap: 20, flexWrap: 'wrap', background: 'var(--bg3)', alignItems: 'center' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: 'var(--text-muted)' }}>
+          <div style={{ width: 24, height: 8, borderRadius: 2, background: 'var(--accent)', opacity: 0.85 }} />
+          <span>{t('legend_project_bar')}</span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: 'var(--text-muted)' }}>
+          <div style={{ width: 24, height: 8, borderRadius: 2, background: 'var(--accent)', opacity: 0.22, backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 3px, rgba(255,255,255,0.5) 3px, rgba(255,255,255,0.5) 6px)' }} />
+          <span>{t('legend_hypercare')}</span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: 'var(--text-muted)' }}>
+          <div style={{ width: 10, height: 10, transform: 'rotate(45deg)', background: 'var(--accent)', border: '1.5px solid white', boxShadow: '0 1px 3px rgba(0,0,0,0.2)', flexShrink: 0 }} />
+          <span>{t('legend_golive')}</span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: 'var(--text-muted)' }}>
+          <div style={{ width: 2, height: 14, background: 'var(--accent)', opacity: 0.5 }} />
+          <span>{t('today')}</span>
+        </div>
+      </div>
     </div>
   );
 }

@@ -11,13 +11,13 @@ import SpacesManager from './SpacesManager';
 interface Space { id: string; name: string; description: string; color: string; icon: string; active: boolean; }
 interface Props { data: AppData; updateData: (d: AppData) => void; spaces: Space[]; onRefreshSpaces?: () => void; }
 
-type ListKey = 'domains' | 'profiles' | 'statuses' | 'departments' | 'countries' | 'requestTypes' | 'sponsors';
+type ListKey = 'domains' | 'profiles' | 'statuses' | 'departments' | 'countries' | 'requestTypes' | 'sponsors' | 'milestoneTypes';
 
 export default function SettingsView({ data, updateData, spaces, onRefreshSpaces }: Props) {
   const { settings, updateSettings, t } = useSettings();
   const { user, token } = useAuth();
   const [saved, setSaved] = useState(false);
-  const [activeTab, setActiveTab] = useState<'identity' | 'theme' | 'lists' | 'lang' | 'users' | 'spaces'>('identity');
+  const [activeTab, setActiveTab] = useState<'identity' | 'theme' | 'lists' | 'lang' | 'users' | 'spaces' | 'milestones'>('identity');
   const [spacesList, setSpacesList] = useState<Space[]>(spaces);
   // Keep local list in sync when parent prop updates
   useEffect(() => { setSpacesList(spaces); }, [spaces]);
@@ -60,6 +60,7 @@ export default function SettingsView({ data, updateData, spaces, onRefreshSpaces
   };
 
   const LISTS: { key: ListKey; labelKey: string }[] = [
+    { key: 'milestoneTypes', labelKey: 'settings_milestones' },
     { key: 'domains', labelKey: 'settings_domains' },
     { key: 'profiles', labelKey: 'settings_profiles' },
     { key: 'statuses', labelKey: 'settings_statuses' },
@@ -76,6 +77,7 @@ export default function SettingsView({ data, updateData, spaces, onRefreshSpaces
     { id: 'lists', label: t('settings_tab_lists'), show: !!isAdmin },
     { id: 'spaces', label: t('settings_tab_spaces'), show: !!isAdmin },
     { id: 'users', label: t('settings_tab_users'), show: !!isAdmin },
+    { id: 'milestones', label: t('settings_tab_milestones'), show: !!isAdmin },
   ].filter(t => t.show);
 
   return (
@@ -279,6 +281,39 @@ export default function SettingsView({ data, updateData, spaces, onRefreshSpaces
       )}
 
       {/* USERS TAB — admin only */}
+
+      {activeTab === 'milestones' && isAdmin && (
+        <div style={{ maxWidth: 600 }}>
+          <div className="card">
+            <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 4 }}>{t('settings_tab_milestones')}</div>
+            <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 16 }}>{t('milestone_type')}</div>
+            {(settings.milestoneTypes ?? []).map((mt: string, idx: number) => (
+              <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                <span style={{ width: 10, height: 10, background: '#f59e0b', transform: 'rotate(45deg)', display: 'inline-block', borderRadius: 1, flexShrink: 0 }} />
+                <input className="input" value={mt} style={{ flex: 1 }}
+                  onChange={e => {
+                    const types = [...(settings.milestoneTypes ?? [])];
+                    types[idx] = e.target.value;
+                    updateSettings({ milestoneTypes: types } as any);
+                  }}
+                  onBlur={showSaved}
+                />
+                <button className="btn btn-danger btn-sm" onClick={() => {
+                  const types = (settings.milestoneTypes ?? []).filter((_: string, i: number) => i !== idx);
+                  updateSettings({ milestoneTypes: types } as any);
+                  showSaved();
+                }}>✕</button>
+              </div>
+            ))}
+            <button className="btn btn-ghost btn-sm" style={{ marginTop: 8 }} onClick={() => {
+              const types = [...(settings.milestoneTypes ?? []), t('milestone_type') as string];
+              updateSettings({ milestoneTypes: types } as any);
+            }}>
+              {t('add_milestone_type')}
+            </button>
+          </div>
+        </div>
+      )}
       {activeTab === 'users' && isAdmin && (
         <UsersManager spaces={spacesList.map(s => ({ id: s.id, name: s.name, color: s.color }))} />
       )}

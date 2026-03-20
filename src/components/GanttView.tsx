@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { useSettings } from '@/lib/context';
 import { formatMonth, formatDate, formatDateTime } from '@/lib/locale-utils';
-import { AppData, GanttPhase, GanttSubphase } from '@/types';
+import { AppData, GanttPhase, GanttSubphase, Milestone } from '@/types';
 import { v4 as uuid } from 'uuid';
 
 interface Props { data: AppData; updateData: (d: AppData) => void; }
@@ -69,10 +69,30 @@ export default function GanttView({ data, updateData }: Props) {
   const [editSub, setEditSub] = useState<{ sub: GanttSubphase; phase: GanttPhase } | null>(null);
   const [addSubPhase, setAddSubPhase] = useState<GanttPhase | null>(null);
   const [isNew, setIsNew] = useState(false);
+  const [editMilestone, setEditMilestone] = useState<Milestone | null>(null);
+  const [isNewMilestone, setIsNewMilestone] = useState(false);
 
   const project = data.projects.find(p => p.id === selProj);
+  const milestones: Milestone[] = [
+    // Auto Go-Live milestone from project date
+    ...(project?.goLive ? [{
+      id: `auto-golive-${selProj}`,
+      projectId: selProj,
+      name: t('go_live') as string,
+      date: project.goLive,
+      type: 'Go-Live',
+      isAutoGoLive: true,
+    }] : []),
+    // Manual milestones
+    ...(data.milestones ?? []).filter(m => m.projectId === selProj),
+  ];
   const rawPhases = data.ganttPhases.filter(p => p.projectId === selProj);
   const phases = propagateDeps(rawPhases);
+
+  const saveMilestones = (next: Milestone[]) => {
+    const others = (data.milestones ?? []).filter(m => m.projectId !== selProj);
+    updateData({ ...data, milestones: [...others, ...next] });
+  };
 
   const savePhases = (next: GanttPhase[]) => {
     const others = data.ganttPhases.filter(p => p.projectId !== selProj);
@@ -82,7 +102,9 @@ export default function GanttView({ data, updateData }: Props) {
   const range = getRange(phases, project?.goLive);
   const ganttEnd = phases.length ? phases.flatMap(p => [addDays(p.startDate, p.duration)]).reduce((a,b)=>a>b?a:b) : null;
   const goLive = project?.goLive ?? null;
-  const overdue = ganttEnd && goLive && ganttEnd > goLive;
+  const hypercare = (project as any)?.hypercare ?? null;
+  const endDeadline = hypercare ?? goLive; // use hypercare as deadline if set
+  const overdue = ganttEnd && endDeadline && ganttEnd > endDeadline;
 
   // ── Chart
   const minDate = range?.start ?? new Date().toISOString().slice(0,10);
@@ -93,6 +115,7 @@ export default function GanttView({ data, updateData }: Props) {
   const today = new Date().toISOString().slice(0,10);
   const todayX = daysBetween(minDate, today) * DAY_PX;
   const goLiveX = goLive ? daysBetween(minDate, goLive) * DAY_PX : null;
+  const hypercareX = hypercare ? daysBetween(minDate, hypercare) * DAY_PX : null;
 
   // Month headers
   const months: { label: string; left: number; width: number }[] = [];
@@ -116,6 +139,10 @@ export default function GanttView({ data, updateData }: Props) {
           setEditPhase({ id: uuid(), projectId: selProj, name: '', startDate: new Date().toISOString().slice(0,10), duration: 30, color: PHASE_COLORS[phases.length % PHASE_COLORS.length], dependsOn: null, subphases: [] } as unknown as GanttPhase);
           setIsNew(true);
         }}>{t('new_phase')}</button>
+        <button className="btn btn-ghost" onClick={() => {
+          setEditMilestone({ id: uuid(), projectId: selProj, name: '', date: project?.goLive ?? new Date().toISOString().slice(0,10), type: (settings.milestoneTypes as any)?.[1] ?? 'Kick-off', isAutoGoLive: false });
+          setIsNewMilestone(true);
+        }}>{t('new_milestone')}</button>
       </div>
 
       {/* Project selector */}
@@ -131,10 +158,10 @@ export default function GanttView({ data, updateData }: Props) {
       {/* Coherence alert */}
       {overdue && <div style={{ marginBottom: 14, padding: '12px 16px', background: 'var(--danger-subtle)', border: '1px solid var(--danger)', borderRadius: 'var(--radius-sm)', color: 'var(--danger)', fontSize: 13, fontWeight: 500, display:'flex', gap:10, alignItems:'center' }}>
         <span style={{fontSize:20}}>⚠</span>
-        <div><strong>{t('overdue_alert').replace('{end}', fmt(ganttEnd!)).replace('{golive}', fmt(goLive!))}</strong><br/><span style={{fontSize:12,opacity:0.8}}>{t('overdue_hint')}</span></div>
+        <div><strong>{t('overdue_alert').replace('{end}', fmt(ganttEnd!)).replace('{golive}', fmt(endDeadline!))}</strong><br/><span style={{fontSize:12,opacity:0.8}}>{t('overdue_hint')}</span></div>
       </div>}
       {!overdue && ganttEnd && goLive && <div style={{ marginBottom: 14, padding: '10px 16px', background: 'var(--success-subtle)', border: '1px solid var(--success)', borderRadius: 'var(--radius-sm)', color: 'var(--success)', fontSize: 13, fontWeight: 600, display:'flex', gap:8, alignItems:'center' }}>
-        {t('gantt_ok').replace('{end}', fmt(ganttEnd??'')).replace('{golive}', fmt(goLive??''))}
+        {t('gantt_ok').replace('{end}', fmt(ganttEnd??'')).replace('{golive}', fmt(endDeadline??''))}
       </div>}
 
       {/* KPI row */}
@@ -223,8 +250,29 @@ export default function GanttView({ data, updateData }: Props) {
 
                   {/* Go-live */}
                   {goLiveX!=null && goLiveX>=0 && goLiveX<=chartW+200 && <div style={{ position:'absolute', left:goLiveX, top:0, bottom:0, width:2, background:overdue?'var(--danger)':'var(--success)', opacity:0.85, zIndex:6 }}>
-                    <div style={{ position:'absolute', top:2, left:3, background:overdue?'var(--danger)':'var(--success)', color:'#fff', fontSize:9, fontWeight:700, padding:'2px 5px', borderRadius:4, whiteSpace:'nowrap' }}>Go-Live</div>
+                    <div style={{ position:'absolute', top:2, left:3, background:overdue?'var(--danger)':'var(--success)', color:'#fff', fontSize:9, fontWeight:700, padding:'2px 5px', borderRadius:4, whiteSpace:'nowrap' }}>{t('go_live')}</div>
                   </div>}
+
+                  {/* Hypercare end line */}
+                  {hypercareX!=null && hypercareX>=0 && hypercareX<=chartW+200 && <div style={{ position:'absolute', left:hypercareX, top:0, bottom:0, width:2, borderLeft:'2px dashed var(--purple)', opacity:0.7, zIndex:6 }}>
+                    <div style={{ position:'absolute', top:2, left:3, background:'var(--purple)', color:'#fff', fontSize:9, fontWeight:700, padding:'2px 5px', borderRadius:4, whiteSpace:'nowrap' }}>{t('hypercare_date')}</div>
+                  </div>}
+
+                  {/* Milestone diamonds ◆ on phase bars */}
+                  {milestones.filter(m => !m.isAutoGoLive).map(m => {
+                    const mx = daysBetween(minDate, m.date) * DAY_PX;
+                    if (mx < -20 || mx > chartW + 20) return null;
+                    return (
+                      <div key={m.id}
+                        onClick={() => { setEditMilestone({...m}); setIsNewMilestone(false); }}
+                        title={`${m.name} — ${fmt(m.date)}`}
+                        style={{ position:'absolute', left: mx - 8, top: 0, zIndex: 8, cursor:'pointer', display:'flex', flexDirection:'column', alignItems:'center' }}>
+                        <div style={{ width:0, height:0, borderLeft:'8px solid transparent', borderRight:'8px solid transparent', borderBottom:'12px solid var(--accent2)' }}/>
+                        <div style={{ width:0, height:0, borderLeft:'8px solid transparent', borderRight:'8px solid transparent', borderTop:'12px solid var(--accent2)', marginTop:-1 }}/>
+                        <div style={{ fontSize:9, fontWeight:700, color:'var(--accent2)', whiteSpace:'nowrap', marginTop:2, maxWidth:80, overflow:'hidden', textOverflow:'ellipsis' }}>{m.name}</div>
+                      </div>
+                    );
+                  })}
 
                   {phases.map(ph => {
                     const px = daysBetween(minDate, ph.startDate)*DAY_PX;
@@ -280,7 +328,7 @@ export default function GanttView({ data, updateData }: Props) {
                 <div>
                   <label style={{fontSize:12,color:'var(--text-muted)',fontWeight:600,display:'block',marginBottom:6}}>{t('field_start')}</label>
                   <input type="date" className="input" value={editPhase.startDate} onChange={e=>setEditPhase({...editPhase,startDate:e.target.value})} disabled={!!editPhase.dependsOn} style={{opacity:editPhase.dependsOn?0.5:1}}/>
-                  {editPhase.dependsOn && <div style={{fontSize:11,color:'var(--text-faint)',marginTop:4}}>{t('gantt_calculated_from')} automatiquement</div>}
+                  {editPhase.dependsOn && <div style={{fontSize:11,color:'var(--text-faint)',marginTop:4}}>{t('gantt_calculated_from')}</div>}
                 </div>
                 <div>
                   <label style={{fontSize:12,color:'var(--text-muted)',fontWeight:600,display:'block',marginBottom:6}}>{t('field_duration')}</label>
@@ -322,7 +370,7 @@ export default function GanttView({ data, updateData }: Props) {
             <div className="modal" style={{maxWidth:480}} onClick={e=>e.stopPropagation()}>
               <div style={{padding:'20px 24px',borderBottom:'1px solid var(--border)',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
                 <div>
-                  <span style={{fontWeight:700,fontSize:15}}>{isNew?'Nouvelle sous-phase':'Modifier sous-phase'}</span>
+                  <span style={{fontWeight:700,fontSize:15}}>{isNew ? t('new_subphase') : t('edit_subphase')}</span>
                   <div style={{fontSize:12,color:'var(--text-muted)',marginTop:2}}>Phase : {parentPhase.name}</div>
                 </div>
                 <button className="btn-icon" onClick={()=>{setEditSub(null);setAddSubPhase(null);}}>✕</button>
@@ -343,10 +391,55 @@ export default function GanttView({ data, updateData }: Props) {
           </div>
         );
       })()}
+      {/* Milestone Modal */}
+      {editMilestone && (
+        <div className="modal-overlay" onClick={() => { setEditMilestone(null); setIsNewMilestone(false); }}>
+          <div className="modal" style={{ maxWidth: 420 }} onClick={e => e.stopPropagation()}>
+            <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontWeight: 700, fontSize: 15 }}>◆ {isNewMilestone ? t('new_milestone') : t('edit_milestone')}</span>
+              <button className="btn-icon" onClick={() => { setEditMilestone(null); setIsNewMilestone(false); }}>✕</button>
+            </div>
+            <div style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div>
+                <label style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 600, display: 'block', marginBottom: 6 }}>{t('field_name_required')}</label>
+                <input className="input" value={editMilestone.name} onChange={e => setEditMilestone({ ...editMilestone, name: e.target.value })} placeholder={String(t('milestone_name'))} />
+              </div>
+              <div>
+                <label style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 600, display: 'block', marginBottom: 6 }}>{t('milestone_type')}</label>
+                <select className="input" value={editMilestone.type} onChange={e => setEditMilestone({ ...editMilestone, type: e.target.value })}>
+                  {((settings.milestoneTypes as any) ?? ['Kick-off', 'UAT', 'Go-Live']).filter((mt: string) => mt !== 'Go-Live').map((mt: string) => (
+                    <option key={mt} value={mt}>{mt}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 600, display: 'block', marginBottom: 6 }}>{t('milestone_date')}</label>
+                <input type="date" className="input" value={editMilestone.date} onChange={e => setEditMilestone({ ...editMilestone, date: e.target.value })} />
+              </div>
+            </div>
+            <div style={{ padding: '14px 24px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', gap: 10 }}>
+              {!isNewMilestone && (
+                <button className="btn btn-ghost" style={{ color: 'var(--danger)' }} onClick={() => {
+                  saveMilestones((data.milestones ?? []).filter(m => m.id !== editMilestone.id && m.projectId === selProj));
+                  setEditMilestone(null);
+                }}>{t('delete')}</button>
+              )}
+              <div style={{ display: 'flex', gap: 10, marginLeft: 'auto' }}>
+                <button className="btn btn-ghost" onClick={() => { setEditMilestone(null); setIsNewMilestone(false); }}>{t('cancel')}</button>
+                <button className="btn btn-primary" disabled={!editMilestone.name || !editMilestone.date} onClick={() => {
+                  const existing = (data.milestones ?? []).filter(m => m.projectId === selProj);
+                  const found = existing.find(m => m.id === editMilestone.id);
+                  const next = found ? existing.map(m => m.id === editMilestone.id ? editMilestone : m) : [...existing, editMilestone];
+                  saveMilestones(next); setEditMilestone(null); setIsNewMilestone(false);
+                }}>{t('save')}</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
-
 function SubForm({ initial, phase, onSave, onClose }: { initial: GanttSubphase; phase: GanttPhase; onSave: (s: GanttSubphase) => void; onClose: () => void }) {
   const { t } = useSettings();
   const [form, setForm] = useState<GanttSubphase>(initial);
@@ -355,7 +448,7 @@ function SubForm({ initial, phase, onSave, onClose }: { initial: GanttSubphase; 
       <div style={{padding:24,display:'flex',flexDirection:'column',gap:16}}>
         <div>
           <label style={{fontSize:12,color:'var(--text-muted)',fontWeight:600,display:'block',marginBottom:6}}>{t('field_name_required')}</label>
-          <input className="input" value={form.name} onChange={e=>setForm({...form,name:e.target.value})} {...{placeholder: String(t('phase_name_placeholder'))}}/>
+          <input className="input" value={form.name} onChange={e=>setForm({...form,name:e.target.value})} placeholder={String(t('phase_name_placeholder'))}/>
         </div>
         <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:14}}>
           <div>

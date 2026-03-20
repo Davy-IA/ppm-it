@@ -23,6 +23,7 @@ export interface Project {
   status: string | null;
   startDate: string | null;
   goLive: string | null;
+  hypercare: string | null;
 }
 
 export interface WorkloadEntry {
@@ -78,12 +79,22 @@ export interface CapacityAlert {
   workload?: number;
 }
 
+export interface Milestone {
+  id: string;
+  projectId: string;
+  name: string;
+  date: string;
+  type: string; // from settings milestoneTypes
+  isAutoGoLive?: boolean; // if true, date is synced from project.goLive
+}
+
 export interface AppData {
   staff: Staff[];
   projects: Project[];
   workloads: WorkloadEntry[];
   allocations: AllocationEntry[];
   ganttPhases: GanttPhase[];
+  milestones: Milestone[];
 }
 
 export const MONTHS_2026_2028 = (() => {
