@@ -520,6 +520,9 @@ export const translations = {
     chart_workload_need: 'Besoin charge',
     chart_allocated: 'Affecté',
     scale_semester: 'Semestre',
+    list_name: 'Liste',
+    list_count: 'Valeurs',
+    list_preview: 'Aperçu',
   },
   en: {
     nav_dashboard: 'Dashboard',
@@ -1031,6 +1034,9 @@ export const translations = {
     chart_workload_need: 'Workload need',
     chart_allocated: 'Assigned',
     scale_semester: 'Semester',
+    list_name: 'List',
+    list_count: 'Values',
+    list_preview: 'Preview',
   },
   pt: {
     nav_dashboard: 'Painel',
@@ -1542,6 +1548,9 @@ export const translations = {
     chart_workload_need: 'Carga necessária',
     chart_allocated: 'Atribuído',
     scale_semester: 'Semestre',
+    list_name: 'Lista',
+    list_count: 'Valores',
+    list_preview: 'Pré-visualização',
   },
   zh: {
     nav_dashboard: '仪表板',
@@ -2053,6 +2062,9 @@ export const translations = {
     chart_workload_need: '工作量需求',
     chart_allocated: '已分配',
     scale_semester: '半年',
+    list_name: '列表',
+    list_count: '值',
+    list_preview: '预览',
   },
 } as const;
 

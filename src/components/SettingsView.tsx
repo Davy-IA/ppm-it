@@ -21,7 +21,7 @@ export default function SettingsView({ data, updateData, spaces, onRefreshSpaces
   const [saved, setSaved] = useState(false);
   const [confirmAction, setConfirmAction] = useState<(() => void) | null>(null);
   const [editingList, setEditingList] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'identity' | 'theme' | 'lists' | 'lang' | 'users' | 'spaces' | 'partners' | 'milestones'>('identity');
+  const [activeTab, setActiveTab] = useState<'identity' | 'theme' | 'lists' | 'lang' | 'users' | 'spaces'>('identity');
   const [spacesList, setSpacesList] = useState<Space[]>(spaces);
   const [selectedSpaceId, setSelectedSpaceId] = useState<string>('__global__');
   // Keep local list in sync when parent prop updates
@@ -82,9 +82,7 @@ export default function SettingsView({ data, updateData, spaces, onRefreshSpaces
     { id: 'lang',       label: t('settings_tab_lang'),       show: true },
     { id: 'users',      label: t('settings_tab_users'),      show: !!isAdmin },
     { id: 'spaces',     label: t('settings_tab_spaces'),     show: !!isAdmin },
-    { id: 'partners',   label: t('settings_tab_partners'),   show: !!isAdmin },
     { id: 'lists',      label: t('settings_tab_lists'),      show: !!isAdmin },
-    { id: 'milestones', label: t('settings_tab_milestones'), show: !!isAdmin },
   ].filter(t => t.show);
 
   return (
@@ -299,31 +297,49 @@ export default function SettingsView({ data, updateData, spaces, onRefreshSpaces
               <span style={{ fontSize: 12, color: 'var(--text-faint)', marginLeft: 8 }}>{t('space_override_hint')}</span>
             </div>
 
-            {/* Grid of clickable list cards */}
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginBottom: 20 }}>
-              {LISTS.map(({ key, labelKey }) => {
-                const values: string[] = getValues(key);
-                const isOverridden = !isGlobal && spaceConfig[key] !== undefined;
-                return (
-                  <button key={key}
-                    onClick={() => setEditingList(key)}
-                    style={{
-                      display: 'flex', alignItems: 'center', gap: 10,
-                      padding: '10px 16px', borderRadius: 10, cursor: 'pointer',
-                      border: `1.5px solid ${isOverridden ? 'var(--accent)' : 'var(--border)'}`,
-                      background: isOverridden ? 'var(--accent-subtle)' : 'var(--bg2)',
-                      fontFamily: 'inherit', transition: 'all 0.15s',
-                    }}
-                    onMouseEnter={e => (e.currentTarget.style.borderColor = 'var(--accent)')}
-                    onMouseLeave={e => (e.currentTarget.style.borderColor = isOverridden ? 'var(--accent)' : 'var(--border)')}>
-                    <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>{t(labelKey as any)}</span>
-                    <span className="badge badge-gray">{values.length}</span>
-                    {isOverridden && <span className="badge badge-blue" style={{ fontSize: 10 }}>{t('overridden')}</span>}
-                    <svg width="11" height="11" viewBox="0 0 11 11" fill="none" style={{ color: 'var(--text-faint)', marginLeft: 2 }}><path d="M4 2l3 3-3 3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg>
-                  </button>
-                );
-              })}
+            {/* Table of lists */}
+            <div className="card" style={{ padding: 0, overflow: 'hidden', marginBottom: 20 }}>
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>{t('list_name' as any)}</th>
+                    <th style={{ textAlign: 'center', width: 80 }}>{t('list_count' as any)}</th>
+                    <th>{t('list_preview' as any)}</th>
+                    <th style={{ textAlign: 'center', width: 60 }}></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {LISTS.map(({ key, labelKey }) => {
+                    const values: string[] = getValues(key);
+                    const isOverridden = !isGlobal && spaceConfig[key] !== undefined;
+                    const preview = values.slice(0, 4).join(' · ') + (values.length > 4 ? '…' : '');
+                    return (
+                      <tr key={key}>
+                        <td style={{ fontWeight: 600 }}>{t(labelKey as any)}</td>
+                        <td style={{ textAlign: 'center' }}>
+                          <span className="badge badge-gray">{values.length}</span>
+                        </td>
+                        <td style={{ fontSize: 12, color: 'var(--text-faint)', maxWidth: 300, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {isOverridden
+                            ? <span className="badge badge-blue" style={{ fontSize: 10 }}>{t('overridden')}</span>
+                            : preview || '—'}
+                        </td>
+                        <td style={{ textAlign: 'center' }}>
+                          <button className="btn-icon" title={t('edit_btn') as string}
+                            onClick={() => setEditingList(key)}
+                            style={{ color: 'var(--accent)', width: 30, height: 30 }}>
+                            <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+                              <path d="M10.5 2.5l2 2-7 7H3.5v-2l7-7zM9 4l2 2" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+                            </svg>
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
+
 
             {/* Inline edit modal for selected list */}
             {editingList && (() => {
@@ -395,82 +411,8 @@ export default function SettingsView({ data, updateData, spaces, onRefreshSpaces
         <SpacesManager spaces={spacesList} onRefresh={refreshSpaces} />
       )}
 
-      {/* PARTNERS TAB */}
-      {activeTab === 'partners' && isAdmin && (
-        <PartnersManager data={data} updateData={updateData} />
-      )}
 
-      {activeTab === 'milestones' && isAdmin && (() => {
-        const isGlobal = selectedSpaceId === '__global__';
-        const spaceConfig = (data as any)?.spaceConfig ?? {};
-        const globalTypes: string[] = settings.milestoneTypes ?? [];
-        const spaceTypes: string[] | undefined = !isGlobal ? spaceConfig['milestoneTypes'] : undefined;
-        const types: string[] = spaceTypes ?? globalTypes;
-        const isOverridden = !isGlobal && spaceTypes !== undefined;
 
-        const updateTypes = (newTypes: string[]) => {
-          if (isGlobal) {
-            updateSettings({ milestoneTypes: newTypes } as any);
-          } else {
-            updateData({ ...data, spaceConfig: { ...spaceConfig, milestoneTypes: newTypes } } as any);
-          }
-          showSaved();
-        };
-
-        return (
-          <div style={{ maxWidth: 600 }}>
-            {/* Space selector */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20, padding: '12px 16px', background: 'var(--bg3)', borderRadius: 10, border: '1px solid var(--border)' }}>
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.5" stroke="var(--accent)" strokeWidth="1.5"/><path d="M8 1.5C8 1.5 5 5 5 8s3 6.5 3 6.5M8 1.5C8 1.5 11 5 11 8s-3 6.5-3 6.5M1.5 8h13" stroke="var(--accent)" strokeWidth="1.3"/></svg>
-              <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-muted)' }}>{t('scope_label')}</span>
-              <select className="input" value={selectedSpaceId} onChange={e => setSelectedSpaceId(e.target.value)} style={{ maxWidth: 220, fontWeight: 600 }}>
-                <option value="__global__">🌐 {t('global_values')}</option>
-                {spacesList.map(s => <option key={s.id} value={s.id}>{s.icon} {s.name}</option>)}
-              </select>
-              {isOverridden && <span style={{ fontSize: 11, color: 'var(--accent)', background: 'var(--accent-subtle)', padding: '3px 10px', borderRadius: 20, fontWeight: 600 }}>{t('space_override_active')}</span>}
-            </div>
-
-            <div className="card">
-              <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span>{t('settings_tab_milestones')}</span>
-                {isOverridden && (
-                  <button className="btn btn-ghost btn-sm" style={{ fontSize: 11 }}
-                    onClick={() => { const c2 = { ...spaceConfig }; delete c2['milestoneTypes']; updateData({ ...data, spaceConfig: c2 } as any); showSaved(); }}>
-                    ↩ {t('reset_to_global')}
-                  </button>
-                )}
-              </div>
-              <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 16 }}>{t('milestone_type')}</div>
-              {!isGlobal && !isOverridden && (
-                <div style={{ fontSize: 11, color: 'var(--text-faint)', marginBottom: 12, padding: '6px 10px', background: 'var(--bg3)', borderRadius: 6 }}>
-                  {t('using_global_values')} — <button style={{ color: 'var(--accent)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 11, fontFamily: 'inherit', fontWeight: 600 }}
-                    onClick={() => updateTypes([...globalTypes])}>
-                    {t('customize_for_space')}
-                  </button>
-                </div>
-              )}
-              {types.map((mt: string, idx: number) => (
-                <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                  <span style={{ width: 10, height: 10, background: 'var(--accent2)', transform: 'rotate(45deg)', display: 'inline-block', borderRadius: 1, flexShrink: 0 }} />
-                  <input className="input" value={mt} style={{ flex: 1 }}
-                    onChange={e => { const n = [...types]; n[idx] = e.target.value; updateTypes(n); }}
-                    onBlur={showSaved}
-                    disabled={!isGlobal && !isOverridden} />
-                  {(isGlobal || isOverridden) && (
-                    <button className="btn btn-danger btn-sm" onClick={() => updateTypes(types.filter((_: string, i: number) => i !== idx))}><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 3.5h9M5 3.5V2.5h3v1M10.5 3.5l-.7 7H3.2l-.7-7" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg></button>
-                  )}
-                </div>
-              ))}
-              {(isGlobal || isOverridden) && (
-                <button className="btn btn-ghost btn-sm" style={{ marginTop: 8 }}
-                  onClick={() => updateTypes([...types, ''])}>
-                  + {t('add_milestone_type')}
-                </button>
-              )}
-            </div>
-          </div>
-        );
-      })()}
       {activeTab === 'users' && isAdmin && (
         <UsersManager spaces={spacesList.map(s => ({ id: s.id, name: s.name, color: s.color }))} partners={(data.partners ?? []).map(p => ({ id: p.id, name: p.name, type: p.type }))} />
       )}
