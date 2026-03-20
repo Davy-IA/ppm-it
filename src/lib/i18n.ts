@@ -498,6 +498,7 @@ export const translations = {
     link_user_hint: 'Si la ressource a un compte PPM, le lier ici',
     user_is_external: 'Externe à VEJA',
     user_is_external_hint: 'Prestataire, consultant ou partenaire non-salarié',
+    settings_partner_types: 'Types de partenaires',
   },
   en: {
     nav_dashboard: 'Dashboard',
@@ -987,6 +988,7 @@ export const translations = {
     link_user_hint: 'If this resource has a PPM account, link it here',
     user_is_external: 'External to VEJA',
     user_is_external_hint: 'Contractor, consultant or non-employee partner',
+    settings_partner_types: 'Partner types',
   },
   pt: {
     nav_dashboard: 'Painel',
@@ -1476,6 +1478,7 @@ export const translations = {
     link_user_hint: 'Se este recurso tem conta PPM, vincule aqui',
     user_is_external: 'Externo à VEJA',
     user_is_external_hint: 'Prestador, consultor ou parceiro não-funcionário',
+    settings_partner_types: 'Tipos de parceiros',
   },
   zh: {
     nav_dashboard: '仪表板',
@@ -1965,6 +1968,7 @@ export const translations = {
     link_user_hint: '如果此资源有PPM账户，请在此关联',
     user_is_external: 'VEJA外部人员',
     user_is_external_hint: '承包商、顾问或非员工合作伙伴',
+    settings_partner_types: '合作伙伴类型',
   },
 } as const;
 

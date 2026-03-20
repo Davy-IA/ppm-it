@@ -6,17 +6,16 @@ import { useSettings } from '@/lib/context';
 
 interface Props { data: AppData; updateData: (d: AppData) => void; }
 
-const PARTNER_TYPES: Partner['type'][] = ['Consulting', 'Agency', 'Freelance', 'Software', 'Other'];
+// Partner types come from settings (configurable)
 
-const TYPE_BADGE: Record<string, string> = {
-  'Consulting': 'badge-blue', 'Agency': 'badge-purple', 'Freelance': 'badge-yellow',
-  'Software': 'badge-green', 'Other': 'badge-gray',
-};
+const TYPE_COLORS = ['badge-blue', 'badge-purple', 'badge-yellow', 'badge-green', 'badge-gray', 'badge-blue', 'badge-purple'];
+const getTypeBadge = (types: string[], type: string) => TYPE_COLORS[types.indexOf(type) % TYPE_COLORS.length] ?? 'badge-gray';
 
 const EMPTY: Omit<Partner, 'id'> = { name: '', type: 'Consulting', contact: '' };
 
 export default function PartnersManager({ data, updateData }: Props) {
-  const { t } = useSettings();
+  const { t, settings } = useSettings();
+  const partnerTypes: string[] = (settings as any).partnerTypes ?? ['Consulting', 'Agency', 'Freelance', 'Software', 'Other'];
   const [editing, setEditing] = useState<Partner | null>(null);
   const [isNew, setIsNew] = useState(false);
 
@@ -68,7 +67,7 @@ export default function PartnersManager({ data, updateData }: Props) {
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</div>
               <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: p.contact ? 4 : 0 }}>
-                <span className={`badge ${TYPE_BADGE[p.type]}`} style={{ fontSize: 10 }}>{p.type}</span>
+                <span className={`badge ${getTypeBadge(partnerTypes, p.type)}`} style={{ fontSize: 10 }}>{p.type}</span>
                 {staffCount(p.id) > 0 && (
                   <span className="badge badge-gray" style={{ fontSize: 10 }}>{staffCount(p.id)} {t('resources')}</span>
                 )}
@@ -99,7 +98,7 @@ export default function PartnersManager({ data, updateData }: Props) {
               <div>
                 <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>{t('partner_type')}</label>
                 <select className="input" value={editing.type} onChange={e => setEditing({ ...editing, type: e.target.value as Partner['type'] })}>
-                  {PARTNER_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+                  {partnerTypes.map(pt => <option key={pt} value={pt}>{pt}</option>)}
                 </select>
               </div>
               <div>

@@ -12,7 +12,7 @@ import PartnersManager from './PartnersManager';
 interface Space { id: string; name: string; description: string; color: string; icon: string; active: boolean; }
 interface Props { data: AppData; updateData: (d: AppData) => void; spaces: Space[]; onRefreshSpaces?: () => void; }
 
-type ListKey = 'domains' | 'profiles' | 'statuses' | 'departments' | 'countries' | 'requestTypes' | 'sponsors' | 'milestoneTypes';
+type ListKey = 'domains' | 'profiles' | 'statuses' | 'departments' | 'countries' | 'requestTypes' | 'sponsors' | 'milestoneTypes' | 'partnerTypes';
 
 export default function SettingsView({ data, updateData, spaces, onRefreshSpaces }: Props) {
   const { settings, updateSettings, t } = useSettings();
@@ -63,6 +63,7 @@ export default function SettingsView({ data, updateData, spaces, onRefreshSpaces
 
   const LISTS: { key: ListKey; labelKey: string }[] = [
     { key: 'milestoneTypes', labelKey: 'settings_milestones' },
+    { key: 'partnerTypes', labelKey: 'settings_partner_types' },
     { key: 'domains', labelKey: 'settings_domains' },
     { key: 'profiles', labelKey: 'settings_profiles' },
     { key: 'statuses', labelKey: 'settings_statuses' },

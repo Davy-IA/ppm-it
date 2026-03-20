@@ -1,9 +1,10 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { formatMonth, formatDate, formatDateTime } from '@/lib/locale-utils';
 import { AppData, Staff, MONTHS_2026_2028, PROFILES, DEPARTMENTS, COUNTRIES } from '@/types';
 import { v4 as uuid } from 'uuid';
 import { useSettings } from '@/lib/context';
+import { useAuth } from '@/lib/auth-context';
 
 interface Props { data: AppData; updateData: (d: AppData) => void; }
 
@@ -15,6 +16,24 @@ export default function StaffView({ data, updateData }: Props) {
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
   const { t, settings } = useSettings();
+  const { token } = useAuth();
+  const [ppmUsers, setPpmUsers] = useState<{ id: string; name: string; email: string }[]>([]);
+
+  useEffect(() => {
+    if (!token) return;
+    fetch('/api/users', { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => r.ok ? r.json() : null)
+      .then(d => {
+        if (d?.users) {
+          setPpmUsers(d.users.map((u: any) => ({
+            id: u.id,
+            name: `${u.first_name} ${u.last_name}`.trim(),
+            email: u.email,
+          })));
+        }
+      })
+      .catch(() => {});
+  }, [token]);
   const locale = settings.locale ?? 'fr';
   const [editing, setEditing] = useState<Staff | null>(null);
   const [isNew, setIsNew] = useState(false);
@@ -141,7 +160,14 @@ export default function StaffView({ data, updateData }: Props) {
                             onBlur={e => { updateStaffField(s.id, 'name', e.target.value); setInlineEdit(null); }}
                             onKeyDown={e => { if (e.key === 'Enter' || e.key === 'Escape') setInlineEdit(null); }}
                             onClick={e => e.stopPropagation()} style={{ minWidth: 140 }} />
-                        : <>{s.name}{s.type === 'External' && <span className="badge badge-yellow" style={{ marginLeft: 6, fontSize: 10 }}>{t('field_ext')}</span>}</>
+                        : (() => {
+                            const linked = (s as any).userId ? ppmUsers.find(u => u.id === (s as any).userId) : null;
+                            const displayName = linked ? linked.name : s.name;
+                            return <>{displayName}
+                              {s.type === 'External' && <span className="badge badge-yellow" style={{ marginLeft: 6, fontSize: 10 }}>{t('field_ext')}</span>}
+                              {linked && <span className="badge badge-green" style={{ marginLeft: 4, fontSize: 9 }} title={linked.email}>👤</span>}
+                            </>;
+                          })()
                       }
                     </td>
                     <td className="cell-edit" onClick={() => setInlineEdit({ id: s.id, field: 'profile' })}>
@@ -252,7 +278,7 @@ export default function StaffView({ data, updateData }: Props) {
                     <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>{t('link_to_user')}</label>
                     <select className="input" value={(editing as any).userId ?? ''} onChange={e => setEditing({ ...editing, userId: e.target.value || null } as any)}>
                       <option value="">— {t('no_linked_user')} —</option>
-                      {/* PPM users will be fetched — for now show placeholder */}
+                      {ppmUsers.map(u => <option key={u.id} value={u.id}>{u.name} — {u.email}</option>)}
                     </select>
                     <div style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 3 }}>{t('link_user_hint')}</div>
                   </div>

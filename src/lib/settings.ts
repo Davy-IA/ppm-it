@@ -91,6 +91,7 @@ export interface AppSettings {
   requestTypes: string[];
   sponsors: string[];
   milestoneTypes: string[];
+  partnerTypes: string[];
 }
 
 export const DEFAULT_SETTINGS: AppSettings = {
@@ -107,6 +108,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   countries: ['FR', 'BR', 'DE', 'DK', 'ES', 'PT', 'SK', 'UK', 'US'],
   requestTypes: ['IT Project', 'Digital project', 'Infrastructure project', 'Security project', 'Data project', 'AI / Automation initiative', 'Support', 'Maintenance'],
   milestoneTypes: ['Go-Live', 'Kick-off', 'UAT', 'Hypercare End', 'Go-No-Go', 'Steering Committee'],
+  partnerTypes: ['Consulting', 'Agency', 'Freelance', 'Software', 'Other'],
   sponsors: ['Damien LABRY', 'Grégoire CHEVALIER', 'Anne-Sophie DROIT', 'Caroline BULLIOT KRIVANECK', 'François Ghislain MORILLION', 'Sebastien KOPP'],
 };
 
