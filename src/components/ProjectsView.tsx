@@ -221,9 +221,9 @@ export default function ProjectsView({ data, updateData, setView, onNavigateToPl
 
               {/* Header row */}
               <div style={{ display: 'flex', background: 'var(--bg3)', position: 'sticky', top: 0, zIndex: 6, borderBottom: '1px solid var(--border)' }}>
-                <div style={{ width: 240, minWidth: 240, flexShrink: 0, padding: '9px 14px', fontSize: 11, fontWeight: 700, textTransform: 'uppercase' as const, letterSpacing: '0.07em', color: 'var(--text-muted)', position: 'sticky', left: 0, zIndex: 25, background: 'var(--bg3)', borderRight: '1px solid var(--border)', whiteSpace: 'nowrap' as const }}>{t('project_name')}</div>
+                <div style={{ width: 240, minWidth: 240, flexShrink: 0, padding: '10px 14px', fontSize: 11, fontWeight: 700, textTransform: 'uppercase' as const, letterSpacing: '0.07em', color: 'var(--text-muted)', position: 'sticky', left: 0, zIndex: 25, background: 'var(--bg3)', borderRight: '1px solid var(--border)', whiteSpace: 'nowrap' as const }}>{t('project_name')}</div>
                 {[['domain',80],['type',120],['lead_dept',100],['sponsor',130],['project_manager',160],['priority',70],['complexity',80],['status',110],['start_date',90],['go_live',90],['hypercare_date',90],['',72]].map(([k,w],i) => (
-                  <div key={i} style={{ width: Number(w), minWidth: Number(w), flexShrink: 0, padding: '9px 10px', fontSize: 11, fontWeight: 700, textTransform: 'uppercase' as const, letterSpacing: '0.07em', color: 'var(--text-muted)', whiteSpace: 'nowrap' as const }}>{k ? t(k as any) : ''}</div>
+                  <div key={i} style={{ width: Number(w), minWidth: Number(w), flexShrink: 0, padding: '10px 12px', fontSize: 11, fontWeight: 700, textTransform: 'uppercase' as const, letterSpacing: '0.07em', color: 'var(--text-muted)', whiteSpace: 'nowrap' as const, borderRight: '1px solid var(--border)' }}>{k ? t(k as any) : ''}</div>
                 ))}
               </div>
 
