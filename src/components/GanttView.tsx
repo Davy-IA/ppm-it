@@ -1,11 +1,11 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useSettings } from '@/lib/context';
 import { formatMonth, formatDate, formatDateTime } from '@/lib/locale-utils';
 import { AppData, GanttPhase, GanttSubphase, Milestone } from '@/types';
 import { v4 as uuid } from 'uuid';
 
-interface Props { data: AppData; updateData: (d: AppData) => void; }
+interface Props { data: AppData; updateData: (d: AppData) => void; initialProjectId?: string | null; onMounted?: () => void; }
 
 const PHASE_COLORS = ['#6366f1','#10b981','#f59e0b','#ef4444','#8b5cf6','#06b6d4','#f97316','#ec4899'];
 const DAY_PX = 26;
@@ -60,11 +60,16 @@ function getRange(phases: GanttPhase[], extra?: string | null) {
   return { start: all.reduce((a,b)=>a<b?a:b), end: all.reduce((a,b)=>a>b?a:b) };
 }
 
-export default function GanttView({ data, updateData }: Props) {
+export default function GanttView({ data, updateData, initialProjectId, onMounted }: Props) {
   const { settings, t } = useSettings();
   const locale = settings.locale ?? 'fr';
   const fmt = (d: string) => formatDate(d, locale);
-  const [selProj, setSelProj] = useState(data.projects[0]?.id ?? '');
+  const [selProj, setSelProj] = useState(initialProjectId ?? data.projects[0]?.id ?? '');
+
+  // When landing from "Save & Plan", clear the parent state
+  useEffect(() => {
+    if (initialProjectId) { setSelProj(initialProjectId); onMounted?.(); }
+  }, [initialProjectId]);
   const [editPhase, setEditPhase] = useState<GanttPhase | null>(null);
   const [editSub, setEditSub] = useState<{ sub: GanttSubphase; phase: GanttPhase } | null>(null);
   const [addSubPhase, setAddSubPhase] = useState<GanttPhase | null>(null);

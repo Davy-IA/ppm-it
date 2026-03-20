@@ -4,7 +4,7 @@ import { AppData, Project, DOMAINS, REQUEST_TYPES, STATUSES, DEPARTMENTS, COUNTR
 import { v4 as uuid } from 'uuid';
 import { useSettings } from '@/lib/context';
 
-interface Props { data: AppData; updateData: (d: AppData) => void; }
+interface Props { data: AppData; updateData: (d: AppData) => void; setView?: (v: string) => void; onNavigateToPlanning?: (projectId: string) => void; }
 
 const STATUS_BADGE: Record<string, string> = {
   '1-To arbitrate': 'badge-gray', '2-Validated': 'badge-blue',
@@ -20,7 +20,7 @@ const EMPTY_PROJECT: Omit<Project, 'id'> = {
 
 
 
-export default function ProjectsView({ data, updateData }: Props) {
+export default function ProjectsView({ data, updateData, setView, onNavigateToPlanning }: Props) {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [domainFilter, setDomainFilter] = useState('');
@@ -63,16 +63,23 @@ export default function ProjectsView({ data, updateData }: Props) {
     return matchSearch && matchStatus && matchDomain && matchAdv;
   });
 
-  const save = () => {
+  const [savedProjectId, setSavedProjectId] = useState<string | null>(null);
+
+  const save = (andPlan = false) => {
     if (!editing) return;
     let projects;
+    let newId = editing.id;
     if (isNew) {
-      projects = [...data.projects, { ...editing, id: uuid() }];
+      newId = uuid();
+      projects = [...data.projects, { ...editing, id: newId }];
     } else {
       projects = data.projects.map(p => p.id === editing.id ? editing : p);
     }
     updateData({ ...data, projects });
     setEditing(null);
+    if (andPlan && onNavigateToPlanning) {
+      onNavigateToPlanning(newId);
+    }
   };
 
   const remove = (id: string) => {
@@ -399,7 +406,14 @@ export default function ProjectsView({ data, updateData }: Props) {
             </div>
             <div style={{ padding: '16px 24px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
               <button className="btn btn-ghost" onClick={() => setEditing(null)}>{t('cancel')}</button>
-              <button className="btn btn-primary" onClick={save} disabled={!editing.name}>{t('save')}</button>
+              {isNew && (
+                <button className="btn btn-ghost" onClick={() => save(true)} disabled={!editing.name}
+                  style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><rect x="1" y="3" width="7" height="2.5" rx="1" fill="currentColor" opacity="0.6"/><rect x="1" y="7" width="9" height="2.5" rx="1" fill="currentColor"/><path d="M10 1l2 2-2 2" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg>
+                  {t('save_and_plan')}
+                </button>
+              )}
+              <button className="btn btn-primary" onClick={() => save(false)} disabled={!editing.name}>{t('save')}</button>
             </div>
           </div>
         </div>
