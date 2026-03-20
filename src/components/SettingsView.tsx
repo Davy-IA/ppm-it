@@ -87,40 +87,24 @@ export default function SettingsView({ data, updateData, spaces, onRefreshSpaces
 
   return (
     <div className="animate-in">
-      <div className="page-header">
-        <div>
-          <h1 className="page-title">{t('settings_title')}</h1>
-          <p className="page-subtitle">{t('settings_subtitle_full')}</p>
-        </div>
-        {saved && (
-          <div style={{ background: 'var(--success-subtle)', color: 'var(--success)', border: '1px solid var(--success)', borderRadius: 8, padding: '8px 16px', fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
-            ✓ {t('settings_saved')}
-          </div>
-        )}
-      </div>
-
-      {/* Role badge */}
-      {user && (
-        <div style={{ marginBottom: 20, display: 'flex', alignItems: 'center', gap: 8 }}>
-          {isAdmin ? (
-            <div style={{ padding: '6px 12px', background: 'var(--accent-subtle)', borderRadius: 8, fontSize: 12, color: 'var(--accent)', fontWeight: 600 }}>
-              {isSuperAdmin ? '⭐ ' + t('role_badge_superadmin') : '🔧 ' + t('role_badge_admin')}
-            </div>
-          ) : (
-            <div style={{ padding: '6px 12px', background: 'var(--bg3)', borderRadius: 8, fontSize: 12, color: 'var(--text-muted)', fontWeight: 500 }}>
-              {t('member_settings_hint')}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Tab bar */}
-      <div style={{ display: 'flex', gap: 4, marginBottom: 24, background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 10, padding: 4, flexWrap: 'wrap' }}>
+      {/* Tab bar + role badge + saved indicator */}
+      <div style={{ display: 'flex', gap: 4, marginBottom: 24, background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 10, padding: 4, flexWrap: 'wrap', alignItems: 'center' }}>
         {ALL_TABS.map(tab => (
           <button key={tab.id} onClick={() => setActiveTab(tab.id as any)}
             className={`btn ${activeTab === tab.id ? 'btn-primary' : 'btn-ghost'}`}
             style={{ fontSize: 13 }}>{tab.label}</button>
         ))}
+        <div style={{ flex: 1 }} />
+        {saved && (
+          <div style={{ background: 'var(--success-subtle)', color: 'var(--success)', border: '1px solid var(--success)', borderRadius: 8, padding: '5px 12px', fontSize: 12, fontWeight: 600 }}>
+            ✓ {t('settings_saved')}
+          </div>
+        )}
+        {user && isAdmin && (
+          <div style={{ padding: '5px 10px', background: 'var(--accent-subtle)', borderRadius: 8, fontSize: 11, color: 'var(--accent)', fontWeight: 600, flexShrink: 0 }}>
+            {isSuperAdmin ? '⭐ ' + t('role_badge_superadmin') : '🔧 ' + t('role_badge_admin')}
+          </div>
+        )}
       </div>
 
       {/* IDENTITY TAB */}
