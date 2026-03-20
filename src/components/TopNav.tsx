@@ -312,9 +312,24 @@ function ProfilePanel({ user, onClose, t, token, refreshUser }: { user: any; onC
   const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 250_000) { setErr(String(t('error_image_too_large'))); return; }
     const reader = new FileReader();
-    reader.onload = () => setAvatar(reader.result as string);
+    reader.onload = (ev) => {
+      const img = new Image();
+      img.onload = () => {
+        // Resize to max 160px and compress to keep under 100KB
+        const MAX = 160;
+        const scale = Math.min(1, MAX / Math.max(img.width, img.height));
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.round(img.width * scale);
+        canvas.height = Math.round(img.height * scale);
+        const ctx = canvas.getContext('2d')!;
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        const compressed = canvas.toDataURL('image/jpeg', 0.75);
+        setAvatar(compressed);
+        setErr('');
+      };
+      img.src = ev.target?.result as string;
+    };
     reader.readAsDataURL(file);
   };
 
@@ -325,8 +340,9 @@ function ProfilePanel({ user, onClose, t, token, refreshUser }: { user: any; onC
     if (newPw && !curPw) { setErr(String(t('error_current_password_required'))); return; }
     setSaving(true);
 
-    // Save avatar separately from password
-    if (avatar !== (user as any)?.avatar) {
+    // Save avatar if changed (null == undefined treated as same)
+    const currentAvatar = (user as any)?.avatar ?? null;
+    if (avatar !== currentAvatar) {
       const r = await fetch('/api/auth/me-update', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
@@ -338,7 +354,7 @@ function ProfilePanel({ user, onClose, t, token, refreshUser }: { user: any; onC
         if (d.error === 'migration_needed') {
           setErr('⚠ Migration SQL requise dans Supabase : ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar TEXT;');
         } else {
-          setErr(d.message || d.error || 'Error saving avatar');
+          setErr(d.message || d.error || 'Erreur lors de la sauvegarde de l\'avatar');
         }
         return;
       }

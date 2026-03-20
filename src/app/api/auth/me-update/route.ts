@@ -13,8 +13,9 @@ export async function PATCH(req: NextRequest) {
 
     // ── Avatar update ──
     if ('avatar' in body) {
-      if (body.avatar && body.avatar.length > 300_000) {
-        return NextResponse.json({ error: 'Avatar too large (max ~200kb)' }, { status: 400 });
+      console.log('[me-update] avatar length:', body.avatar?.length ?? 0);
+      if (body.avatar && body.avatar.length > 500_000) {
+        return NextResponse.json({ error: 'Avatar too large (max 400kb)' }, { status: 400 });
       }
       // Try to update avatar — gracefully handle missing column
       const { error } = await supabaseAdmin
