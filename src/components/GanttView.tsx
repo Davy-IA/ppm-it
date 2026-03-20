@@ -518,7 +518,7 @@ export default function GanttView({ data, updateData }: Props) {
   );
 }
 function SubForm({ initial, phase, onSave, onClose }: { initial: GanttSubphase; phase: GanttPhase; onSave: (s: GanttSubphase) => void; onClose: () => void }) {
-  const { t } = useSettings();
+  const { t, settings } = useSettings();
   const [form, setForm] = useState<GanttSubphase>(initial);
   return (
     <>

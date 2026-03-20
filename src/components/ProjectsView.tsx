@@ -31,7 +31,17 @@ export default function ProjectsView({ data, updateData }: Props) {
     setAdvFilters(prev => val ? { ...prev, [key]: val } : Object.fromEntries(Object.entries(prev).filter(([k]) => k !== key)));
 
   const activeFilterCount = Object.keys(advFilters).length + (statusFilter ? 1 : 0) + (domainFilter ? 1 : 0);
-  const { t } = useSettings();
+  const { t, settings } = useSettings();
+
+  // Use space-level overrides if defined, else fall back to global settings, then hardcoded defaults
+  const sc = (data as any).spaceConfig ?? {};
+  const spaceDomains: string[]      = sc.domains       ?? settings.domains       ?? DOMAINS;
+  const spaceRequestTypes: string[] = sc.requestTypes  ?? settings.requestTypes  ?? REQUEST_TYPES;
+  const spaceStatuses: string[]     = sc.statuses      ?? settings.statuses      ?? STATUSES;
+  const spaceDepartments: string[]  = sc.departments   ?? settings.departments   ?? DEPARTMENTS;
+  const spaceCountries: string[]    = sc.countries     ?? settings.countries     ?? COUNTRIES;
+  const spaceSponsors: string[]     = sc.sponsors      ?? settings.sponsors      ?? SPONSORS;
+
   const [editing, setEditing] = useState<Project | null>(null);
   const [isNew, setIsNew] = useState(false);
   const [viewMode, setViewMode] = useState<'list' | 'gantt'>('list');
@@ -105,11 +115,11 @@ export default function ProjectsView({ data, updateData }: Props) {
         <input className="input" placeholder={t('search')} value={search} onChange={e => setSearch(e.target.value)} style={{ maxWidth: 260 }} />
         <select className="input" value={statusFilter} onChange={e => setStatusFilter(e.target.value)} style={{ maxWidth: 170 }}>
           <option value="">{t('all_statuses')}</option>
-          {STATUSES.map(s => <option key={s} value={s}>{s.replace(/^\d-/, '')}</option>)}
+          {spaceStatuses.map(s => <option key={s} value={s}>{s.replace(/^\d-/, '')}</option>)}
         </select>
         <select className="input" value={domainFilter} onChange={e => setDomainFilter(e.target.value)} style={{ maxWidth: 130 }}>
           <option value="">{t('all_domains')}</option>
-          {DOMAINS.map(d => <option key={d} value={d}>{d}</option>)}
+          {spaceDomains.map(d => <option key={d} value={d}>{d}</option>)}
         </select>
         {/* Advanced filters button */}
         <button
@@ -134,10 +144,10 @@ export default function ProjectsView({ data, updateData }: Props) {
       {showFilters && (
         <div style={{ background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 12, padding: 16, marginBottom: 16, display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 12 }}>
           {[
-            { key: 'requestType', label: t('type'), opts: REQUEST_TYPES },
-            { key: 'leadDept', label: t('lead_dept'), opts: DEPARTMENTS },
-            { key: 'leadCountry', label: t('country'), opts: COUNTRIES },
-            { key: 'sponsor', label: t('field_sponsor'), opts: SPONSORS },
+            { key: 'requestType', label: t('type'), opts: spaceRequestTypes },
+            { key: 'leadDept', label: t('lead_dept'), opts: spaceDepartments },
+            { key: 'leadCountry', label: t('country'), opts: spaceCountries },
+            { key: 'sponsor', label: t('field_sponsor'), opts: spaceSponsors },
             { key: 'projectManager', label: t('project_manager'), opts: data.projects.map(p => p.projectManager).filter((v, i, a) => v && a.indexOf(v) === i) as string[] },
             { key: 'priority', label: t('priority'), opts: ['1','2','3','4','5'] },
             { key: 'complexity', label: t('complexity'), opts: ['1','2','3','4','5'] },
@@ -194,7 +204,7 @@ export default function ProjectsView({ data, updateData }: Props) {
                           onChange={e => { updateField(p.id, 'domain', e.target.value); setInlineEdit(null); }}
                           onBlur={() => setInlineEdit(null)}
                           onClick={e => e.stopPropagation()}>
-                          {DOMAINS.map(d => <option key={d} value={d}>{d}</option>)}
+                          {spaceDomains.map(d => <option key={d} value={d}>{d}</option>)}
                         </select>
                       : <span className="badge badge-blue">{p.domain}</span>
                     }
@@ -204,7 +214,7 @@ export default function ProjectsView({ data, updateData }: Props) {
                       ? <select className="cell-select" autoFocus defaultValue={p.requestType}
                           onChange={e => { updateField(p.id, 'requestType', e.target.value); setInlineEdit(null); }}
                           onBlur={() => setInlineEdit(null)} onClick={e => e.stopPropagation()}>
-                          {REQUEST_TYPES.map(r => <option key={r} value={r}>{r}</option>)}
+                          {spaceRequestTypes.map(r => <option key={r} value={r}>{r}</option>)}
                         </select>
                       : p.requestType}
                   </td>
@@ -213,7 +223,7 @@ export default function ProjectsView({ data, updateData }: Props) {
                       ? <select className="cell-select" autoFocus defaultValue={p.leadDept}
                           onChange={e => { updateField(p.id, 'leadDept', e.target.value); setInlineEdit(null); }}
                           onBlur={() => setInlineEdit(null)} onClick={e => e.stopPropagation()}>
-                          {DEPARTMENTS.map(d => <option key={d} value={d}>{d}</option>)}
+                          {spaceDepartments.map(d => <option key={d} value={d}>{d}</option>)}
                         </select>
                       : p.leadDept}
                   </td>
@@ -223,7 +233,7 @@ export default function ProjectsView({ data, updateData }: Props) {
                           onChange={e => { updateField(p.id, 'sponsor', e.target.value); setInlineEdit(null); }}
                           onBlur={() => setInlineEdit(null)} onClick={e => e.stopPropagation()}>
                           <option value="">—</option>
-                          {SPONSORS.map(s => <option key={s} value={s}>{s}</option>)}
+                          {spaceSponsors.map(s => <option key={s} value={s}>{s}</option>)}
                         </select>
                       : p.sponsor || <span style={{color:'var(--text-faint)'}}>—</span>}
                   </td>
@@ -266,7 +276,7 @@ export default function ProjectsView({ data, updateData }: Props) {
                           onBlur={() => setInlineEdit(null)}
                           onClick={e => e.stopPropagation()}>
                           <option value="">—</option>
-                          {STATUSES.map(s => <option key={s} value={s}>{s.replace(/^\d-/, '')}</option>)}
+                          {spaceStatuses.map(s => <option key={s} value={s}>{s.replace(/^\d-/, '')}</option>)}
                         </select>
                       : p.status ? <span className={`badge ${STATUS_BADGE[p.status] ?? 'badge-gray'}`}>{p.status.replace(/^\d-/, '')}</span> : <span style={{color:'var(--text-faint)'}}>—</span>
                     }
@@ -330,32 +340,32 @@ export default function ProjectsView({ data, updateData }: Props) {
               <div>
                 <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>{t('field_domain')}</label>
                 <select className="input" value={editing.domain} onChange={e => setEditing({ ...editing, domain: e.target.value })}>
-                  {DOMAINS.map(d => <option key={d}>{d}</option>)}
+                  {spaceDomains.map(d => <option key={d}>{d}</option>)}
                 </select>
               </div>
               <div>
                 <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>{t('field_request_type')}</label>
                 <select className="input" value={editing.requestType} onChange={e => setEditing({ ...editing, requestType: e.target.value })}>
-                  {REQUEST_TYPES.map(r => <option key={r}>{r}</option>)}
+                  {spaceRequestTypes.map(r => <option key={r}>{r}</option>)}
                 </select>
               </div>
               <div>
                 <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>{t('field_lead_dept')}</label>
                 <select className="input" value={editing.leadDept} onChange={e => setEditing({ ...editing, leadDept: e.target.value })}>
-                  {DEPARTMENTS.map(d => <option key={d}>{d}</option>)}
+                  {spaceDepartments.map(d => <option key={d}>{d}</option>)}
                 </select>
               </div>
               <div>
                 <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>{t('field_country')}</label>
                 <select className="input" value={editing.leadCountry} onChange={e => setEditing({ ...editing, leadCountry: e.target.value })}>
-                  {COUNTRIES.map(c => <option key={c}>{c}</option>)}
+                  {spaceCountries.map(c => <option key={c}>{c}</option>)}
                 </select>
               </div>
               <div>
                 <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>{t('field_sponsor')}</label>
                 <select className="input" value={editing.sponsor ?? ''} onChange={e => setEditing({ ...editing, sponsor: e.target.value })}>
                   <option value="">—</option>
-                  {SPONSORS.map(s => <option key={s}>{s}</option>)}
+                  {spaceSponsors.map(s => <option key={s}>{s}</option>)}
                 </select>
               </div>
               <div>
@@ -383,7 +393,7 @@ export default function ProjectsView({ data, updateData }: Props) {
                 <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>{t('field_status')}</label>
                 <select className="input" value={editing.status ?? ''} onChange={e => setEditing({ ...editing, status: e.target.value || null })}>
                   <option value="">—</option>
-                  {STATUSES.map(s => <option key={s}>{s}</option>)}
+                  {spaceStatuses.map(s => <option key={s}>{s}</option>)}
                 </select>
               </div>
               <div>

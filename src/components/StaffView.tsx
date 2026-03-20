@@ -35,6 +35,10 @@ export default function StaffView({ data, updateData }: Props) {
     updateData({ ...data, staff });
   };
 
+
+  const sc = (data as any).spaceConfig ?? {};
+  const spaceProfiles: string[]    = sc.profiles    ?? settings.profiles    ?? PROFILES;
+  const spaceDepartments: string[] = sc.departments ?? settings.departments ?? DEPARTMENTS;
   const months = MONTHS_2026_2028.filter(m => m.startsWith(yearFilter));
 
   const filtered = data.staff.filter(s => {
@@ -145,7 +149,7 @@ export default function StaffView({ data, updateData }: Props) {
                         ? <select className="cell-select" autoFocus defaultValue={s.profile}
                             onChange={e => { updateStaffField(s.id, 'profile', e.target.value); setInlineEdit(null); }}
                             onBlur={() => setInlineEdit(null)} onClick={e => e.stopPropagation()}>
-                            {PROFILES.map(p => <option key={p} value={p}>{p}</option>)}
+                            {spaceProfiles.map(p => <option key={p} value={p}>{p}</option>)}
                           </select>
                         : <span className="badge badge-blue">{s.profile}</span>
                       }
@@ -224,7 +228,7 @@ export default function StaffView({ data, updateData }: Props) {
                 <div>
                   <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>{t('field_profile')}</label>
                   <select className="input" value={editing.profile} onChange={e => setEditing({ ...editing, profile: e.target.value })}>
-                    {PROFILES.map(p => <option key={p}>{p}</option>)}
+                    {spaceProfiles.map(p => <option key={p}>{p}</option>)}
                   </select>
                 </div>
                 <div>

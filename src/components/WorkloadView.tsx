@@ -22,6 +22,10 @@ export default function WorkloadView({ data, updateData }: Props) {
   const [staffFilter, setStaffFilter] = useState('');
   const [deptFilter, setDeptFilter] = useState('');
 
+
+  const sc = (data as any).spaceConfig ?? {};
+  const spaceProfiles: string[]    = sc.profiles    ?? settings.profiles    ?? PROFILES;
+  const spaceDepartments: string[] = sc.departments ?? settings.departments ?? [];
   const months = MONTHS_2026_2028.filter(m => m.startsWith(yearFilter));
 
   const filteredProjects = data.projects.filter(p =>
@@ -171,7 +175,7 @@ export default function WorkloadView({ data, updateData }: Props) {
             <label style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-faint)', textTransform: 'uppercase' as const, letterSpacing: '0.07em', display: 'block', marginBottom: 5 }}>{t('profile')}</label>
             <select className="input" value={profileFilter} onChange={e => setProfileFilter(e.target.value)} style={{ fontSize: 12 }}>
               <option value="">— {t('all')} —</option>
-              {PROFILES.map(p => <option key={p} value={p}>{p}</option>)}
+              {spaceProfiles.map(p => <option key={p} value={p}>{p}</option>)}
             </select>
           </div>
           {tab === 'allocation' && (
@@ -363,7 +367,7 @@ export default function WorkloadView({ data, updateData }: Props) {
                 <div>
                   <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>{t('field_profile_required')}</label>
                   <select className="input" value={editingWorkload.profile} onChange={e => setEditingWorkload({ ...editingWorkload, profile: e.target.value })}>
-                    {PROFILES.map(p => <option key={p}>{p}</option>)}
+                    {spaceProfiles.map(p => <option key={p}>{p}</option>)}
                   </select>
                 </div>
               </div>
@@ -415,7 +419,7 @@ export default function WorkloadView({ data, updateData }: Props) {
                 <div>
                   <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>{t('field_profile_required')}</label>
                   <select className="input" value={editingAlloc.profile} onChange={e => setEditingAlloc({ ...editingAlloc, profile: e.target.value })}>
-                    {PROFILES.map(p => <option key={p}>{p}</option>)}
+                    {spaceProfiles.map(p => <option key={p}>{p}</option>)}
                   </select>
                 </div>
                 <div>
