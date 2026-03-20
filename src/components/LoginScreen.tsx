@@ -119,7 +119,7 @@ export default function LoginScreen() {
             {forgotMode ? (
               resetSent ? (
                 <div style={{ background: 'var(--success-subtle)', border: '1px solid var(--success)', borderRadius: 8, padding: '12px 14px', color: 'var(--success)', fontSize: 13 }}>
-                  ✓ {t('reset_email_sent')}
+                  ✓ {t('reset_admin_notified')}
                 </div>
               ) : (
                 <button

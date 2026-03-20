@@ -280,19 +280,40 @@ function ProfilePanel({ user, onClose, t, token }: { user: any; onClose: () => v
     if (newPw && newPw.length < 8) { setErr('Password must be at least 8 characters'); return; }
     if (newPw && !curPw) { setErr('Please enter your current password'); return; }
     setSaving(true);
-    const body: any = {};
-    if (avatar !== (user as any)?.avatar) body.avatar = avatar;
-    if (newPw) { body.currentPassword = curPw; body.newPassword = newPw; }
-    if (Object.keys(body).length === 0) { setSaving(false); onClose(); return; }
-    const r = await fetch('/api/auth/me-update', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-      body: JSON.stringify(body),
-    });
-    const d = await r.json();
+
+    // Save avatar separately from password
+    if (avatar !== (user as any)?.avatar) {
+      const r = await fetch('/api/auth/me-update', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ avatar }),
+      });
+      const d = await r.json();
+      if (!d.ok) {
+        setSaving(false);
+        if (d.error === 'migration_needed') {
+          setErr('⚠ Migration SQL requise dans Supabase : ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar TEXT;');
+        } else {
+          setErr(d.message || d.error || 'Error saving avatar');
+        }
+        return;
+      }
+    }
+
+    // Save password separately
+    if (newPw) {
+      const r = await fetch('/api/auth/me-update', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ currentPassword: curPw, newPassword: newPw }),
+      });
+      const d = await r.json();
+      if (!d.ok) { setSaving(false); setErr(d.error || 'Error saving password'); return; }
+    }
+
     setSaving(false);
-    if (d.ok) { setMsg('Saved! Reload to see avatar changes.'); setCurPw(''); setNewPw(''); setConfirmPw(''); }
-    else setErr(d.error || 'Error saving');
+    setMsg('✓ Sauvegardé ! Rechargez la page pour voir le nouvel avatar.');
+    setCurPw(''); setNewPw(''); setConfirmPw('');
   };
 
   return (

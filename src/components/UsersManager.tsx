@@ -19,6 +19,11 @@ export default function UsersManager({ spaces }: Props) {
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<Partial<User> & { password?: string; spaceIds?: string[] } | null>(null);
   const [isNew, setIsNew] = useState(false);
+  const [pendingResets, setPendingResets] = useState<Record<string, string>>({});
+  const [resetUser, setResetUser] = useState<User | null>(null);
+  const [resetPw, setResetPw] = useState('');
+  const [resetLoading, setResetLoading] = useState(false);
+  const [resetMsg, setResetMsg] = useState('');
 
   const fetchUsers = async () => {
     const r = await fetch('/api/users', { headers: { Authorization: `Bearer ${token}` } });
@@ -26,7 +31,31 @@ export default function UsersManager({ spaces }: Props) {
     setLoading(false);
   };
 
-  useEffect(() => { fetchUsers(); }, []);
+  const fetchPendingResets = async () => {
+    const r = await fetch('/api/auth/reset-request', { headers: { Authorization: `Bearer ${token}` } });
+    if (r.ok) { const d = await r.json(); setPendingResets(d.pendingMap ?? {}); }
+  };
+
+  const handleAdminReset = async () => {
+    if (!resetUser || !resetPw) return;
+    setResetLoading(true);
+    const r = await fetch('/api/auth/reset-request', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ userId: resetUser.id, newPassword: resetPw }),
+    });
+    const d = await r.json();
+    setResetLoading(false);
+    if (d.ok) {
+      setResetMsg('✓ Mot de passe réinitialisé !');
+      setPendingResets(prev => { const n = { ...prev }; delete n[resetUser.id]; return n; });
+      setTimeout(() => { setResetUser(null); setResetPw(''); setResetMsg(''); }, 1500);
+    } else {
+      setResetMsg('⚠ ' + (d.error || 'Erreur'));
+    }
+  };
+
+  useEffect(() => { fetchUsers(); fetchPendingResets(); }, []);
 
   const save = async () => {
     if (!editing) return;
@@ -170,6 +199,53 @@ export default function UsersManager({ spaces }: Props) {
             <div style={{ padding: '16px 24px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
               <button className="btn btn-ghost" onClick={() => setEditing(null)}>{t('cancel')}</button>
               <button className="btn btn-primary" onClick={save} disabled={!editing.first_name || !editing.last_name || !editing.email || (isNew && !editing.password)}>{t('save')}</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Admin Reset Password Modal */}
+      {resetUser && (
+        <div className="modal-overlay" onClick={() => setResetUser(null)}>
+          <div className="modal" style={{ maxWidth: 420 }} onClick={e => e.stopPropagation()}>
+            <div style={{ padding: '18px 22px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <div style={{ fontWeight: 700, fontSize: 15 }}>🔑 {t('reset_password_for')}</div>
+                <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>{resetUser.first_name} {resetUser.last_name} — {resetUser.email}</div>
+              </div>
+              <button className="btn-icon" onClick={() => setResetUser(null)}>✕</button>
+            </div>
+            <div style={{ padding: 22, display: 'flex', flexDirection: 'column', gap: 14 }}>
+              {pendingResets[resetUser.id] && (
+                <div style={{ background: 'var(--danger-subtle)', border: '1px solid var(--danger)', borderRadius: 8, padding: '10px 12px', fontSize: 12, color: 'var(--danger)' }}>
+                  ⚠ {t('reset_requested_at')} {new Date(pendingResets[resetUser.id]).toLocaleString()}
+                </div>
+              )}
+              <div>
+                <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                  {t('new_password_for_user')}
+                </label>
+                <input
+                  className="input" type="text"
+                  placeholder="Minimum 8 caractères"
+                  value={resetPw}
+                  onChange={e => setResetPw(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && handleAdminReset()}
+                  autoFocus
+                />
+                <div style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 6 }}>💡 {t('reset_tip')}</div>
+              </div>
+              {resetMsg && (
+                <div style={{ background: resetMsg.startsWith('✓') ? 'var(--success-subtle)' : 'var(--danger-subtle)', border: `1px solid ${resetMsg.startsWith('✓') ? 'var(--success)' : 'var(--danger)'}`, borderRadius: 8, padding: '10px 12px', fontSize: 13, color: resetMsg.startsWith('✓') ? 'var(--success)' : 'var(--danger)' }}>
+                  {resetMsg}
+                </div>
+              )}
+            </div>
+            <div style={{ padding: '14px 22px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
+              <button className="btn btn-ghost" onClick={() => setResetUser(null)}>{t('cancel')}</button>
+              <button className="btn btn-primary" onClick={handleAdminReset} disabled={resetLoading || resetPw.length < 8}>
+                {resetLoading ? '⏳…' : t('set_password')}
+              </button>
             </div>
           </div>
         </div>
