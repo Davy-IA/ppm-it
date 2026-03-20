@@ -66,9 +66,17 @@ export default function GanttView({ data, updateData, initialProjectId, onMounte
   const fmt = (d: string) => formatDate(d, locale);
   const [selProj, setSelProj] = useState(initialProjectId ?? data.projects[0]?.id ?? '');
 
-  // When landing from "Save & Plan", clear the parent state
+  // When landing from "Save & Plan": select project + open new phase modal
   useEffect(() => {
-    if (initialProjectId) { setSelProj(initialProjectId); onMounted?.(); }
+    if (initialProjectId) {
+      setSelProj(initialProjectId);
+      // Small delay to let the component render with the new project
+      setTimeout(() => {
+        setEditPhase({ id: uuid(), projectId: initialProjectId, name: '', startDate: new Date().toISOString().slice(0,10), duration: 30, color: PHASE_COLORS[0], dependsOn: null, subphases: [] } as unknown as GanttPhase);
+        setIsNew(true);
+      }, 100);
+      onMounted?.();
+    }
   }, [initialProjectId]);
   const [editPhase, setEditPhase] = useState<GanttPhase | null>(null);
   const [editSub, setEditSub] = useState<{ sub: GanttSubphase; phase: GanttPhase } | null>(null);
