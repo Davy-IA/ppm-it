@@ -358,6 +358,9 @@ export const translations = {
     user_singular: 'utilisateur',
     col_user: 'Utilisateur',
     password_min_chars: 'Minimum 8 caractères',
+    logo_light_mode: 'Mode jour',
+    logo_dark_mode: 'Mode nuit',
+    logo_tip: 'Si un seul logo est uploadé, il sera utilisé dans les deux modes. Pour PNG transparent, le fond est adapté automatiquement.',
   },
   en: {
     nav_dashboard: 'Dashboard',
@@ -707,6 +710,9 @@ export const translations = {
     user_singular: 'user',
     col_user: 'User',
     password_min_chars: 'Minimum 8 characters',
+    logo_light_mode: 'Light mode',
+    logo_dark_mode: 'Dark mode',
+    logo_tip: 'If only one logo is uploaded, it will be used in both modes. For transparent PNG, the background is auto-adapted.',
   },
   pt: {
     nav_dashboard: 'Painel',
@@ -1056,6 +1062,9 @@ export const translations = {
     user_singular: 'usuário',
     col_user: 'Usuário',
     password_min_chars: 'Mínimo 8 caracteres',
+    logo_light_mode: 'Modo claro',
+    logo_dark_mode: 'Modo escuro',
+    logo_tip: 'Se apenas um logo for enviado, será usado em ambos os modos. Para PNG transparente, o fundo é adaptado automaticamente.',
   },
   zh: {
     nav_dashboard: '仪表板',
@@ -1405,6 +1414,9 @@ export const translations = {
     user_singular: '用户',
     col_user: '用户',
     password_min_chars: '最少8个字符',
+    logo_light_mode: '浅色模式',
+    logo_dark_mode: '深色模式',
+    logo_tip: '如果只上传一个标志，将在两种模式下使用。透明PNG背景会自动适配。',
   },
 } as const;
 

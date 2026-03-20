@@ -78,7 +78,8 @@ export const COLOR_THEMES = [
 export interface AppSettings {
   locale: Locale;
   colorTheme: string;
-  logo: string | null; // base64 or null
+  logo: string | null;      // logo mode jour (base64 ou null)
+  logoDark: string | null;  // logo mode nuit (base64 ou null) — optionnel
   appName: string;
   budgetUrl: string;
   // Editable lists
@@ -95,6 +96,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   locale: 'fr',
   colorTheme: 'indigo',
   logo: null,
+  logoDark: null,
   appName: 'PPM·IT',
   budgetUrl: 'https://www.sapanalytics.cloud',
   domains: ['APPLI', 'INFRA', 'INNOV', 'DATA'],

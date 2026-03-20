@@ -121,11 +121,21 @@ export default function TopNav({ view, setView, saving, data, currentSpace, onCh
     <header className="topnav">
       {/* Left: Logo + Space */}
       <div className="topnav-brand">
-        <div className="topnav-logo" onClick={onChangeSpace}>
-          {settings.logo
-            ? <img src={settings.logo} alt="logo" style={{ height: 28, width: 28, objectFit: 'contain', borderRadius: 6 }} />
-            : <span className="topnav-logo-letter">{(settings.appName || 'P')[0]}</span>
-          }
+        <div className="topnav-logo" onClick={onChangeSpace}
+          style={{ background: (() => {
+            const hasLogo = settings.logo || (settings as any).logoDark;
+            if (!hasLogo) return 'var(--accent-gradient)';
+            // White bg in light mode, dark bg in dark mode for PNG transparency
+            return theme === 'dark' ? 'rgba(30,35,50,0.95)' : 'rgba(255,255,255,0.95)';
+          })() }}>
+          {(() => {
+            const activeLogo = theme === 'dark'
+              ? ((settings as any).logoDark || settings.logo)
+              : (settings.logo || (settings as any).logoDark);
+            return activeLogo
+              ? <img src={activeLogo} alt="logo" style={{ height: 26, width: 26, objectFit: 'contain' }} />
+              : <span className="topnav-logo-letter">{(settings.appName || 'P')[0]}</span>;
+          })()}
         </div>
         {currentSpace && (
           <button className="topnav-space-btn" onClick={onChangeSpace}>

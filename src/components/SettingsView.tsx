@@ -22,6 +22,7 @@ export default function SettingsView({ data, updateData, spaces, onRefreshSpaces
   // Keep local list in sync when parent prop updates
   useEffect(() => { setSpacesList(spaces); }, [spaces]);
   const logoRef = useRef<HTMLInputElement>(null);
+  const logoDarkRef = useRef<HTMLInputElement>(null);
 
   const isAdmin = user && ['superadmin', 'admin'].includes(user.role);
   const isSuperAdmin = user?.role === 'superadmin';
@@ -34,6 +35,15 @@ export default function SettingsView({ data, updateData, spaces, onRefreshSpaces
     if (file.size > 512000) { alert('Max 500kb'); return; }
     const reader = new FileReader();
     reader.onload = () => { updateSettings({ logo: reader.result as string }); showSaved(); };
+    reader.readAsDataURL(file);
+  };
+
+  const handleLogoDark = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 512000) { alert('Max 500kb'); return; }
+    const reader = new FileReader();
+    reader.onload = () => { updateSettings({ logoDark: reader.result as string } as any); showSaved(); };
     reader.readAsDataURL(file);
   };
 
@@ -112,14 +122,37 @@ export default function SettingsView({ data, updateData, spaces, onRefreshSpaces
           <div className="card">
             <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 4 }}>{t('settings_logo_label')}</div>
             <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 16 }}>{t('settings_logo_upload_desc')}</div>
-            <div style={{ width: 120, height: 120, borderRadius: 12, border: '2px dashed var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16, background: 'var(--bg3)', overflow: 'hidden' }}>
-              {settings.logo ? <img src={settings.logo} alt="logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> : <div style={{ textAlign: 'center', color: 'var(--text-faint)' }}><div style={{ fontSize: 32 }}>🖼</div><div style={{ fontSize: 11, marginTop: 4 }}>Logo</div></div>}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 12 }}>
+              {/* Logo mode jour */}
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>☀️ {t('logo_light_mode')}</div>
+                <div style={{ width: '100%', height: 80, borderRadius: 10, background: '#ffffff', border: '2px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', marginBottom: 8, boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.04)' }}>
+                  {settings.logo
+                    ? <img src={settings.logo} alt="logo" style={{ maxWidth: '80%', maxHeight: '70%', objectFit: 'contain' }} />
+                    : <div style={{ textAlign: 'center', color: '#ccc' }}><div style={{ fontSize: 26 }}>🖼</div><div style={{ fontSize: 10, marginTop: 2 }}>Light</div></div>}
+                </div>
+                <input ref={logoRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleLogo} />
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                  <button className="btn btn-primary btn-sm" onClick={() => logoRef.current?.click()}>{t('settings_logo_btn')}</button>
+                  {settings.logo && <button className="btn btn-ghost btn-sm" onClick={() => { updateSettings({ logo: null }); showSaved(); }}>{t('settings_logo_reset')}</button>}
+                </div>
+              </div>
+              {/* Logo mode nuit */}
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>🌙 {t('logo_dark_mode')}</div>
+                <div style={{ width: '100%', height: 80, borderRadius: 10, background: '#161b26', border: '2px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', marginBottom: 8 }}>
+                  {(settings as any).logoDark
+                    ? <img src={(settings as any).logoDark} alt="logo dark" style={{ maxWidth: '80%', maxHeight: '70%', objectFit: 'contain' }} />
+                    : <div style={{ textAlign: 'center', color: 'rgba(255,255,255,0.2)' }}><div style={{ fontSize: 26 }}>🖼</div><div style={{ fontSize: 10, marginTop: 2 }}>Dark</div></div>}
+                </div>
+                <input ref={logoDarkRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleLogoDark} />
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                  <button className="btn btn-primary btn-sm" onClick={() => logoDarkRef.current?.click()}>{t('settings_logo_btn')}</button>
+                  {(settings as any).logoDark && <button className="btn btn-ghost btn-sm" onClick={() => { updateSettings({ logoDark: null } as any); showSaved(); }}>{t('settings_logo_reset')}</button>}
+                </div>
+              </div>
             </div>
-            <input ref={logoRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleLogo} />
-            <div style={{ display: 'flex', gap: 8 }}>
-              <button className="btn btn-primary btn-sm" onClick={() => logoRef.current?.click()}>{t('settings_logo_btn')}</button>
-              {settings.logo && <button className="btn btn-ghost btn-sm" onClick={() => { updateSettings({ logo: null }); showSaved(); }}>{t('settings_logo_reset')}</button>}
-            </div>
+            <div style={{ fontSize: 11, color: 'var(--text-faint)', padding: '8px 10px', background: 'var(--accent-subtle)', borderRadius: 8 }}>💡 {t('logo_tip')}</div>
           </div>
           <div className="card">
             <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 16 }}>{t('settings_org_name_label')}</div>
@@ -148,8 +181,10 @@ export default function SettingsView({ data, updateData, spaces, onRefreshSpaces
             </div>
 
             <div style={{ marginTop: 20, padding: '14px 16px', background: 'var(--bg3)', borderRadius: 8, display: 'flex', alignItems: 'center', gap: 12 }}>
-              <div style={{ width: 36, height: 36, borderRadius: 8, overflow: 'hidden', background: settings.logo ? 'transparent' : 'var(--accent-gradient)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                {settings.logo ? <img src={settings.logo} alt="logo" style={{ width: 36, height: 36, objectFit: 'contain' }} /> : <span style={{ color: '#fff', fontWeight: 800, fontSize: 14 }}>P</span>}
+              <div style={{ width: 36, height: 36, borderRadius: 8, overflow: 'hidden', background: settings.logo ? '#ffffff' : 'var(--accent-gradient)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                {settings.logo
+                  ? <img src={settings.logo} alt="logo" style={{ width: 30, height: 30, objectFit: 'contain' }} />
+                  : <span style={{ color: '#fff', fontWeight: 800, fontSize: 14 }}>{(settings.appName || 'P')[0]}</span>}
               </div>
               <div>
                 <div style={{ fontWeight: 800, fontSize: 13 }}>{settings.appName || 'VEJA Project Management'}</div>
