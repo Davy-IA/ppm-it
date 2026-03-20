@@ -507,6 +507,7 @@ export const translations = {
     workload_need: 'Besoin',
     workload_covered: 'Affecté',
     save_and_plan: 'Enregistrer et gérer le planning',
+    days_available: 'j dispo',
   },
   en: {
     nav_dashboard: 'Dashboard',
@@ -1005,6 +1006,7 @@ export const translations = {
     workload_need: 'Need',
     workload_covered: 'Assigned',
     save_and_plan: 'Save & manage planning',
+    days_available: 'd avail.',
   },
   pt: {
     nav_dashboard: 'Painel',
@@ -1503,6 +1505,7 @@ export const translations = {
     workload_need: 'Necessidade',
     workload_covered: 'Atribuído',
     save_and_plan: 'Salvar e gerir planeamento',
+    days_available: 'd disp.',
   },
   zh: {
     nav_dashboard: '仪表板',
@@ -2001,6 +2004,7 @@ export const translations = {
     workload_need: '需求',
     workload_covered: '已覆盖',
     save_and_plan: '保存并管理计划',
+    days_available: '天可用',
   },
 } as const;
 
