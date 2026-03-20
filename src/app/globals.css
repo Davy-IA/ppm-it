@@ -93,16 +93,18 @@ html, body {
 }
 .data-table tr:last-child td { border-bottom: none; }
 .data-table tbody tr:hover td { background: var(--bg3); }
-.sticky-left { position: sticky; left: 0; z-index: 3; background: var(--bg2); }
+.sticky-left {
+  position: sticky; left: 0; z-index: 3;
+  background: var(--bg2);
+}
 .data-table thead .sticky-left { z-index: 12; background: var(--bg3); }
 .data-table tbody tr:hover .sticky-left { background: var(--bg3); }
-/* Shadow on sticky left col to indicate it's frozen */
+.data-table tbody tr .sticky-left { background: var(--bg2); }
 .sticky-left::after {
   content: '';
   position: absolute;
-  top: 0; right: -6px; bottom: 0;
-  width: 6px;
-  background: linear-gradient(to right, rgba(0,0,0,0.06), transparent);
+  top: 0; right: -5px; bottom: 0; width: 5px;
+  background: linear-gradient(to right, rgba(0,0,0,0.07), transparent);
   pointer-events: none;
 }
 

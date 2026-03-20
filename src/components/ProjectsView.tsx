@@ -499,7 +499,7 @@ function PortfolioGantt({ data, filtered, t }: { data: AppData; filtered: Projec
       const mEnd = new Date(cur.getFullYear(), cur.getMonth()+1, 0);
       const left = Math.max(0, daysBetween(rangeStart, cur.toISOString().slice(0,10))) * DAY;
       const right = Math.min(totalDays, daysBetween(rangeStart, mEnd.toISOString().slice(0,10))) * DAY;
-      months.push({ label: cur.toLocaleDateString('fr-FR', { month: 'short', year: zoom < 0.8 ? '2-digit' : undefined }), left, width: right - left });
+      months.push({ label: cur.toLocaleDateString('fr-FR', { month: 'short', year: '2-digit' }), left, width: right - left });
       cur.setMonth(cur.getMonth()+1);
     }
   }
@@ -514,22 +514,24 @@ function PortfolioGantt({ data, filtered, t }: { data: AppData; filtered: Projec
   };
 
   return (
-    <div className="card" style={{ padding: 0, overflow: 'visible', marginTop: 16 }}>
-      <div style={{ overflow: 'auto', maxHeight: 'calc(100vh - 170px)' }}>
+    <>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 6, marginBottom: 8 }}>
+      <span style={{ fontSize: 11, color: 'var(--text-faint)', marginRight: 4 }}>Zoom</span>
+      <button onClick={() => setZoom(z => Math.max(0.25, +(z / 1.5).toFixed(2)))}
+        title="Zoom out" style={{ width: 28, height: 28, border: '1px solid var(--border)', borderRadius: 6, background: 'var(--bg2)', cursor: 'pointer', fontSize: 16, color: 'var(--text-muted)', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>−</button>
+      <button onClick={() => setZoom(1)}
+        title="Réinitialiser" style={{ padding: '0 8px', height: 28, border: '1px solid var(--border)', borderRadius: 6, background: 'var(--bg2)', cursor: 'pointer', fontSize: 11, color: 'var(--text-muted)', fontFamily: 'inherit' }}>1:1</button>
+      <button onClick={() => setZoom(z => Math.min(6, +(z * 1.5).toFixed(2)))}
+        title="Zoom in" style={{ width: 28, height: 28, border: '1px solid var(--border)', borderRadius: 6, background: 'var(--bg2)', cursor: 'pointer', fontSize: 16, color: 'var(--text-muted)', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>+</button>
+    </div>
+    <div className="card" style={{ padding: 0, overflow: 'visible' }}>
+      <div style={{ overflow: 'auto', maxHeight: 'calc(100vh - 210px)' }}>
         <div style={{ minWidth: LEFT_W + chartW + 40 }}>
 
           {/* Month header */}
           <div style={{ display: 'flex', borderBottom: '1px solid var(--border)', background: 'var(--bg3)', position: 'sticky', top: 0, zIndex: 6 }}>
-            <div style={{ width: LEFT_W, flexShrink: 0, padding: '8px 14px', fontSize: 11, fontWeight: 700, color: 'var(--text-faint)', textTransform: 'uppercase' as const, letterSpacing: '0.07em', position: 'sticky', left: 0, zIndex: 5, background: 'var(--bg3)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <span>{t('project_name')}</span>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-                <button onClick={() => setZoom(z => Math.max(0.25, +(z/1.5).toFixed(2)))}
-                  title="Zoom out" style={{ width: 22, height: 22, border: '1px solid var(--border)', borderRadius: 4, background: 'var(--bg2)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, color: 'var(--text-muted)', fontFamily: 'inherit', lineHeight: 1 }}>−</button>
-                <button onClick={() => setZoom(1)}
-                  title="Reset" style={{ width: 22, height: 22, border: '1px solid var(--border)', borderRadius: 4, background: 'var(--bg2)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, color: 'var(--text-muted)', fontFamily: 'inherit' }}>↺</button>
-                <button onClick={() => setZoom(z => Math.min(6, +(z*1.5).toFixed(2)))}
-                  title="Zoom in" style={{ width: 22, height: 22, border: '1px solid var(--border)', borderRadius: 4, background: 'var(--bg2)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, color: 'var(--text-muted)', fontFamily: 'inherit', lineHeight: 1 }}>+</button>
-              </div>
+            <div style={{ width: LEFT_W, flexShrink: 0, padding: '8px 14px', fontSize: 11, fontWeight: 700, color: 'var(--text-faint)', textTransform: 'uppercase' as const, letterSpacing: '0.07em', position: 'sticky', left: 0, zIndex: 25, background: 'var(--bg3)' }}>
+              {t('project_name')}
             </div>
             <div style={{ flex: 1, position: 'relative', height: 32 }}>
               {months.map((m, i) => (
@@ -556,7 +558,7 @@ function PortfolioGantt({ data, filtered, t }: { data: AppData; filtered: Projec
 
             return (
               <div key={p.id} style={{ display: 'flex', borderBottom: '1px solid var(--border)', background: idx % 2 === 0 ? 'transparent' : 'var(--bg3)', minHeight: ROW_H }}>
-                <div style={{ width: LEFT_W, flexShrink: 0, padding: '0 14px', display: 'flex', alignItems: 'center', position: 'sticky', left: 0, zIndex: 2, background: 'var(--bg2)' }}>
+                <div style={{ width: LEFT_W, flexShrink: 0, padding: '0 14px', display: 'flex', alignItems: 'center', position: 'sticky', left: 0, zIndex: 20, background: 'var(--bg2)' }}>
                   <span style={{ fontSize: 12, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const, maxWidth: LEFT_W - 28 }} title={p.name}>{p.name}</span>
                 </div>
                 <div style={{ flex: 1, position: 'relative', height: ROW_H }}>
@@ -619,5 +621,6 @@ function PortfolioGantt({ data, filtered, t }: { data: AppData; filtered: Projec
         </div>
       </div>
     </div>
+    </>
   );
 }
