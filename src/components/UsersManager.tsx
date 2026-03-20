@@ -94,7 +94,7 @@ export default function UsersManager({ spaces }: Props) {
         <button className="btn btn-primary btn-sm" onClick={() => { setEditing({ role: 'member', active: true, spaceIds: [] }); setIsNew(true); }}>{t('user_new_btn')}</button>
       </div>
 
-      {loading ? <div style={{ color: 'var(--text-faint)', padding: 20 }}>Chargement…</div> : (
+      {loading ? <div style={{ color: 'var(--text-faint)', padding: 20 }}>{t('loading')}…</div> : (
         <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
           <table className="data-table">
             <thead>
@@ -111,7 +111,7 @@ export default function UsersManager({ spaces }: Props) {
                   <td>
                     <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
                       {['superadmin', 'admin', 'global'].includes(u.role)
-                        ? <span className="badge badge-gray">Tous les espaces</span>
+                        ? <span className="badge badge-gray">{t('all_spaces')}</span>
                         : u.spaces?.map(s => <span key={s.id} style={{ fontSize: 10, fontWeight: 600, color: s.color, background: `${s.color}15`, borderRadius: 20, padding: '2px 7px' }}>{s.name}</span>)
                       }
                     </div>

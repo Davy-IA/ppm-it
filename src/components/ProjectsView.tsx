@@ -135,7 +135,7 @@ export default function ProjectsView({ data, updateData }: Props) {
                 <input className="input" value={editing.name} onChange={e => setEditing({ ...editing, name: e.target.value })} />
               </div>
               <div>
-                <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>Domaine</label>
+                <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>{t('field_domain')}</label>
                 <select className="input" value={editing.domain} onChange={e => setEditing({ ...editing, domain: e.target.value })}>
                   {DOMAINS.map(d => <option key={d}>{d}</option>)}
                 </select>
@@ -159,42 +159,42 @@ export default function ProjectsView({ data, updateData }: Props) {
                 </select>
               </div>
               <div>
-                <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>Sponsor</label>
+                <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>{t('field_sponsor')}</label>
                 <select className="input" value={editing.sponsor ?? ''} onChange={e => setEditing({ ...editing, sponsor: e.target.value })}>
                   <option value="">—</option>
                   {SPONSORS.map(s => <option key={s}>{s}</option>)}
                 </select>
               </div>
               <div>
-                <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>Chef de projet</label>
+                <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>{t('field_pm')}</label>
                 <select className="input" value={editing.projectManager ?? ''} onChange={e => setEditing({ ...editing, projectManager: e.target.value })}>
                   <option value="">—</option>
                   {pmOptions.map(s => <option key={s}>{s}</option>)}
                 </select>
               </div>
               <div>
-                <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>Priorité</label>
+                <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>{t('field_priority')}</label>
                 <select className="input" value={editing.priority ?? ''} onChange={e => setEditing({ ...editing, priority: e.target.value ? Number(e.target.value) : null })}>
                   <option value="">—</option>
                   {[1,2,3,4].map(n => <option key={n} value={n}>P{n}</option>)}
                 </select>
               </div>
               <div>
-                <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>Complexité</label>
+                <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>{t('field_complexity')}</label>
                 <select className="input" value={editing.complexity ?? ''} onChange={e => setEditing({ ...editing, complexity: e.target.value ? Number(e.target.value) : null })}>
                   <option value="">—</option>
                   {[1,2,3,4].map(n => <option key={n} value={n}>C{n}</option>)}
                 </select>
               </div>
               <div>
-                <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>Statut</label>
+                <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>{t('field_status')}</label>
                 <select className="input" value={editing.status ?? ''} onChange={e => setEditing({ ...editing, status: e.target.value || null })}>
                   <option value="">—</option>
                   {STATUSES.map(s => <option key={s}>{s}</option>)}
                 </select>
               </div>
               <div>
-                <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>Date démarrage</label>
+                <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>{t('field_start_date')}</label>
                 <input type="date" className="input" value={editing.startDate ?? ''} onChange={e => setEditing({ ...editing, startDate: e.target.value || null })} />
               </div>
               <div>

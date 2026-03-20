@@ -167,20 +167,20 @@ export default function StaffView({ data, updateData }: Props) {
                   <input className="input" value={editing.name} onChange={e => setEditing({ ...editing, name: e.target.value })} />
                 </div>
                 <div>
-                  <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>Profil</label>
+                  <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>{t('field_profile')}</label>
                   <select className="input" value={editing.profile} onChange={e => setEditing({ ...editing, profile: e.target.value })}>
                     {PROFILES.map(p => <option key={p}>{p}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>Type de contrat</label>
+                  <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>{t('field_contract')}</label>
                   <select className="input" value={editing.type} onChange={e => setEditing({ ...editing, type: e.target.value as 'Internal' | 'External' })}>
                     <option value="Internal">{t('internal')}</option>
                     <option value="External">{t('contract_external')}</option>
                   </select>
                 </div>
                 <div>
-                  <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>Entité</label>
+                  <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>{t('field_entity')}</label>
                   <select className="input" value={editing.entity} onChange={e => setEditing({ ...editing, entity: e.target.value })}>
                     {COUNTRIES.map(c => <option key={c}>{c}</option>)}
                   </select>

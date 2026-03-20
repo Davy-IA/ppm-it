@@ -278,7 +278,7 @@ export default function GanttView({ data, updateData }: Props) {
               </div>
               <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:14}}>
                 <div>
-                  <label style={{fontSize:12,color:'var(--text-muted)',fontWeight:600,display:'block',marginBottom:6}}>Date de début</label>
+                  <label style={{fontSize:12,color:'var(--text-muted)',fontWeight:600,display:'block',marginBottom:6}}>{t('field_start')}</label>
                   <input type="date" className="input" value={editPhase.startDate} onChange={e=>setEditPhase({...editPhase,startDate:e.target.value})} disabled={!!editPhase.dependsOn} style={{opacity:editPhase.dependsOn?0.5:1}}/>
                   {editPhase.dependsOn && <div style={{fontSize:11,color:'var(--text-faint)',marginTop:4}}>Calculée automatiquement</div>}
                 </div>
@@ -295,14 +295,14 @@ export default function GanttView({ data, updateData }: Props) {
                 </select>
               </div>
               <div>
-                <label style={{fontSize:12,color:'var(--text-muted)',fontWeight:600,display:'block',marginBottom:8}}>Couleur</label>
+                <label style={{fontSize:12,color:'var(--text-muted)',fontWeight:600,display:'block',marginBottom:8}}>{t('field_color')}</label>
                 <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
                   {PHASE_COLORS.map(c=><button key={c} onClick={()=>setEditPhase({...editPhase,color:c})} style={{width:28,height:28,borderRadius:6,border:editPhase.color===c?'3px solid var(--text)':'2px solid transparent',background:c,cursor:'pointer'}}/>)}
                 </div>
               </div>
             </div>
             <div style={{padding:'16px 24px',borderTop:'1px solid var(--border)',display:'flex',justifyContent:'flex-end',gap:10}}>
-              <button className="btn btn-ghost" onClick={()=>{setEditPhase(null);setIsNew(false);}}>Annuler</button>
+              <button className="btn btn-ghost" onClick={()=>{setEditPhase(null);setIsNew(false);}}>{t('cancel')}</button>
               <button className="btn btn-primary" disabled={!editPhase.name} onClick={()=>{
                 const exist = phases.find(p=>p.id===editPhase.id);
                 const updated = exist ? phases.map(p=>p.id===editPhase.id?editPhase:p) : [...phases,editPhase];
@@ -359,7 +359,7 @@ function SubForm({ initial, phase, onSave, onClose }: { initial: GanttSubphase; 
         </div>
         <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:14}}>
           <div>
-            <label style={{fontSize:12,color:'var(--text-muted)',fontWeight:600,display:'block',marginBottom:6}}>Date de début</label>
+            <label style={{fontSize:12,color:'var(--text-muted)',fontWeight:600,display:'block',marginBottom:6}}>{t('field_start')}</label>
             <input type="date" className="input" value={form.startDate} onChange={e=>setForm({...form,startDate:e.target.value})} disabled={!!form.dependsOn} style={{opacity:form.dependsOn?0.5:1}}/>
           </div>
           <div>
@@ -376,7 +376,7 @@ function SubForm({ initial, phase, onSave, onClose }: { initial: GanttSubphase; 
         </div>
       </div>
       <div style={{padding:'16px 24px',borderTop:'1px solid var(--border)',display:'flex',justifyContent:'flex-end',gap:10}}>
-        <button className="btn btn-ghost" onClick={onClose}>Annuler</button>
+        <button className="btn btn-ghost" onClick={onClose}>{t('cancel')}</button>
         <button className="btn btn-primary" disabled={!form.name} onClick={()=>form.name&&onSave(form)}>{t('save')}</button>
       </div>
     </>

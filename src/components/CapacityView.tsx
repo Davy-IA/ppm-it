@@ -226,8 +226,8 @@ export default function CapacityView({ data }: Props) {
                 <table className="data-table">
                   <thead>
                     <tr>
-                      <th style={{ minWidth: 80 }}>Profil</th>
-                      <th style={{ minWidth: 80 }}>Ligne</th>
+                      <th style={{ minWidth: 80 }}>{t('col_profile')}</th>
+                      <th style={{ minWidth: 80 }}>{t('col_line')}</th>
                       {months.map(m => <th key={m} className="cap-cell">{monthLabel(m)}</th>)}
                       <th>{t('total')}</th>
                     </tr>
@@ -280,8 +280,8 @@ export default function CapacityView({ data }: Props) {
             <table className="data-table">
               <thead>
                 <tr>
-                  <th style={{ minWidth: 100 }}>Profil</th>
-                  <th style={{ minWidth: 100 }}>Métrique</th>
+                  <th style={{ minWidth: 100 }}>{t('col_profile')}</th>
+                  <th style={{ minWidth: 100 }}>{t('col_metric')}</th>
                   {months.map(m => <th key={m} className="cap-cell">{monthLabel(m)}</th>)}
                   <th>{t('total')}</th>
                 </tr>

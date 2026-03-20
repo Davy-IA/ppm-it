@@ -146,7 +146,7 @@ export default function TopNav({ view, setView, saving, data, currentSpace, onCh
           <button className="topnav-space-btn" onClick={() => setShowSpaces(s => !s)}>
             {currentSpace
               ? <><span style={{ color: currentSpace.color }}>{currentSpace.icon}</span><span>{currentSpace.name}</span></>
-              : <span>Espaces</span>
+              : <span>{t('spaces_label')}</span>
             }
             <svg width="10" height="10" viewBox="0 0 10 10" fill="none"
               style={{ opacity: 0.5, transition: 'transform 0.15s', transform: showSpaces ? 'rotate(180deg)' : 'none', flexShrink: 0 }}>
@@ -159,7 +159,7 @@ export default function TopNav({ view, setView, saving, data, currentSpace, onCh
               <div style={{ position: 'fixed', inset: 0, zIndex: 199 }} onClick={() => setShowSpaces(false)} />
               <div className="topnav-dropdown" style={{ minWidth: 220, left: 0, right: 'auto', zIndex: 200 }}>
                 <div style={{ padding: '10px 14px 6px', fontSize: 10, fontWeight: 700, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                  Espaces
+                  {t('spaces_label')}
                 </div>
                 {spaces.filter((s: Space) => s.id !== '__global__').map((space: Space) => (
                   <button key={space.id}
@@ -181,7 +181,7 @@ export default function TopNav({ view, setView, saving, data, currentSpace, onCh
                   <button
                     className={`topnav-dropdown-item ${currentSpace?.id === '__global__' ? 'active' : ''}`}
                     style={{ borderTop: '1px solid var(--border)', marginTop: 4, paddingTop: 10 }}
-                    onClick={() => { onSelectSpace?.({ id: '__global__', name: 'Global Portfolio', color: '#f59e0b', icon: '🌐' } as Space); setShowSpaces(false); }}>
+                    onClick={() => { onSelectSpace?.({ id: '__global__', name: t('global_portfolio'), color: '#f59e0b', icon: '🌐' } as Space); setShowSpaces(false); }}>
                     <span style={{ fontSize: 16, width: 22, textAlign: 'center', flexShrink: 0 }}>🌐</span>
                     <div style={{ flex: 1, textAlign: 'left' }}>
                       <div style={{ fontWeight: 600, fontSize: 12 }}>{t('global_portfolio')}</div>

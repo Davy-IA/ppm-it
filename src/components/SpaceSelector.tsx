@@ -109,7 +109,7 @@ export default function SpaceSelector({ spaces, onSelect, appName }: Props) {
         {spaces.length === 0 && (
           <div className="card" style={{ textAlign: 'center', padding: 48 }}>
             <div style={{ fontSize: 40, marginBottom: 12 }}>🔒</div>
-            <div style={{ fontWeight: 700, fontSize: 16, color: 'var(--text-muted)' }}>Aucun espace assigné</div>
+            <div style={{ fontWeight: 700, fontSize: 16, color: 'var(--text-muted)' }}>{t('no_space_assigned')}</div>
             <div style={{ fontSize: 13, color: 'var(--text-faint)', marginTop: 4 }}>Contactez votre administrateur pour obtenir accès à un espace.</div>
           </div>
         )}

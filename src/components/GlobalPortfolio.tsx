@@ -59,7 +59,7 @@ export default function GlobalPortfolio({ spaces, onBack }: Props) {
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 28 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-          <button onClick={onBack} className="btn btn-ghost btn-sm">← Espaces</button>
+          <button onClick={onBack} className="btn btn-ghost btn-sm">{t('back_to_spaces')}</button>
           <div>
             <h1 style={{ fontSize: 22, fontWeight: 800, letterSpacing: '-0.03em' }}>🌐 {t('global_portfolio')}</h1>
             <p style={{ color: 'var(--text-muted)', fontSize: 13, marginTop: 2 }}>Vue consolidée de tous les espaces · {allProjects.length} projets · {allStaff.length} ressources</p>
@@ -170,7 +170,7 @@ export default function GlobalPortfolio({ spaces, onBack }: Props) {
                   </thead>
                   <tbody>
                     {allProjects.length === 0 && (
-                      <tr><td colSpan={8} style={{ textAlign: 'center', padding: 32, color: 'var(--text-faint)' }}>Aucun projet</td></tr>
+                      <tr><td colSpan={8} style={{ textAlign: 'center', padding: 32, color: 'var(--text-faint)' }}>{t('no_project')}</td></tr>
                     )}
                     {allProjects.map((p: any, i) => (
                       <tr key={i}>
@@ -248,7 +248,7 @@ export default function GlobalPortfolio({ spaces, onBack }: Props) {
                 );
               })}
               {allGantt.length === 0 && (
-                <div className="card" style={{ textAlign: 'center', padding: 40, color: 'var(--text-faint)' }}>Aucune phase Gantt définie</div>
+                <div className="card" style={{ textAlign: 'center', padding: 40, color: 'var(--text-faint)' }}>{t('no_gantt_phase')}</div>
               )}
             </div>
           )}

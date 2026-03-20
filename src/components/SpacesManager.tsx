@@ -89,17 +89,17 @@ export default function SpacesManager({ spaces, onRefresh }: Props) {
                 <input className="input" value={editing.name ?? ''} onChange={e => setEditing({ ...editing, name: e.target.value })} placeholder="Ex: Retail, Finance, Supply Chain…" />
               </div>
               <div>
-                <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: 6 }}>Description</label>
+                <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: 6 }}>{t('field_description')}</label>
                 <input className="input" value={editing.description ?? ''} onChange={e => setEditing({ ...editing, description: e.target.value })} placeholder="Description courte de l'espace" />
               </div>
               <div>
-                <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: 8 }}>Couleur</label>
+                <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: 8 }}>{t('field_color')}</label>
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                   {SPACE_COLORS.map(c => <button key={c} onClick={() => setEditing({ ...editing, color: c })} style={{ width: 28, height: 28, borderRadius: 6, background: c, border: editing.color === c ? '3px solid var(--text)' : '2px solid transparent', cursor: 'pointer' }} />)}
                 </div>
               </div>
               <div>
-                <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: 8 }}>Icône</label>
+                <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: 8 }}>{t('field_icon')}</label>
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                   {SPACE_ICONS.map(icon => <button key={icon} onClick={() => setEditing({ ...editing, icon })} style={{ width: 36, height: 36, borderRadius: 8, background: editing.icon === icon ? 'var(--accent-subtle)' : 'var(--bg3)', border: editing.icon === icon ? '2px solid var(--accent)' : '2px solid var(--border)', cursor: 'pointer', fontSize: 18 }}>{icon}</button>)}
                 </div>

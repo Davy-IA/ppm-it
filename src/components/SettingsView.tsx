@@ -129,7 +129,7 @@ export default function SettingsView({ data, updateData, spaces, onRefreshSpaces
                 <div style={{ width: '100%', height: 80, borderRadius: 10, background: '#ffffff', border: '2px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', marginBottom: 8, boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.04)' }}>
                   {settings.logo
                     ? <img src={settings.logo} alt="logo" style={{ maxWidth: '80%', maxHeight: '70%', objectFit: 'contain' }} />
-                    : <div style={{ textAlign: 'center', color: '#ccc' }}><div style={{ fontSize: 26 }}>🖼</div><div style={{ fontSize: 10, marginTop: 2 }}>Light</div></div>}
+                    : <div style={{ textAlign: 'center', color: '#ccc' }}><div style={{ fontSize: 26 }}>🖼</div><div style={{ fontSize: 10, marginTop: 2 }}>{t('logo_light_mode')}</div></div>}
                 </div>
                 <input ref={logoRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleLogo} />
                 <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
@@ -143,7 +143,7 @@ export default function SettingsView({ data, updateData, spaces, onRefreshSpaces
                 <div style={{ width: '100%', height: 80, borderRadius: 10, background: '#161b26', border: '2px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', marginBottom: 8 }}>
                   {(settings as any).logoDark
                     ? <img src={(settings as any).logoDark} alt="logo dark" style={{ maxWidth: '80%', maxHeight: '70%', objectFit: 'contain' }} />
-                    : <div style={{ textAlign: 'center', color: 'rgba(255,255,255,0.2)' }}><div style={{ fontSize: 26 }}>🖼</div><div style={{ fontSize: 10, marginTop: 2 }}>Dark</div></div>}
+                    : <div style={{ textAlign: 'center', color: 'rgba(255,255,255,0.2)' }}><div style={{ fontSize: 26 }}>🖼</div><div style={{ fontSize: 10, marginTop: 2 }}>{t('logo_dark_mode')}</div></div>}
                 </div>
                 <input ref={logoDarkRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleLogoDark} />
                 <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
