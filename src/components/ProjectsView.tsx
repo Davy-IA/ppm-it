@@ -490,7 +490,7 @@ function PortfolioGantt({ data, filtered, t }: { data: AppData; filtered: Projec
   const totalDays = Math.max(daysBetween(displayMin, displayMax) + 1, 7);
   const chartW = totalDays * DAY_PX;
   const todayX = daysBetween(displayMin, today) * DAY_PX;
-  const ROW_H = 38;
+  const ROW_H = 40;
 
   const localeStr = ({ fr: 'fr-FR', en: 'en-US', pt: 'pt-BR', zh: 'zh-CN' } as Record<string,string>)[locale] ?? 'fr-FR';
 
@@ -581,12 +581,12 @@ function PortfolioGantt({ data, filtered, t }: { data: AppData; filtered: Projec
           <div style={{ minWidth: LEFT_W + chartW }}>
             {/* Header row — sticky */}
             <div style={{ display: 'flex', background: 'var(--bg3)', borderBottom: '2px solid var(--border)', position: 'sticky', top: 0, zIndex: 6 }}>
-              <div style={{ width: LEFT_W, minWidth: LEFT_W, flexShrink: 0, height: 36, display: 'flex', alignItems: 'center', padding: '0 14px', fontSize: 11, fontWeight: 700, color: 'var(--text-faint)', textTransform: 'uppercase' as const, letterSpacing: '0.07em', position: 'sticky', left: 0, zIndex: 25, background: 'var(--bg3)', borderRight: '1px solid var(--border)' }}>
+              <div style={{ width: LEFT_W, minWidth: LEFT_W, flexShrink: 0, height: 40, display: 'flex', alignItems: 'center', padding: '0 14px', fontSize: 11, fontWeight: 700, color: 'var(--text-faint)', textTransform: 'uppercase' as const, letterSpacing: '0.07em', position: 'sticky', left: 0, zIndex: 25, background: 'var(--bg3)', borderRight: '1px solid var(--border)' }}>
                 {t('project_name')}
               </div>
-              <div style={{ width: chartW, flexShrink: 0, position: 'relative', height: 36 }}>
+              <div style={{ width: chartW, flexShrink: 0, position: 'relative', height: 40 }}>
                 {columns.map((col, i) => (
-                  <div key={i} style={{ position: 'absolute', left: col.left, width: col.width, height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', borderLeft: '1px solid var(--border)', fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'capitalize' as const, overflow: 'hidden' }}>
+                  <div key={i} style={{ position: 'absolute', left: col.left, width: col.width, height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRight: '1px solid var(--border)', fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'capitalize' as const, overflow: 'hidden' }}>
                     {col.label}
                   </div>
                 ))}
@@ -610,7 +610,7 @@ function PortfolioGantt({ data, filtered, t }: { data: AppData; filtered: Projec
               return (
                 <div key={p.id} style={{ display: 'flex', borderBottom: '1px solid var(--border)', background: idx % 2 === 0 ? 'var(--bg2)' : 'var(--bg3)', minHeight: ROW_H }}>
                   <div style={{ width: LEFT_W, minWidth: LEFT_W, flexShrink: 0, padding: '0 14px', display: 'flex', alignItems: 'center', position: 'sticky', left: 0, zIndex: 20, background: idx % 2 === 0 ? 'var(--bg2)' : 'var(--bg3)', borderRight: '1px solid var(--border)' }}>
-                    <span style={{ fontSize: 12, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const, maxWidth: LEFT_W - 28 }} title={p.name}>{p.name}</span>
+                    <span style={{ fontSize: 12, fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const, maxWidth: LEFT_W - 28 }} title={p.name}>{p.name}</span>
                   </div>
                   <div style={{ width: chartW, flexShrink: 0, position: 'relative', height: ROW_H }}>
                     {/* Grid lines */}
