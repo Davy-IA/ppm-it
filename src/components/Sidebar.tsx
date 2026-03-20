@@ -50,7 +50,7 @@ export default function Sidebar({ view, setView, open, setOpen, saving, data, cu
     { id: 'staff',      labelKey: 'nav_staff',     icon: '◎' },
     { id: 'workload',   labelKey: 'nav_workload',  icon: '◈' },
     { id: 'capacity',   labelKey: 'nav_capacity',  icon: '▤' },
-    { id: 'budget',     labelKey: 'nav_budget',    icon: '💰', external: (settings as any).budgetUrl || '#' },
+    { id: 'budget',     labelKey: 'nav_budget',    icon: '◈', external: (settings as any).budgetUrl || '#' },
     { id: 'alerts',     labelKey: 'nav_alerts',    icon: '◬' },
     { id: 'settings',   labelKey: 'nav_settings',  icon: '⚙' },
   ];
@@ -109,7 +109,7 @@ export default function Sidebar({ view, setView, open, setOpen, saving, data, cu
                 className="nav-item"
                 title={!open ? label : undefined}
                 style={{ justifyContent: open ? 'flex-start' : 'center', textDecoration: 'none', gap: 10 }}>
-                <span style={{ fontSize: 15, flexShrink: 0, opacity: 0.7, lineHeight: 1 }}>{item.icon}</span>
+                <span style={{ fontSize: 15, flexShrink: 0, opacity: 0.7, lineHeight: 1, width: 20, textAlign: 'center', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>{item.icon}</span>
                 {open && <span style={{ fontWeight: 500 }}>{label}</span>}
                 {open && <span style={{ fontSize: 10, color: 'var(--text-faint)', marginLeft: 'auto', flexShrink: 0 }}>↗</span>}
               </a>
@@ -121,7 +121,7 @@ export default function Sidebar({ view, setView, open, setOpen, saving, data, cu
               className={`nav-item ${isActive ? 'active' : ''}`}
               title={!open ? label : undefined}
               style={{ justifyContent: open ? 'flex-start' : 'center', position: 'relative' }}>
-              <span style={{ fontSize: 15, flexShrink: 0, opacity: isActive ? 1 : 0.7 }}>{item.icon}</span>
+              <span style={{ fontSize: 15, flexShrink: 0, opacity: isActive ? 1 : 0.7, width: 20, textAlign: 'center', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>{item.icon}</span>
               {open && <span style={{ fontWeight: isActive ? 700 : 500 }}>{label}</span>}
               {open && isAlerts && alertCount > 0 && <span style={{ marginLeft: 'auto', background: 'var(--danger)', color: '#fff', borderRadius: 10, padding: '1px 7px', fontSize: 10, fontWeight: 700 }}>{alertCount}</span>}
               {!open && isAlerts && alertCount > 0 && <span style={{ position: 'absolute', top: 6, right: 6, width: 7, height: 7, background: 'var(--danger)', borderRadius: '50%' }} />}
