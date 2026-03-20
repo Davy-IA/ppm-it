@@ -6,7 +6,7 @@ import { View } from './App';
 import { useSettings } from '@/lib/context';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 
-interface Props { data: AppData; setView: (v: View) => void; }
+interface Props { data: AppData; setView: (v: View) => void; onSubNav?: (tab: string) => void; }
 
 const STATUS_BADGE: Record<string, string> = {
   '1-To arbitrate': 'badge-gray', '2-Validated': 'badge-blue',
@@ -14,7 +14,7 @@ const STATUS_BADGE: Record<string, string> = {
   '5-Completed': 'badge-purple', '6-Aborted': 'badge-red',
 };
 
-export default function Dashboard({ data, setView }: Props) {
+export default function Dashboard({ data, setView, onSubNav }: Props) {
   const { t, settings } = useSettings();
   const locale = settings.locale ?? 'fr';
   const alerts = computeAlerts(data);
@@ -78,7 +78,7 @@ export default function Dashboard({ data, setView }: Props) {
               <div style={{ fontWeight: 600, fontSize: 14 }}>{t('capacity_vs_load')}</div>
               <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>{t('first_12_months')}</div>
             </div>
-            <button className="btn btn-ghost btn-sm" onClick={() => setView('capacity')}>{t('detail')}</button>
+            <button className="btn btn-ghost btn-sm" onClick={() => onSubNav?.('capacity')}>{t('detail')}</button>
           </div>
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={chartData} barGap={2}>
@@ -122,7 +122,7 @@ export default function Dashboard({ data, setView }: Props) {
                 </div>
               ))}
               {alerts.length > 3 && (
-                <button className="btn btn-ghost btn-sm" style={{ marginTop: 6, width: '100%' }} onClick={() => setView('alerts')}>
+                <button className="btn btn-ghost btn-sm" style={{ marginTop: 6, width: '100%' }} onClick={() => onSubNav?.('alerts')}>
                   {t('see_more_alerts').replace('{n}', String(alerts.length - 3))}
                 </button>
               )}

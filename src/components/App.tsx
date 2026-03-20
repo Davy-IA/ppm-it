@@ -6,16 +6,14 @@ import { useAuth } from '@/lib/auth-context';
 import LoginScreen from './LoginScreen';
 import GlobalPortfolio from './GlobalPortfolio';
 import TopNav from './TopNav';
-import Dashboard from './Dashboard';
+import DashboardHub from './DashboardHub';
 import ProjectsView from './ProjectsView';
 import StaffView from './StaffView';
 import WorkloadView from './WorkloadView';
-import CapacityView from './CapacityView';
-import AlertsView from './AlertsView';
 import GanttView from './GanttView';
 import SettingsView from './SettingsView';
 
-export type View = 'dashboard' | 'projects' | 'gantt' | 'staff' | 'workload' | 'capacity' | 'alerts' | 'settings';
+export type View = 'dashboard' | 'projects' | 'gantt' | 'staff' | 'workload' | 'settings';
 
 interface Space { id: string; name: string; description: string; color: string; icon: string; active?: boolean; }
 
@@ -117,13 +115,11 @@ export default function App() {
         onSelectSpace={(space) => setCurrentSpace(space as any)}
       />
       <main className="app-content">
-        {view === 'dashboard' && <Dashboard data={data} setView={setView} />}
+        {view === 'dashboard' && <DashboardHub data={data} setView={setView} />}
         {view === 'projects' && <ProjectsView data={data} updateData={updateData} />}
         {view === 'gantt' && <GanttView data={data} updateData={updateData} />}
         {view === 'staff' && <StaffView data={data} updateData={updateData} />}
         {view === 'workload' && <WorkloadView data={data} updateData={updateData} />}
-        {view === 'capacity' && <CapacityView data={data} updateData={updateData} />}
-        {view === 'alerts' && <AlertsView data={data} />}
         {view === 'settings' && <SettingsView data={data} updateData={updateData} spaces={spaces as any} onRefreshSpaces={fetchSpaces} />}
       </main>
     </div>

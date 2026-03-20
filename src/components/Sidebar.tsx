@@ -49,9 +49,7 @@ export default function Sidebar({ view, setView, open, setOpen, saving, data, cu
     { id: 'gantt',      labelKey: 'nav_planning',  icon: '▦' },
     { id: 'staff',      labelKey: 'nav_staff',     icon: '◎' },
     { id: 'workload',   labelKey: 'nav_workload',  icon: '◈' },
-    { id: 'capacity',   labelKey: 'nav_capacity',  icon: '▤' },
     { id: 'budget',     labelKey: 'nav_budget',    icon: '◈', external: (settings as any).budgetUrl || '#' },
-    { id: 'alerts',     labelKey: 'nav_alerts',    icon: '◬' },
     { id: 'settings',   labelKey: 'nav_settings',  icon: '⚙' },
   ];
 
@@ -99,7 +97,7 @@ export default function Sidebar({ view, setView, open, setOpen, saving, data, cu
           if (item.id === 'budget' && !(settings as any).budgetUrl) return null;
 
           const isActive = view === item.id;
-          const isAlerts = item.id === 'alerts';
+          const isAlerts = item.id === 'dashboard';
           const label = (t as any)(item.labelKey) ?? item.labelKey;
 
           // External link (Budget)
