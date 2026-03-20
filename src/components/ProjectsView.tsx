@@ -191,7 +191,7 @@ export default function ProjectsView({ data, updateData, setView, onNavigateToPl
           <table className="data-table">
             <thead>
               <tr>
-                <th>{t('project_name')}</th><th>{t('domain')}</th><th>{t('type')}</th><th>{t('lead_dept')}</th>
+                <th className="sticky-left" style={{ background: 'var(--bg3)', zIndex: 11 }}>{t('project_name')}</th><th>{t('domain')}</th><th>{t('type')}</th><th>{t('lead_dept')}</th>
                 <th>{t('sponsor')}</th><th>{t('project_manager')}</th><th>{t('priority')}</th>
                 <th>{t('complexity')}</th><th>{t('status')}</th><th>{t('start_date')}</th><th>{t('go_live')}</th><th>{t('hypercare_date')}</th><th></th>
               </tr>
@@ -199,7 +199,7 @@ export default function ProjectsView({ data, updateData, setView, onNavigateToPl
             <tbody>
               {filtered.map(p => (
                 <tr key={p.id}>
-                  <td className="cell-edit" style={{ fontWeight: 500, maxWidth: 260 }} onClick={() => setInlineEdit({ id: p.id, field: 'name' })}>
+                  <td className="cell-edit sticky-left" style={{ fontWeight: 500, maxWidth: 260, background: 'var(--bg2)', zIndex: 2 }} onClick={() => setInlineEdit({ id: p.id, field: 'name' })}>
                     {inlineEdit?.id === p.id && inlineEdit.field === 'name'
                       ? <input className="cell-input" autoFocus defaultValue={p.name}
                           onBlur={e => { updateField(p.id, 'name', e.target.value); setInlineEdit(null); }}
@@ -482,7 +482,7 @@ function PortfolioGantt({ data, filtered, t }: { data: AppData; filtered: Projec
 
           {/* Month header */}
           <div style={{ display: 'flex', borderBottom: '1px solid var(--border)', background: 'var(--bg3)', position: 'sticky', top: 0, zIndex: 5 }}>
-            <div style={{ width: LEFT_W, flexShrink: 0, padding: '8px 14px', fontSize: 11, fontWeight: 700, color: 'var(--text-faint)', textTransform: 'uppercase' as const, letterSpacing: '0.07em' }}>
+            <div style={{ width: LEFT_W, flexShrink: 0, padding: '8px 14px', fontSize: 11, fontWeight: 700, color: 'var(--text-faint)', textTransform: 'uppercase' as const, letterSpacing: '0.07em', position: 'sticky', left: 0, zIndex: 5, background: 'var(--bg3)' }}>
               {t('project_name')}
             </div>
             <div style={{ flex: 1, position: 'relative', height: 32 }}>
@@ -510,7 +510,7 @@ function PortfolioGantt({ data, filtered, t }: { data: AppData; filtered: Projec
 
             return (
               <div key={p.id} style={{ display: 'flex', borderBottom: '1px solid var(--border)', background: idx % 2 === 0 ? 'transparent' : 'var(--bg3)', minHeight: ROW_H }}>
-                <div style={{ width: LEFT_W, flexShrink: 0, padding: '0 14px', display: 'flex', alignItems: 'center' }}>
+                <div style={{ width: LEFT_W, flexShrink: 0, padding: '0 14px', display: 'flex', alignItems: 'center', position: 'sticky', left: 0, zIndex: 2, background: 'var(--bg2)' }}>
                   <span style={{ fontSize: 12, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const, maxWidth: LEFT_W - 28 }} title={p.name}>{p.name}</span>
                 </div>
                 <div style={{ flex: 1, position: 'relative', height: ROW_H }}>
