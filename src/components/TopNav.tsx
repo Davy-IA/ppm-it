@@ -8,12 +8,14 @@ import { useAuth } from '@/lib/auth-context';
 import { LOCALES } from '@/lib/i18n';
 import { formatMonth } from '@/lib/locale-utils';
 
-interface Space { id: string; name: string; color: string; icon: string; }
+interface Space { id: string; name: string; color: string; icon: string; description?: string; }
 interface Props {
   view: View; setView: (v: View) => void;
   saving: boolean; data: AppData;
   currentSpace?: Space | null;
   onChangeSpace?: () => void;
+  spaces?: Space[];
+  onSelectSpace?: (space: Space) => void;
 }
 
 // SVG icon components — modern, contextual
@@ -94,13 +96,14 @@ function useTheme() {
   return { theme, toggle };
 }
 
-export default function TopNav({ view, setView, saving, data, currentSpace, onChangeSpace }: Props) {
+export default function TopNav({ view, setView, saving, data, currentSpace, onChangeSpace, spaces = [], onSelectSpace }: Props) {
   const { t, settings, updateSettings } = useSettings();
   const { user, logout, token } = useAuth();
   const { theme, toggle } = useTheme();
   const alerts = computeAlerts(data);
   const alertCount = alerts.length;
   const [showLang, setShowLang] = useState(false);
+  const [showSpaces, setShowSpaces] = useState(false);
   const [showUser, setShowUser] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
 

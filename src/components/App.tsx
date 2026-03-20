@@ -4,7 +4,6 @@ import { AppData } from '@/types';
 import { INITIAL_DATA } from '@/lib/data';
 import { useAuth } from '@/lib/auth-context';
 import LoginScreen from './LoginScreen';
-import SpaceSelector from './SpaceSelector';
 import GlobalPortfolio from './GlobalPortfolio';
 import Sidebar from './Sidebar';
 import TopNav from './TopNav';
@@ -85,9 +84,24 @@ export default function App() {
 
   if (!user) return <LoginScreen />;
 
-  if (!currentSpace) {
-    return <SpaceSelector spaces={spaces} onSelect={setCurrentSpace} appName="VEJA Project Management" />;
-  }
+  // Auto-select first space on first load (skip the space selector page)
+  useEffect(() => {
+    if (!currentSpace && spaces.length > 0 && !spacesLoading && initialized) {
+      // Restore last used space from localStorage
+      const lastSpaceId = localStorage.getItem('ppm-last-space');
+      const lastSpace = lastSpaceId ? spaces.find(s => s.id === lastSpaceId) : null;
+      setCurrentSpace(lastSpace || spaces[0]);
+    }
+  }, [spaces, spacesLoading, initialized, currentSpace]);
+
+  // Save last used space
+  useEffect(() => {
+    if (currentSpace && currentSpace.id !== '__global__') {
+      localStorage.setItem('ppm-last-space', currentSpace.id);
+    }
+  }, [currentSpace]);
+
+  if (!currentSpace) return <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-faint)', fontSize: 14 }}>⏳ Chargement…</div>;
 
   if (currentSpace.id === '__global__') {
     return <GlobalPortfolio spaces={spaces} onBack={() => setCurrentSpace(null)} />;
@@ -100,6 +114,11 @@ export default function App() {
         saving={saving} data={data}
         currentSpace={currentSpace}
         onChangeSpace={() => setCurrentSpace(null)}
+        spaces={spaces}
+        onSelectSpace={(space) => {
+          if (space.id === '__global__') setCurrentSpace(space as any);
+          else setCurrentSpace(space as any);
+        }}
       />
       <main className="app-content">
         {view === 'dashboard' && <Dashboard data={data} setView={setView} />}
