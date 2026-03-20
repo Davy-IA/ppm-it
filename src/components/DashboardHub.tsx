@@ -10,26 +10,15 @@ import { computeAlerts } from '@/lib/alerts';
 
 interface Props { data: AppData; setView: (v: View) => void; }
 
-type SubTab = 'overview' | 'capacity' | 'alerts';
+type SubTab = 'capacity' | 'alerts';
 
 export default function DashboardHub({ data, setView }: Props) {
   const { t } = useSettings();
-  const [tab, setTab] = useState<SubTab>('overview');
+  const [tab, setTab] = useState<SubTab>('capacity');
   const alertCount = computeAlerts(data).length;
 
   const tabs: { id: SubTab; label: string; icon: JSX.Element; badge?: number }[] = [
-    {
-      id: 'overview',
-      label: t('nav_dashboard') as string,
-      icon: (
-        <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
-          <rect x="1" y="1" width="5" height="5" rx="1" fill="currentColor" opacity="0.9"/>
-          <rect x="7" y="1" width="5" height="5" rx="1" fill="currentColor" opacity="0.5"/>
-          <rect x="1" y="7" width="5" height="5" rx="1" fill="currentColor" opacity="0.5"/>
-          <rect x="7" y="7" width="5" height="5" rx="1" fill="currentColor" opacity="0.7"/>
-        </svg>
-      ),
-    },
+
     {
       id: 'capacity',
       label: t('nav_capacity') as string,
@@ -90,7 +79,6 @@ export default function DashboardHub({ data, setView }: Props) {
       </div>
 
       {/* Sub-tab content */}
-      {tab === 'overview' && <Dashboard data={data} setView={setView} onSubNav={(t) => setTab(t as SubTab)} />}
       {tab === 'capacity' && <CapacityView data={data} updateData={noopUpdate as any} />}
       {tab === 'alerts'   && <AlertsView data={data} />}
     </div>

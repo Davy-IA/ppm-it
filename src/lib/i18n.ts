@@ -517,6 +517,8 @@ export const translations = {
     select_resource: 'Sélectionner une ressource',
     confirm_delete: 'Confirmez vous la suppression ?',
     copy_resource: 'Copier cette ressource',
+    chart_workload_need: 'Besoin charge',
+    chart_allocated: 'Affecté',
   },
   en: {
     nav_dashboard: 'Dashboard',
@@ -1025,6 +1027,8 @@ export const translations = {
     select_resource: 'Select a resource',
     confirm_delete: 'Confirm deletion?',
     copy_resource: 'Copy this resource',
+    chart_workload_need: 'Workload need',
+    chart_allocated: 'Assigned',
   },
   pt: {
     nav_dashboard: 'Painel',
@@ -1533,6 +1537,8 @@ export const translations = {
     select_resource: 'Selecionar um recurso',
     confirm_delete: 'Confirma a exclusão?',
     copy_resource: 'Copiar recurso',
+    chart_workload_need: 'Carga necessária',
+    chart_allocated: 'Atribuído',
   },
   zh: {
     nav_dashboard: '仪表板',
@@ -2041,6 +2047,8 @@ export const translations = {
     select_resource: '选择资源',
     confirm_delete: '确认删除？',
     copy_resource: '复制资源',
+    chart_workload_need: '工作量需求',
+    chart_allocated: '已分配',
   },
 } as const;
 
