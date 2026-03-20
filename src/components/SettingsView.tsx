@@ -9,16 +9,18 @@ import UsersManager from './UsersManager';
 import SpacesManager from './SpacesManager';
 
 interface Space { id: string; name: string; description: string; color: string; icon: string; active: boolean; }
-interface Props { data: AppData; updateData: (d: AppData) => void; spaces: Space[]; }
+interface Props { data: AppData; updateData: (d: AppData) => void; spaces: Space[]; onRefreshSpaces?: () => void; }
 
 type ListKey = 'domains' | 'profiles' | 'statuses' | 'departments' | 'countries' | 'requestTypes' | 'sponsors';
 
-export default function SettingsView({ data, updateData, spaces }: Props) {
+export default function SettingsView({ data, updateData, spaces, onRefreshSpaces }: Props) {
   const { settings, updateSettings, t } = useSettings();
   const { user, token } = useAuth();
   const [saved, setSaved] = useState(false);
   const [activeTab, setActiveTab] = useState<'identity' | 'theme' | 'lists' | 'lang' | 'users' | 'spaces'>('identity');
   const [spacesList, setSpacesList] = useState<Space[]>(spaces);
+  // Keep local list in sync when parent prop updates
+  useEffect(() => { setSpacesList(spaces); }, [spaces]);
   const logoRef = useRef<HTMLInputElement>(null);
 
   const isAdmin = user && ['superadmin', 'admin'].includes(user.role);
@@ -39,7 +41,12 @@ export default function SettingsView({ data, updateData, spaces }: Props) {
 
   const refreshSpaces = async () => {
     const r = await fetch('/api/spaces', { headers: { Authorization: `Bearer ${token}` } });
-    if (r.ok) { const d = await r.json(); setSpacesList(d.spaces); }
+    if (r.ok) {
+      const d = await r.json();
+      setSpacesList(d.spaces);
+      // Also refresh parent App so SpaceSelector stays in sync
+      onRefreshSpaces?.();
+    }
   };
 
   const LISTS: { key: ListKey; labelKey: string }[] = [

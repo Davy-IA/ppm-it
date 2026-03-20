@@ -37,15 +37,20 @@ export default function App() {
     fetch('/api/init').catch(() => {});
   }, []);
 
-  // Load spaces once logged in
-  useEffect(() => {
+  // Fetch spaces from API — reusable for initial load + after mutations
+  const fetchSpaces = useCallback(async () => {
     if (!user || !token) return;
     setSpacesLoading(true);
-    fetch('/api/spaces', { headers: { Authorization: `Bearer ${token}` } })
-      .then(r => r.ok ? r.json() : null)
-      .then(d => { if (d?.spaces) setSpaces(d.spaces); })
-      .finally(() => setSpacesLoading(false));
+    try {
+      const r = await fetch('/api/spaces', { headers: { Authorization: `Bearer ${token}` } });
+      if (r.ok) { const d = await r.json(); if (d?.spaces) setSpaces(d.spaces); }
+    } finally {
+      setSpacesLoading(false);
+    }
   }, [user, token]);
+
+  // Load spaces once logged in
+  useEffect(() => { fetchSpaces(); }, [fetchSpaces]);
 
   // Load space data when space selected
   useEffect(() => {
@@ -104,7 +109,7 @@ export default function App() {
         {view === 'workload' && <WorkloadView data={data} updateData={updateData} />}
         {view === 'capacity' && <CapacityView data={data} updateData={updateData} />}
         {view === 'alerts' && <AlertsView data={data} />}
-        {view === 'settings' && <SettingsView data={data} updateData={updateData} spaces={spaces as any} />}
+        {view === 'settings' && <SettingsView data={data} updateData={updateData} spaces={spaces as any} onRefreshSpaces={fetchSpaces} />}
       </main>
     </div>
   );
