@@ -199,7 +199,7 @@ export default function ProjectsView({ data, updateData, setView, onNavigateToPl
             <tbody>
               {filtered.map(p => (
                 <tr key={p.id}>
-                  <td className="cell-edit sticky-left" style={{ fontWeight: 500, maxWidth: 260, background: 'var(--bg2)', zIndex: 2 }} onClick={() => setInlineEdit({ id: p.id, field: 'name' })}>
+                  <td className="cell-edit sticky-left" style={{ fontWeight: 500, maxWidth: 260 }} onClick={() => setInlineEdit({ id: p.id, field: 'name' })}>
                     {inlineEdit?.id === p.id && inlineEdit.field === 'name'
                       ? <input className="cell-input" autoFocus defaultValue={p.name}
                           onBlur={e => { updateField(p.id, 'name', e.target.value); setInlineEdit(null); }}
@@ -476,12 +476,12 @@ function PortfolioGantt({ data, filtered, t }: { data: AppData; filtered: Projec
   };
 
   return (
-    <div className="card" style={{ padding: 0, overflow: 'visible' }}>
+    <div className="card" style={{ padding: 0, overflow: 'visible', marginTop: 16 }}>
       <div style={{ overflow: 'auto', maxHeight: 'calc(100vh - 170px)' }}>
-        <div style={{ minWidth: LEFT_W + chartW + 40, position: 'relative' }}>
+        <div style={{ minWidth: LEFT_W + chartW + 40 }}>
 
           {/* Month header */}
-          <div style={{ display: 'flex', borderBottom: '1px solid var(--border)', background: 'var(--bg3)', position: 'sticky', top: 0, zIndex: 5 }}>
+          <div style={{ display: 'flex', borderBottom: '1px solid var(--border)', background: 'var(--bg3)', position: 'sticky', top: 0, zIndex: 6 }}>
             <div style={{ width: LEFT_W, flexShrink: 0, padding: '8px 14px', fontSize: 11, fontWeight: 700, color: 'var(--text-faint)', textTransform: 'uppercase' as const, letterSpacing: '0.07em', position: 'sticky', left: 0, zIndex: 5, background: 'var(--bg3)' }}>
               {t('project_name')}
             </div>
