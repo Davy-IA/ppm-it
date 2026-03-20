@@ -460,16 +460,34 @@ function PortfolioGantt({ data, filtered, t }: { data: AppData; filtered: Projec
 
   const DAY_PX = timeScale === 'week' ? 42 : timeScale === 'month' ? 17 : timeScale === 'semester' ? 4 : 1.5;
 
-  const displayMin = (timeScale === 'year' || timeScale === 'semester')
-    ? `${new Date(minProjDate).getFullYear()}-01-01`
-    : minProjDate;
-  const displayMax = timeScale === 'year'
-    ? `${Math.max(new Date(maxProjDate).getFullYear(), new Date(minProjDate).getFullYear() + 2)}-12-31`
-    : timeScale === 'semester'
-    ? `${new Date(maxProjDate).getFullYear()}-12-31`
-    : maxProjDate;
+  // Anchor on earliest project date, fixed window per scale
+  const anchorD    = new Date(minProjDate);
+  const anchorYear = anchorD.getFullYear();
+  const anchorMon  = anchorD.getMonth();
 
-  const totalDays = Math.max(daysBetween(displayMin, displayMax) + 1, 30);
+  function addDaysPG(d: string, n: number) {
+    const dt = new Date(d); dt.setDate(dt.getDate() + n); return dt.toISOString().slice(0,10);
+  }
+  let displayMin: string;
+  let displayMax: string;
+  if (timeScale === 'week') {
+    const d = new Date(minProjDate);
+    const dow = d.getDay(); d.setDate(d.getDate() - (dow === 0 ? 6 : dow - 1));
+    displayMin = d.toISOString().slice(0,10);
+    displayMax = addDaysPG(displayMin, 12 * 7 - 1);
+  } else if (timeScale === 'month') {
+    displayMin = `${anchorYear}-${String(anchorMon + 1).padStart(2,'0')}-01`;
+    displayMax = new Date(anchorYear, anchorMon + 6, 0).toISOString().slice(0,10);
+  } else if (timeScale === 'semester') {
+    const semStart = anchorMon < 6 ? 0 : 6;
+    displayMin = `${anchorYear}-${String(semStart + 1).padStart(2,'0')}-01`;
+    displayMax = new Date(anchorYear + 1, semStart + 12, 0).toISOString().slice(0,10);
+  } else {
+    displayMin = `${anchorYear}-01-01`;
+    displayMax = `${anchorYear + 2}-12-31`;
+  }
+
+  const totalDays = Math.max(daysBetween(displayMin, displayMax) + 1, 7);
   const chartW = totalDays * DAY_PX;
   const todayX = daysBetween(displayMin, today) * DAY_PX;
   const ROW_H = 38;

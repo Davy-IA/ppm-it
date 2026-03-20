@@ -146,15 +146,36 @@ export default function GanttView({ data, updateData, initialProjectId, onMounte
   const minDate = range?.start ?? new Date().toISOString().slice(0,10);
   const maxDate = range?.end ?? addDays(minDate, 90);
   // For year view: extend to cover full calendar years around the project
-  const displayMin = (timeScale === 'year' || timeScale === 'semester') && range
-    ? `${new Date(range.start).getFullYear()}-01-01`
-    : minDate;
-  const displayMax = timeScale === 'year' && range
-    ? `${Math.max(new Date(range.end).getFullYear(), new Date(range.start).getFullYear() + 2)}-12-31`
-    : timeScale === 'semester' && range
-    ? `${new Date(range.end).getFullYear()}-12-31`
-    : addDays(maxDate, 14);
-  const totalDays = Math.max(daysBetween(displayMin, displayMax), 60);
+  // displayMin: start of current period. displayMax: fixed window per scale.
+  // Anchor on project start, fixed window per scale
+  const anchorDate = minDate;
+  const anchorD    = new Date(anchorDate);
+  const anchorYear = anchorD.getFullYear();
+  const anchorMon  = anchorD.getMonth(); // 0-11
+
+  let displayMin: string;
+  let displayMax: string;
+  if (timeScale === 'week') {
+    // Monday of anchor week → +12 weeks
+    const d = new Date(anchorDate);
+    const dow = d.getDay(); d.setDate(d.getDate() - (dow === 0 ? 6 : dow - 1));
+    displayMin = d.toISOString().slice(0,10);
+    displayMax = addDays(displayMin, 12 * 7 - 1);
+  } else if (timeScale === 'month') {
+    // 1st of anchor month → +6 months
+    displayMin = `${anchorYear}-${String(anchorMon + 1).padStart(2,'0')}-01`;
+    displayMax = new Date(anchorYear, anchorMon + 6, 0).toISOString().slice(0,10);
+  } else if (timeScale === 'semester') {
+    // 1st of anchor semester (Jan or Jul) → +3 semesters (18 months)
+    const semStart = anchorMon < 6 ? 0 : 6;
+    displayMin = `${anchorYear}-${String(semStart + 1).padStart(2,'0')}-01`;
+    displayMax = new Date(anchorYear + 1, semStart + 12, 0).toISOString().slice(0,10);
+  } else {
+    // Jan 1 of anchor year → 3 full years
+    displayMin = `${anchorYear}-01-01`;
+    displayMax = `${anchorYear + 2}-12-31`;
+  }
+  const totalDays = Math.max(daysBetween(displayMin, displayMax) + 1, 7);
   const chartW = totalDays * DAY_PX_DYN;
   const LEFT_W = 260;
   const today = new Date().toISOString().slice(0,10);
