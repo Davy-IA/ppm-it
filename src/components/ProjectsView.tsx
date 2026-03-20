@@ -442,38 +442,81 @@ export default function ProjectsView({ data, updateData, setView, onNavigateToPl
 // ─── Portfolio Gantt View ────────────────────────────────────────────────────
 // ── Portfolio Gantt ──────────────────────────────────────────────────────────
 function PortfolioGantt({ data, filtered, t }: { data: AppData; filtered: Project[]; t: Function }) {
+  const { settings } = useSettings(); const locale = settings.locale ?? 'fr';
+  const [timeScale, setTimeScale] = useState<'week' | 'month' | 'semester' | 'year'>('month');
+  const [showScaleMenu, setShowScaleMenu] = useState(false);
   const now = new Date();
+  const today = now.toISOString().slice(0, 10);
+  const LEFT_W = 220;
 
-  // Compute display range from filtered projects or default to current year
+  // Compute display range from filtered projects
   const projectDates = filtered.flatMap(p => [p.startDate, p.goLive, (p as any).hypercare].filter(Boolean) as string[]);
   const minProjDate = projectDates.length ? projectDates.reduce((a,b) => a<b?a:b) : `${now.getFullYear()}-01-01`;
   const maxProjDate = projectDates.length ? projectDates.reduce((a,b) => a>b?a:b) : `${now.getFullYear()}-12-31`;
 
-  // Expand range to full years
-  const rangeStart = `${new Date(minProjDate).getFullYear()}-01-01`;
-  const rangeEnd   = `${new Date(maxProjDate).getFullYear()}-12-31`;
-
-  const DAY = 2.8;
-  const LEFT_W = 220;
-  const today = now.toISOString().slice(0, 10);
-
   function daysBetween(a: string, b: string) {
     return Math.round((new Date(b).getTime() - new Date(a).getTime()) / 86400000);
   }
-  const totalDays = Math.max(daysBetween(rangeStart, rangeEnd) + 1, 30);
-  const chartW = totalDays * DAY;
-  const todayX = Math.max(0, daysBetween(rangeStart, today)) * DAY;
+
+  const DAY_PX = timeScale === 'week' ? 42 : timeScale === 'month' ? 17 : timeScale === 'semester' ? 4 : 1.5;
+
+  const displayMin = (timeScale === 'year' || timeScale === 'semester')
+    ? `${new Date(minProjDate).getFullYear()}-01-01`
+    : minProjDate;
+  const displayMax = timeScale === 'year'
+    ? `${Math.max(new Date(maxProjDate).getFullYear(), new Date(minProjDate).getFullYear() + 2)}-12-31`
+    : timeScale === 'semester'
+    ? `${new Date(maxProjDate).getFullYear()}-12-31`
+    : maxProjDate;
+
+  const totalDays = Math.max(daysBetween(displayMin, displayMax) + 1, 30);
+  const chartW = totalDays * DAY_PX;
+  const todayX = daysBetween(displayMin, today) * DAY_PX;
   const ROW_H = 38;
 
-  // Month columns with year label
-  const months: { label: string; left: number; width: number }[] = [];
-  let cur = new Date(rangeStart); cur.setDate(1);
-  while (cur.toISOString().slice(0,10) <= rangeEnd) {
-    const mEnd = new Date(cur.getFullYear(), cur.getMonth()+1, 0);
-    const left = Math.max(0, daysBetween(rangeStart, cur.toISOString().slice(0,10))) * DAY;
-    const right = Math.min(totalDays, daysBetween(rangeStart, mEnd.toISOString().slice(0,10))) * DAY;
-    months.push({ label: cur.toLocaleDateString('fr-FR', { month: 'short', year: '2-digit' }), left, width: right - left });
-    cur.setMonth(cur.getMonth()+1);
+  const localeStr = ({ fr: 'fr-FR', en: 'en-US', pt: 'pt-BR', zh: 'zh-CN' } as Record<string,string>)[locale] ?? 'fr-FR';
+
+  // Build columns — identical logic to GanttView
+  const columns: { label: string; left: number; width: number }[] = [];
+  if (timeScale === 'week') {
+    let cur = new Date(displayMin);
+    const dow = cur.getDay();
+    cur.setDate(cur.getDate() - (dow === 0 ? 6 : dow - 1));
+    while (daysBetween(displayMin, cur.toISOString().slice(0,10)) < totalDays) {
+      const wEnd = new Date(cur); wEnd.setDate(wEnd.getDate() + 6);
+      const left = Math.max(0, daysBetween(displayMin, cur.toISOString().slice(0,10))) * DAY_PX;
+      const right = Math.min(totalDays, daysBetween(displayMin, wEnd.toISOString().slice(0,10)) + 1) * DAY_PX;
+      columns.push({ label: cur.toLocaleDateString(localeStr, { day: 'numeric', month: 'short' }), left, width: right - left });
+      cur.setDate(cur.getDate() + 7);
+    }
+  } else if (timeScale === 'semester') {
+    let cur = new Date(displayMin); cur.setMonth(cur.getMonth() < 6 ? 0 : 6, 1);
+    while (daysBetween(displayMin, cur.toISOString().slice(0,10)) < totalDays) {
+      const isS1 = cur.getMonth() === 0;
+      const sEnd = new Date(cur.getFullYear(), isS1 ? 5 : 11, isS1 ? 30 : 31);
+      const left = Math.max(0, daysBetween(displayMin, cur.toISOString().slice(0,10))) * DAY_PX;
+      const right = Math.min(totalDays, daysBetween(displayMin, sEnd.toISOString().slice(0,10)) + 1) * DAY_PX;
+      columns.push({ label: `S${isS1 ? 1 : 2} ${cur.getFullYear()}`, left, width: right - left });
+      cur.setMonth(cur.getMonth() + 6);
+    }
+  } else if (timeScale === 'year') {
+    let cur = new Date(displayMin); cur.setMonth(0, 1);
+    while (daysBetween(displayMin, cur.toISOString().slice(0,10)) < totalDays) {
+      const yEnd = new Date(cur.getFullYear(), 11, 31);
+      const left = Math.max(0, daysBetween(displayMin, cur.toISOString().slice(0,10))) * DAY_PX;
+      const right = Math.min(totalDays, daysBetween(displayMin, yEnd.toISOString().slice(0,10)) + 1) * DAY_PX;
+      columns.push({ label: String(cur.getFullYear()), left, width: right - left });
+      cur.setFullYear(cur.getFullYear() + 1);
+    }
+  } else {
+    let cur = new Date(displayMin); cur.setDate(1);
+    while (daysBetween(displayMin, cur.toISOString().slice(0,10)) < totalDays) {
+      const mEnd = new Date(cur.getFullYear(), cur.getMonth() + 1, 0);
+      const left = Math.max(0, daysBetween(displayMin, cur.toISOString().slice(0,10))) * DAY_PX;
+      const right = Math.min(totalDays, daysBetween(displayMin, mEnd.toISOString().slice(0,10)) + 1) * DAY_PX;
+      columns.push({ label: cur.toLocaleDateString(localeStr, { month: 'short', year: '2-digit' }), left, width: right - left });
+      cur.setMonth(cur.getMonth() + 1);
+    }
   }
 
   const statusColor: Record<string, string> = {
@@ -485,101 +528,116 @@ function PortfolioGantt({ data, filtered, t }: { data: AppData; filtered: Projec
     '6-Aborted': 'var(--danger)',
   };
 
+  const scaleLabel = timeScale === 'week' ? t('scale_week') : timeScale === 'month' ? t('scale_month') : timeScale === 'semester' ? t('scale_semester') : t('scale_year');
+
   return (
-    <div className="card" style={{ padding: 0, overflow: 'visible', marginTop: 16 }}>
-      <div style={{ overflow: 'auto', maxHeight: 'calc(100vh - 170px)' }}>
-        <div style={{ minWidth: LEFT_W + chartW + 40 }}>
-
-          {/* Month header */}
-          <div style={{ display: 'flex', borderBottom: '1px solid var(--border)', background: 'var(--bg3)', position: 'sticky', top: 0, zIndex: 6 }}>
-            <div style={{ width: LEFT_W, flexShrink: 0, padding: '8px 14px', fontSize: 11, fontWeight: 700, color: 'var(--text-faint)', textTransform: 'uppercase' as const, letterSpacing: '0.07em', position: 'sticky', left: 0, zIndex: 25, background: 'var(--bg3)' }}>
-              {t('project_name')}
-            </div>
-            <div style={{ flex: 1, position: 'relative', height: 32 }}>
-              {months.map((m, i) => (
-                <div key={i} style={{ position: 'absolute', left: m.left, width: m.width, top: 0, bottom: 0, borderLeft: '1px solid var(--border)', display: 'flex', alignItems: 'center', paddingLeft: 6 }}>
-                  <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-faint)', textTransform: 'uppercase' as const, letterSpacing: '0.06em' }}>{m.label}</span>
-                </div>
-              ))}
-              {todayX >= 0 && todayX <= chartW && (
-                <div style={{ position: 'absolute', left: todayX, top: 0, bottom: 0, width: 2, background: 'var(--accent)', opacity: 0.5 }} />
-              )}
-            </div>
-          </div>
-
-          {/* Project rows */}
-          {filtered.map((p, idx) => {
-            const barStart = p.startDate ? Math.max(0, daysBetween(rangeStart, p.startDate)) : null;
-            const barGl    = p.goLive    ? Math.min(totalDays, daysBetween(rangeStart, p.goLive)) : null;
-            const hc       = (p as any).hypercare as string | null;
-            const barHc    = hc ? Math.min(totalDays, daysBetween(rangeStart, hc)) : null;
-            const hasBar   = barStart !== null && barGl !== null;
-            const glX      = barGl !== null ? barGl * DAY : null;
-            const hcX      = barHc !== null ? barHc * DAY : null;
-            const color    = statusColor[p.status ?? ''] ?? 'var(--accent)';
-
-            return (
-              <div key={p.id} style={{ display: 'flex', borderBottom: '1px solid var(--border)', background: idx % 2 === 0 ? 'transparent' : 'var(--bg3)', minHeight: ROW_H }}>
-                <div style={{ width: LEFT_W, flexShrink: 0, padding: '0 14px', display: 'flex', alignItems: 'center', position: 'sticky', left: 0, zIndex: 20, background: 'var(--bg2)' }}>
-                  <span style={{ fontSize: 12, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const, maxWidth: LEFT_W - 28 }} title={p.name}>{p.name}</span>
-                </div>
-                <div style={{ flex: 1, position: 'relative', height: ROW_H }}>
-                  {/* Grid lines */}
-                  {months.map((m, i) => (
-                    <div key={i} style={{ position: 'absolute', left: m.left, top: 0, bottom: 0, width: 1, background: 'var(--border)', opacity: 0.4 }} />
-                  ))}
-                  {/* Today */}
-                  {todayX >= 0 && todayX <= chartW && (
-                    <div style={{ position: 'absolute', left: todayX, top: 0, bottom: 0, width: 2, background: 'var(--accent)', opacity: 0.35, zIndex: 4 }} />
-                  )}
-                  {/* Main bar start → goLive */}
-                  {hasBar && barStart! * DAY <= chartW && barGl! * DAY >= 0 && (
-                    <div style={{ position: 'absolute', left: Math.max(0, barStart!) * DAY, width: Math.max(4, Math.min(chartW, barGl! * DAY) - Math.max(0, barStart!) * DAY), top: 9, height: 20, background: color, borderRadius: hcX ? '4px 0 0 4px' : '4px', zIndex: 3, opacity: 0.85 }} title={`${p.name}: ${p.startDate} → ${p.goLive}`} />
-                  )}
-                  {/* Hypercare bar goLive → hypercare */}
-                  {hasBar && glX !== null && hcX !== null && glX <= chartW && hcX >= 0 && (
-                    <div style={{ position: 'absolute', left: Math.max(0, glX), width: Math.max(4, Math.min(chartW, hcX) - Math.max(0, glX)), top: 9, height: 20, background: color, opacity: 0.22, borderRadius: '0 4px 4px 0', zIndex: 3, backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 3px, rgba(255,255,255,0.35) 3px, rgba(255,255,255,0.35) 6px)' }} title={`Hypercare: ${p.goLive} → ${hc}`} />
-                  )}
-                  {/* ◆ Go-live diamond */}
-                  {glX !== null && glX >= -4 && glX <= chartW + 4 && (
-                    <div style={{ position: 'absolute', left: glX - 7, top: '50%', transform: 'translateY(-50%) rotate(45deg)', width: 12, height: 12, background: color, border: '2px solid white', boxShadow: '0 1px 4px rgba(0,0,0,0.25)', zIndex: 5 }} title={`Go-Live: ${p.goLive}`} />
-                  )}
-                  {/* Manual milestones */}
-                  {(data.milestones ?? []).filter(m => m.projectId === p.id && !m.isAutoGoLive).map(m => {
-                    const mx = daysBetween(rangeStart, m.date) * DAY;
-                    if (mx < -10 || mx > chartW + 10) return null;
-                    return (
-                      <div key={m.id} style={{ position: 'absolute', left: mx - 5, top: '50%', transform: 'translateY(-50%) rotate(45deg)', width: 9, height: 9, background: 'var(--accent2)', border: '1.5px solid white', zIndex: 5 }} title={`${m.name}: ${m.date}`} />
-                    );
-                  })}
-                </div>
+    <div style={{ marginTop: 16 }}>
+      {/* Scale selector toolbar */}
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
+        <div style={{ position: 'relative' }}>
+          <button onClick={() => setShowScaleMenu(m => !m)}
+            style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '6px 11px', borderRadius: 8, border: '1.5px solid var(--border)', background: 'var(--bg2)', color: 'var(--text-muted)', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M1 6h10M1 3h10M1 9h6" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg>
+            {String(scaleLabel)}
+            <svg width="8" height="8" viewBox="0 0 8 8" fill="none"><path d="M1 3l3 3 3-3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg>
+          </button>
+          {showScaleMenu && (
+            <>
+              <div style={{ position: 'fixed', inset: 0, zIndex: 49 }} onClick={() => setShowScaleMenu(false)} />
+              <div style={{ position: 'absolute', right: 0, top: 'calc(100% + 4px)', background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 10, boxShadow: '0 8px 24px rgba(99,102,241,0.15)', zIndex: 50, overflow: 'hidden', minWidth: 140 }}>
+                {(['week', 'month', 'semester', 'year'] as const).map(scale => (
+                  <button key={scale} onClick={() => { setTimeScale(scale); setShowScaleMenu(false); }}
+                    style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '9px 14px', border: 'none', background: timeScale === scale ? 'var(--accent-subtle)' : 'none', color: timeScale === scale ? 'var(--accent)' : 'var(--text)', cursor: 'pointer', fontSize: 13, fontWeight: timeScale === scale ? 700 : 400, fontFamily: 'inherit', textAlign: 'left' as const }}>
+                    {timeScale === scale && <span style={{ color: 'var(--accent)', fontSize: 10 }}>✓</span>}
+                    {scale === 'week' ? String(t('scale_week')) : scale === 'month' ? String(t('scale_month')) : scale === 'semester' ? String(t('scale_semester')) : String(t('scale_year'))}
+                  </button>
+                ))}
               </div>
-            );
-          })}
-
-          {filtered.length === 0 && (
-            <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-faint)' }}>{t('no_project')}</div>
+            </>
           )}
         </div>
       </div>
 
-      {/* Legend */}
-      <div style={{ padding: '10px 16px', borderTop: '1px solid var(--border)', display: 'flex', gap: 20, flexWrap: 'wrap', background: 'var(--bg3)', alignItems: 'center' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: 'var(--text-muted)' }}>
-          <div style={{ width: 24, height: 8, borderRadius: 2, background: 'var(--accent)', opacity: 0.85 }} />
-          <span>{t('legend_project_bar')}</span>
+      <div className="card" style={{ padding: 0, overflow: 'visible' }}>
+        <div style={{ overflow: 'auto', maxHeight: 'calc(100vh - 210px)' }}>
+          <div style={{ minWidth: LEFT_W + chartW }}>
+            {/* Header row — sticky */}
+            <div style={{ display: 'flex', background: 'var(--bg3)', borderBottom: '2px solid var(--border)', position: 'sticky', top: 0, zIndex: 6 }}>
+              <div style={{ width: LEFT_W, minWidth: LEFT_W, flexShrink: 0, height: 36, display: 'flex', alignItems: 'center', padding: '0 14px', fontSize: 11, fontWeight: 700, color: 'var(--text-faint)', textTransform: 'uppercase' as const, letterSpacing: '0.07em', position: 'sticky', left: 0, zIndex: 25, background: 'var(--bg3)', borderRight: '1px solid var(--border)' }}>
+                {t('project_name')}
+              </div>
+              <div style={{ width: chartW, flexShrink: 0, position: 'relative', height: 36 }}>
+                {columns.map((col, i) => (
+                  <div key={i} style={{ position: 'absolute', left: col.left, width: col.width, height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', borderLeft: '1px solid var(--border)', fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'capitalize' as const, overflow: 'hidden' }}>
+                    {col.label}
+                  </div>
+                ))}
+                {todayX >= 0 && todayX <= chartW && (
+                  <div style={{ position: 'absolute', left: todayX, top: 0, bottom: 0, width: 2, background: 'var(--accent)', opacity: 0.5 }} />
+                )}
+              </div>
+            </div>
+
+            {/* Project rows */}
+            {filtered.map((p, idx) => {
+              const barStart = p.startDate ? daysBetween(displayMin, p.startDate) : null;
+              const barGl    = p.goLive    ? daysBetween(displayMin, p.goLive)    : null;
+              const hc       = (p as any).hypercare as string | null;
+              const barHc    = hc          ? daysBetween(displayMin, hc)          : null;
+              const hasBar   = barStart !== null && barGl !== null;
+              const glX      = barGl !== null ? barGl * DAY_PX : null;
+              const hcX      = barHc !== null ? barHc * DAY_PX : null;
+              const color    = statusColor[p.status ?? ''] ?? 'var(--accent)';
+
+              return (
+                <div key={p.id} style={{ display: 'flex', borderBottom: '1px solid var(--border)', background: idx % 2 === 0 ? 'var(--bg2)' : 'var(--bg3)', minHeight: ROW_H }}>
+                  <div style={{ width: LEFT_W, minWidth: LEFT_W, flexShrink: 0, padding: '0 14px', display: 'flex', alignItems: 'center', position: 'sticky', left: 0, zIndex: 20, background: idx % 2 === 0 ? 'var(--bg2)' : 'var(--bg3)', borderRight: '1px solid var(--border)' }}>
+                    <span style={{ fontSize: 12, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const, maxWidth: LEFT_W - 28 }} title={p.name}>{p.name}</span>
+                  </div>
+                  <div style={{ width: chartW, flexShrink: 0, position: 'relative', height: ROW_H }}>
+                    {/* Grid lines */}
+                    {columns.map((col, i) => (
+                      <div key={i} style={{ position: 'absolute', left: col.left, top: 0, bottom: 0, width: 1, background: 'var(--border)', opacity: 0.5 }} />
+                    ))}
+                    {/* Today line */}
+                    {todayX >= 0 && todayX <= chartW && (
+                      <div style={{ position: 'absolute', left: todayX, top: 0, bottom: 0, width: 2, background: 'var(--accent)', opacity: 0.35, zIndex: 4 }} />
+                    )}
+                    {/* Main bar */}
+                    {hasBar && barStart! * DAY_PX <= chartW && barGl! * DAY_PX >= 0 && (
+                      <div style={{ position: 'absolute', left: Math.max(0, barStart!) * DAY_PX, width: Math.max(4, Math.min(chartW, barGl! * DAY_PX) - Math.max(0, barStart!) * DAY_PX), top: 9, height: 20, background: color, borderRadius: hcX ? '4px 0 0 4px' : '4px', zIndex: 3, opacity: 0.85 }} title={`${p.name}: ${p.startDate} → ${p.goLive}`} />
+                    )}
+                    {/* Hypercare bar */}
+                    {hasBar && glX !== null && hcX !== null && glX <= chartW && hcX >= 0 && (
+                      <div style={{ position: 'absolute', left: Math.max(0, glX), width: Math.max(4, Math.min(chartW, hcX) - Math.max(0, glX)), top: 9, height: 20, background: color, opacity: 0.22, borderRadius: '0 4px 4px 0', zIndex: 3, backgroundImage: 'repeating-linear-gradient(45deg,transparent,transparent 3px,rgba(255,255,255,.35) 3px,rgba(255,255,255,.35) 6px)' }} />
+                    )}
+                    {/* ◆ Go-live */}
+                    {glX !== null && glX >= -4 && glX <= chartW + 4 && (
+                      <div style={{ position: 'absolute', left: glX - 7, top: '50%', transform: 'translateY(-50%) rotate(45deg)', width: 12, height: 12, background: color, border: '2px solid white', boxShadow: '0 1px 4px rgba(0,0,0,.25)', zIndex: 5 }} title={`Go-Live: ${p.goLive}`} />
+                    )}
+                    {/* Manual milestones */}
+                    {(data.milestones ?? []).filter(m => m.projectId === p.id && !m.isAutoGoLive).map(m => {
+                      const mx = daysBetween(displayMin, m.date) * DAY_PX;
+                      if (mx < -10 || mx > chartW + 10) return null;
+                      return <div key={m.id} style={{ position: 'absolute', left: mx - 5, top: '50%', transform: 'translateY(-50%) rotate(45deg)', width: 9, height: 9, background: 'var(--accent2)', border: '1.5px solid white', zIndex: 5 }} title={`${m.name}: ${m.date}`} />;
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+
+            {filtered.length === 0 && (
+              <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-faint)' }}>{t('no_project')}</div>
+            )}
+          </div>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: 'var(--text-muted)' }}>
-          <div style={{ width: 24, height: 8, borderRadius: 2, background: 'var(--accent)', opacity: 0.22, backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 3px, rgba(255,255,255,0.5) 3px, rgba(255,255,255,0.5) 6px)' }} />
-          <span>{t('legend_hypercare')}</span>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: 'var(--text-muted)' }}>
-          <div style={{ width: 10, height: 10, transform: 'rotate(45deg)', background: 'var(--accent)', border: '1.5px solid white', boxShadow: '0 1px 3px rgba(0,0,0,0.2)', flexShrink: 0 }} />
-          <span>{t('legend_golive')}</span>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: 'var(--text-muted)' }}>
-          <div style={{ width: 2, height: 14, background: 'var(--accent)', opacity: 0.5 }} />
-          <span>{t('today')}</span>
+
+        {/* Legend */}
+        <div style={{ padding: '8px 16px', borderTop: '1px solid var(--border)', display: 'flex', gap: 20, flexWrap: 'wrap', background: 'var(--bg3)', alignItems: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: 'var(--text-muted)' }}><div style={{ width: 24, height: 8, borderRadius: 2, background: 'var(--accent)', opacity: 0.85 }} /><span>{t('legend_project_bar')}</span></div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: 'var(--text-muted)' }}><div style={{ width: 24, height: 8, borderRadius: 2, background: 'var(--accent)', opacity: 0.22, backgroundImage: 'repeating-linear-gradient(45deg,transparent,transparent 3px,rgba(255,255,255,.5) 3px,rgba(255,255,255,.5) 6px)' }} /><span>{t('legend_hypercare')}</span></div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: 'var(--text-muted)' }}><div style={{ width: 10, height: 10, transform: 'rotate(45deg)', background: 'var(--accent)', border: '1.5px solid white', flexShrink: 0 }} /><span>{t('legend_golive')}</span></div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: 'var(--text-muted)' }}><div style={{ width: 2, height: 14, background: 'var(--accent)', opacity: 0.5 }} /><span>{t('today')}</span></div>
         </div>
       </div>
     </div>
