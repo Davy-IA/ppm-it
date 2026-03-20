@@ -227,30 +227,34 @@ export default function GanttView({ data, updateData }: Props) {
         </div>
       </div>
 
-      {/* Coherence alert */}
-      {overdue && <div style={{ marginBottom: 14, padding: '12px 16px', background: 'var(--danger-subtle)', border: '1px solid var(--danger)', borderRadius: 'var(--radius-sm)', color: 'var(--danger)', fontSize: 13, fontWeight: 500, display:'flex', gap:10, alignItems:'center' }}>
-        <span style={{fontSize:20}}>⚠</span>
-        <div><strong>{t('overdue_alert').replace('{end}', fmt(ganttEnd!)).replace('{golive}', fmt(endDeadline!))}</strong><br/><span style={{fontSize:12,opacity:0.8}}>{t('overdue_hint')}</span></div>
-      </div>}
-      {!overdue && ganttEnd && goLive && <div style={{ marginBottom: 14, padding: '10px 16px', background: 'var(--success-subtle)', border: '1px solid var(--success)', borderRadius: 'var(--radius-sm)', color: 'var(--success)', fontSize: 13, fontWeight: 600, display:'flex', gap:8, alignItems:'center' }}>
-        {t('gantt_ok').replace('{end}', fmt(ganttEnd??'')).replace('{golive}', fmt(endDeadline??''))}
-      </div>}
-
-      {/* KPI row */}
+      {/* Compact info bar + coherence indicator */}
       {phases.length > 0 && range && (
-        <div style={{ display: 'flex', gap: 12, marginBottom: 18, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: 8, marginBottom: 14, alignItems: 'center', flexWrap: 'wrap', padding: '8px 0' }}>
+          {/* Compact KPI pills */}
           {[
             { label: t('gantt_start'), value: fmt(range.start) },
             { label: t('gantt_end'), value: fmt(ganttEnd!), danger: !!overdue },
             { label: t('gantt_duration'), value: `${daysBetween(range.start, ganttEnd!)}${t('days')}` },
-            { label: t('gantt_phases'), value: phases.length },
-            { label: t('gantt_subphases'), value: phases.reduce((s,p)=>s+p.subphases.length,0) },
+            { label: t('gantt_phases'), value: `${phases.length} ${String(t('gantt_phases')).toLowerCase()}` },
+            { label: t('gantt_subphases'), value: `${phases.reduce((s,p)=>s+p.subphases.length,0)} ${String(t('gantt_subphases')).toLowerCase()}` },
           ].map(k => (
-            <div key={k.label} className="card" style={{ padding: '10px 18px', minWidth: 110 }}>
-              <div style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--text-faint)', marginBottom: 4 }}>{k.label}</div>
-              <div style={{ fontWeight: 800, fontSize: 15, color: k.danger ? 'var(--danger)' : 'var(--text)' }}>{k.value}</div>
-            </div>
+            <span key={k.label} style={{ fontSize: 12, fontWeight: 600, color: k.danger ? 'var(--danger)' : 'var(--text-muted)', background: 'var(--bg3)', border: `1px solid ${k.danger ? 'var(--danger)' : 'var(--border)'}`, borderRadius: 20, padding: '3px 10px', whiteSpace: 'nowrap' as const }}>
+              {k.label} : <span style={{ color: k.danger ? 'var(--danger)' : 'var(--text)', fontWeight: 700 }}>{k.value}</span>
+            </span>
           ))}
+          {/* Coherence badge — pushed to right */}
+          <div style={{ marginLeft: 'auto' }}>
+            {overdue && ganttEnd && endDeadline && (
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 600, color: 'var(--danger)', background: 'var(--danger-subtle)', border: '1px solid var(--danger)', borderRadius: 20, padding: '4px 12px' }}>
+                ⚠ {t('overdue_alert').replace('{end}', fmt(ganttEnd)).replace('{golive}', fmt(endDeadline))}
+              </span>
+            )}
+            {!overdue && ganttEnd && goLive && (
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 600, color: 'var(--success)', background: 'var(--success-subtle)', border: '1px solid var(--success)', borderRadius: 20, padding: '4px 12px' }}>
+                ✓ {t('gantt_ok').replace('{end}', fmt(ganttEnd??'')).replace('{golive}', fmt(endDeadline??''))}
+              </span>
+            )}
+          </div>
         </div>
       )}
 
