@@ -468,6 +468,7 @@ export const translations = {
     filters_btn: 'Filtres',
     clear_filters: 'Effacer',
     projects_count: 'projets',
+    profiles_label: 'profils',
   },
   en: {
     nav_dashboard: 'Dashboard',
@@ -927,6 +928,7 @@ export const translations = {
     filters_btn: 'Filters',
     clear_filters: 'Clear',
     projects_count: 'projects',
+    profiles_label: 'profiles',
   },
   pt: {
     nav_dashboard: 'Painel',
@@ -1386,6 +1388,7 @@ export const translations = {
     filters_btn: 'Filtros',
     clear_filters: 'Limpar',
     projects_count: 'projetos',
+    profiles_label: 'perfis',
   },
   zh: {
     nav_dashboard: '仪表板',
@@ -1845,6 +1848,7 @@ export const translations = {
     filters_btn: '筛选',
     clear_filters: '清除',
     projects_count: '项目',
+    profiles_label: '角色',
   },
 } as const;
 

@@ -16,6 +16,15 @@ export default function CapacityView({ data }: Props) {
   const [viewMode, setViewMode] = useState<ViewMode>('staff');
   const [profileFilter, setProfileFilter] = useState('');
   const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
+  const [showFilters, setShowFilters] = useState(false);
+  // Staff view filters
+  const [staffSearch, setStaffSearch] = useState('');
+  const [deptFilter, setDeptFilter] = useState('');
+  const [typeFilter, setTypeFilter] = useState('');
+  // Project view filters
+  const [projectSearch, setProjectSearch] = useState('');
+  const [projectStatusFilter, setProjectStatusFilter] = useState('');
+  const [projectDomainFilter, setProjectDomainFilter] = useState('');
 
   const months = MONTHS_2026_2028.filter(m => m.startsWith(yearFilter));
   const monthLabel = (m: string) => formatMonth(m, locale);
@@ -23,6 +32,9 @@ export default function CapacityView({ data }: Props) {
   // --- STAFF VIEW: capacity vs allocated per staff ---
   const staffRows = data.staff
     .filter(s => !profileFilter || s.profile === profileFilter)
+    .filter(s => !staffSearch || s.name.toLowerCase().includes(staffSearch.toLowerCase()))
+    .filter(s => !deptFilter || s.department === deptFilter)
+    .filter(s => !typeFilter || s.type === typeFilter)
     .map(s => {
       const rowData: Record<string, number> = {};
       const allocData: Record<string, number> = {};
@@ -101,6 +113,10 @@ export default function CapacityView({ data }: Props) {
     return { cls: 'cap-cell cap-under', label: `${alloc}/${cap}` };
   };
 
+  const activeFilters =
+    (viewMode === 'staff' ? [staffSearch, deptFilter, typeFilter] : [projectSearch, projectStatusFilter, projectDomainFilter])
+    .filter(Boolean).length + (profileFilter ? 1 : 0);
+
   return (
     <div className="animate-in">
       <div style={{ marginBottom: 24 }}>
@@ -109,10 +125,11 @@ export default function CapacityView({ data }: Props) {
       </div>
 
       {/* Controls */}
-      <div style={{ display: 'flex', gap: 10, marginBottom: 16, flexWrap: 'wrap', alignItems: 'center' }}>
+      <div style={{ display: 'flex', gap: 10, marginBottom: showFilters ? 0 : 16, flexWrap: 'wrap', alignItems: 'center' }}>
         <div style={{ display: 'flex', background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 6, padding: 3, gap: 3 }}>
           {(['staff', 'project', 'profile'] as ViewMode[]).map(m => (
-            <button key={m} className={`btn btn-sm ${viewMode === m ? 'btn-primary' : 'btn-ghost'}`} onClick={() => setViewMode(m)}>
+            <button key={m} className={`btn btn-sm ${viewMode === m ? 'btn-primary' : 'btn-ghost'}`}
+              onClick={() => { setViewMode(m); setShowFilters(false); }}>
               {m === 'staff' ? t('by_resource') : m === 'project' ? t('by_project') : t('by_profile')}
             </button>
           ))}
@@ -126,7 +143,78 @@ export default function CapacityView({ data }: Props) {
           <option value="">{t('all_profiles')}</option>
           {PROFILES.map(p => <option key={p}>{p}</option>)}
         </select>
+
+        {/* Filter button — only for staff and project views */}
+        {viewMode !== 'profile' && (
+          <button onClick={() => setShowFilters(f => !f)}
+            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 12px', borderRadius: 8, border: `1.5px solid ${activeFilters > 0 ? 'var(--accent)' : 'var(--border)'}`, background: activeFilters > 0 ? 'var(--accent-subtle)' : 'var(--bg2)', color: activeFilters > 0 ? 'var(--accent)' : 'var(--text-muted)', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.15s' }}>
+            <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M1 3h11M3 6.5h7M5 10h3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+            {t('filters_btn')}
+            {activeFilters > 0 && <span style={{ background: 'var(--accent)', color: '#fff', borderRadius: 10, padding: '1px 6px', fontSize: 10, fontWeight: 700 }}>{activeFilters}</span>}
+          </button>
+        )}
+        {activeFilters > 0 && (
+          <button onClick={() => { setStaffSearch(''); setDeptFilter(''); setTypeFilter(''); setProjectSearch(''); setProjectStatusFilter(''); setProjectDomainFilter(''); setProfileFilter(''); }}
+            style={{ fontSize: 11, color: 'var(--danger)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 600 }}>
+            ✕ {t('clear_filters')}
+          </button>
+        )}
+        <span style={{ marginLeft: 'auto', fontSize: 12, color: 'var(--text-faint)' }}>
+          {viewMode === 'staff' ? `${staffRows.length} / ${data.staff.length} ${t('resources')}` :
+           viewMode === 'project' ? `${projectRows.length} ${t('projects_count')}` :
+           `${profileRows.length} ${t('profiles_label')}`}
+        </span>
       </div>
+
+      {/* Advanced filter panel */}
+      {showFilters && viewMode === 'staff' && (
+        <div style={{ background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 12, padding: 16, marginBottom: 16, display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 12 }}>
+          <div>
+            <label style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-faint)', textTransform: 'uppercase' as const, letterSpacing: '0.07em', display: 'block', marginBottom: 5 }}>{t('search')}</label>
+            <input className="input" value={staffSearch} onChange={e => setStaffSearch(e.target.value)} placeholder={t('search') as string} style={{ fontSize: 12 }} />
+          </div>
+          <div>
+            <label style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-faint)', textTransform: 'uppercase' as const, letterSpacing: '0.07em', display: 'block', marginBottom: 5 }}>{t('field_dept')}</label>
+            <select className="input" value={deptFilter} onChange={e => setDeptFilter(e.target.value)} style={{ fontSize: 12 }}>
+              <option value="">— {t('all')} —</option>
+              {data.staff.map(s => s.department).filter((v, i, a) => v && a.indexOf(v) === i).sort().map(d => <option key={d} value={d}>{d}</option>)}
+            </select>
+          </div>
+          <div>
+            <label style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-faint)', textTransform: 'uppercase' as const, letterSpacing: '0.07em', display: 'block', marginBottom: 5 }}>{t('field_contract')}</label>
+            <select className="input" value={typeFilter} onChange={e => setTypeFilter(e.target.value)} style={{ fontSize: 12 }}>
+              <option value="">— {t('all')} —</option>
+              <option value="Internal">{t('internal')}</option>
+              <option value="External">{t('external_label')}</option>
+            </select>
+          </div>
+        </div>
+      )}
+
+      {showFilters && viewMode === 'project' && (
+        <div style={{ background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 12, padding: 16, marginBottom: 16, display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 12 }}>
+          <div>
+            <label style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-faint)', textTransform: 'uppercase' as const, letterSpacing: '0.07em', display: 'block', marginBottom: 5 }}>{t('search')}</label>
+            <input className="input" value={projectSearch} onChange={e => setProjectSearch(e.target.value)} placeholder={t('search') as string} style={{ fontSize: 12 }} />
+          </div>
+          <div>
+            <label style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-faint)', textTransform: 'uppercase' as const, letterSpacing: '0.07em', display: 'block', marginBottom: 5 }}>{t('status')}</label>
+            <select className="input" value={projectStatusFilter} onChange={e => setProjectStatusFilter(e.target.value)} style={{ fontSize: 12 }}>
+              <option value="">— {t('all')} —</option>
+              {['1-To arbitrate','2-Validated','3-In progress','4-Frozen','5-Completed','6-Aborted'].map(s => (
+                <option key={s} value={s}>{s.replace(/^\d-/, '')}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-faint)', textTransform: 'uppercase' as const, letterSpacing: '0.07em', display: 'block', marginBottom: 5 }}>{t('domain')}</label>
+            <select className="input" value={projectDomainFilter} onChange={e => setProjectDomainFilter(e.target.value)} style={{ fontSize: 12 }}>
+              <option value="">— {t('all')} —</option>
+              {['APPLI','INFRA','INNOV','DATA'].map(d => <option key={d} value={d}>{d}</option>)}
+            </select>
+          </div>
+        </div>
+      )}
 
       {/* Summary chart */}
       <div className="card" style={{ marginBottom: 16 }}>
