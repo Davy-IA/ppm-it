@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { AppData, Project, DOMAINS, REQUEST_TYPES, STATUSES, DEPARTMENTS, COUNTRIES, SPONSORS } from '@/types';
 import { v4 as uuid } from 'uuid';
 import { useSettings } from '@/lib/context';
+import ConfirmDialog from './ConfirmDialog';
 
 interface Props { data: AppData; updateData: (d: AppData) => void; setView?: (v: string) => void; onNavigateToPlanning?: (projectId: string) => void; }
 
@@ -31,6 +32,7 @@ export default function ProjectsView({ data, updateData, setView, onNavigateToPl
     setAdvFilters(prev => val ? { ...prev, [key]: val } : Object.fromEntries(Object.entries(prev).filter(([k]) => k !== key)));
 
   const activeFilterCount = Object.keys(advFilters).length + (statusFilter ? 1 : 0) + (domainFilter ? 1 : 0);
+  const [confirmAction, setConfirmAction] = useState<(() => void) | null>(null);
   const { t, settings } = useSettings();
 
   // Use space-level overrides if defined, else fall back to global settings, then hardcoded defaults
@@ -319,7 +321,7 @@ export default function ProjectsView({ data, updateData, setView, onNavigateToPl
                   <td>
                     <div style={{ display: 'flex', gap: 4 }}>
                       <button className="btn btn-ghost btn-sm" onClick={() => { setEditing({ ...p }); setIsNew(false); }}>{t('edit_btn')}</button>
-                      <button className="btn btn-danger btn-sm" onClick={() => remove(p.id)}>✕</button>
+                      <button className="btn btn-danger btn-sm" onClick={() => setConfirmAction(() => remove(p.id))}><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 3.5h9M5 3.5V2.5h3v1M10.5 3.5l-.7 7H3.2l-.7-7" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg></button>
                     </div>
                   </td>
                 </tr>
@@ -338,7 +340,7 @@ export default function ProjectsView({ data, updateData, setView, onNavigateToPl
           <div className="modal" onClick={e => e.stopPropagation()}>
             <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <h2 style={{ fontSize: 16, fontWeight: 700 }}>{isNew ? t('new_project_title') : t('edit_project_title')}</h2>
-              <button className="btn btn-ghost btn-sm" onClick={() => setEditing(null)}>✕</button>
+              <button className="btn btn-ghost btn-sm" onClick={() => setEditing(null)}><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 3.5h9M5 3.5V2.5h3v1M10.5 3.5l-.7 7H3.2l-.7-7" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg></button>
             </div>
             <div style={{ padding: 24, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
               <div style={{ gridColumn: '1/-1' }}>
@@ -432,6 +434,7 @@ export default function ProjectsView({ data, updateData, setView, onNavigateToPl
           </div>
         </div>
       )}
+      {confirmAction && <ConfirmDialog onConfirm={() => { confirmAction(); setConfirmAction(null); }} onCancel={() => setConfirmAction(null)} />}
     </div>
   );
 }

@@ -4,10 +4,12 @@ import { formatMonth, formatDate, formatDateTime } from '@/lib/locale-utils';
 import { AppData, WorkloadEntry, AllocationEntry, MONTHS_2026_2028, PROFILES } from '@/types';
 import { v4 as uuid } from 'uuid';
 import { useSettings } from '@/lib/context';
+import ConfirmDialog from './ConfirmDialog';
 
 interface Props { data: AppData; updateData: (d: AppData) => void; }
 
 export default function WorkloadView({ data, updateData }: Props) {
+  const [confirmAction, setConfirmAction] = useState<(() => void) | null>(null);
   const { t, settings } = useSettings();
   const locale = settings.locale ?? 'fr';
   const [projectFilter, setProjectFilter] = useState('');
@@ -275,7 +277,7 @@ export default function WorkloadView({ data, updateData }: Props) {
                       })}
                       <td style={{ fontFamily: 'DM Mono, monospace', fontSize: 12, fontWeight: 600, color: 'var(--accent)' }}>{totalRow > 0 ? `${totalRow}j` : '—'}</td>
                       <td>
-                        <button className="btn btn-danger btn-sm" onClick={() => deleteWorkload(w.id)}>✕</button>
+                        <button className="btn btn-danger btn-sm" onClick={() => setConfirmAction(() => deleteWorkload(w.id))}><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 3.5h9M5 3.5V2.5h3v1M10.5 3.5l-.7 7H3.2l-.7-7" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg></button>
                       </td>
                     </tr>
                   );
@@ -363,7 +365,7 @@ export default function WorkloadView({ data, updateData }: Props) {
                       })}
                       <td style={{ fontFamily: 'DM Mono, monospace', fontSize: 12, fontWeight: 600, color: 'var(--accent)' }}>{totalRow > 0 ? `${totalRow}j` : '—'}</td>
                       <td>
-                        <button className="btn btn-danger btn-sm" onClick={() => deleteAlloc(a.id)}>✕</button>
+                        <button className="btn btn-danger btn-sm" onClick={() => setConfirmAction(() => deleteAlloc(a.id))}><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 3.5h9M5 3.5V2.5h3v1M10.5 3.5l-.7 7H3.2l-.7-7" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg></button>
                       </td>
                     </tr>
                   );
@@ -383,7 +385,7 @@ export default function WorkloadView({ data, updateData }: Props) {
                 <h2 style={{ fontSize: 16, fontWeight: 700 }}>{t('add_project_line')}</h2>
                 <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 3 }}>{t('add_project_line_hint')}</p>
               </div>
-              <button className="btn-icon" onClick={() => setEditingWorkload(null)}>✕</button>
+              <button className="btn-icon" onClick={() => setEditingWorkload(null)}><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 3.5h9M5 3.5V2.5h3v1M10.5 3.5l-.7 7H3.2l-.7-7" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg></button>
             </div>
             <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 14 }}>
               <div>
@@ -421,7 +423,7 @@ export default function WorkloadView({ data, updateData }: Props) {
                 <h2 style={{ fontSize: 16, fontWeight: 700 }}>{t('add_allocation_btn')}</h2>
                 <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 3 }}>{t('add_assignment_hint')}</p>
               </div>
-              <button className="btn-icon" onClick={() => setEditingAlloc(null)}>✕</button>
+              <button className="btn-icon" onClick={() => setEditingAlloc(null)}><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 3.5h9M5 3.5V2.5h3v1M10.5 3.5l-.7 7H3.2l-.7-7" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg></button>
             </div>
             <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 14 }}>
               <div>
@@ -458,6 +460,7 @@ export default function WorkloadView({ data, updateData }: Props) {
           </div>
         </div>
       )}
+      {confirmAction && <ConfirmDialog onConfirm={() => { confirmAction(); setConfirmAction(null); }} onCancel={() => setConfirmAction(null)} />}
     </div>
   );
 }

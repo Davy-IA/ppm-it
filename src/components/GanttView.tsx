@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useSettings } from '@/lib/context';
+import ConfirmDialog from './ConfirmDialog';
 import { formatMonth, formatDate, formatDateTime } from '@/lib/locale-utils';
 import { AppData, GanttPhase, GanttSubphase, Milestone } from '@/types';
 import { v4 as uuid } from 'uuid';
@@ -87,6 +88,7 @@ export default function GanttView({ data, updateData, initialProjectId, onMounte
   const [showNewMenu, setShowNewMenu] = useState(false);
   const [timeScale, setTimeScale] = useState<'week' | 'month' | 'year'>('month');
   const [showScaleMenu, setShowScaleMenu] = useState(false);
+  const [confirmAction, setConfirmAction] = useState<(() => void) | null>(null);
 
   const [statusFilter, setStatusFilter] = useState('');
   const [domainFilter, setDomainFilter] = useState('');
@@ -374,7 +376,7 @@ export default function GanttView({ data, updateData, initialProjectId, onMounte
                       <div style={{display:'flex',gap:2,flexShrink:0}}>
                         <button className="btn-icon" style={{width:22,height:22,fontSize:11}} onClick={()=>{setAddSubPhase(ph);setIsNew(true);}} title="+ Sous-phase">＋</button>
                         <button className="btn-icon" style={{width:22,height:22,fontSize:11}} onClick={()=>{setEditPhase({...ph});setIsNew(false);}}>✎</button>
-                        <button className="btn-icon" style={{width:22,height:22,fontSize:11,color:'var(--danger)'}} onClick={()=>{if(!confirm(t('delete_phase_confirm' as any) || 'Delete this phase?'))return; savePhases(phases.filter(p=>p.id!==ph.id).map(p=>p.dependsOn===ph.id?{...p,dependsOn:null}:p));}}>✕</button>
+                        <button className="btn-icon" style={{width:22,height:22,fontSize:11,color:'var(--danger)'}} onClick={()=>{if(!confirm(t('delete_phase_confirm' as any) || 'Delete this phase?'))return; savePhases(phases.filter(p=>p.id!==ph.id).map(p=>p.dependsOn===ph.id?{...p,dependsOn:null}:p));}}><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 3.5h9M5 3.5V2.5h3v1M10.5 3.5l-.7 7H3.2l-.7-7" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg></button>
                       </div>
                     </div>
                     {!ph.collapsed && ph.subphases.map(sub => (
@@ -383,7 +385,7 @@ export default function GanttView({ data, updateData, initialProjectId, onMounte
                         <span style={{fontSize:12,flex:1,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',color:'var(--text-muted)'}}>{sub.name}</span>
                         <div style={{display:'flex',gap:2,flexShrink:0}}>
                           <button className="btn-icon" style={{width:20,height:20,fontSize:10}} onClick={()=>{setEditSub({sub:{...sub},phase:ph});setIsNew(false);}}>✎</button>
-                          <button className="btn-icon" style={{width:20,height:20,fontSize:10,color:'var(--danger)'}} onClick={()=>{const updated=phases.map(p=>p.id===ph.id?{...p,subphases:p.subphases.filter(s=>s.id!==sub.id)}:p);savePhases(updated);}}>✕</button>
+                          <button className="btn-icon" style={{width:20,height:20,fontSize:10,color:'var(--danger)'}} onClick={()=>{const updated=phases.map(p=>p.id===ph.id?{...p,subphases:p.subphases.filter(s=>s.id!==sub.id)}:p);savePhases(updated);}}><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 3.5h9M5 3.5V2.5h3v1M10.5 3.5l-.7 7H3.2l-.7-7" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg></button>
                         </div>
                       </div>
                     ))}
@@ -473,7 +475,7 @@ export default function GanttView({ data, updateData, initialProjectId, onMounte
           <div className="modal" style={{maxWidth:520}} onClick={e=>e.stopPropagation()}>
             <div style={{padding:'20px 24px',borderBottom:'1px solid var(--border)',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
               <span style={{fontWeight:700,fontSize:15}}>{isNew?t('new_phase_title'):t('edit_phase_title')}</span>
-              <button className="btn-icon" onClick={()=>{setEditPhase(null);setIsNew(false);}}>✕</button>
+              <button className="btn-icon" onClick={()=>{setEditPhase(null);setIsNew(false);}}><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 3.5h9M5 3.5V2.5h3v1M10.5 3.5l-.7 7H3.2l-.7-7" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg></button>
             </div>
             <div style={{padding:24,display:'flex',flexDirection:'column',gap:16}}>
               <div>
@@ -529,7 +531,7 @@ export default function GanttView({ data, updateData, initialProjectId, onMounte
                   <span style={{fontWeight:700,fontSize:15}}>{isNew ? t('new_subphase') : t('edit_subphase')}</span>
                   <div style={{fontSize:12,color:'var(--text-muted)',marginTop:2}}>Phase : {parentPhase.name}</div>
                 </div>
-                <button className="btn-icon" onClick={()=>{setEditSub(null);setAddSubPhase(null);}}>✕</button>
+                <button className="btn-icon" onClick={()=>{setEditSub(null);setAddSubPhase(null);}}><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 3.5h9M5 3.5V2.5h3v1M10.5 3.5l-.7 7H3.2l-.7-7" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg></button>
               </div>
               <SubForm
                 initial={subForm}
@@ -553,7 +555,7 @@ export default function GanttView({ data, updateData, initialProjectId, onMounte
           <div className="modal" style={{ maxWidth: 420 }} onClick={e => e.stopPropagation()}>
             <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ fontWeight: 700, fontSize: 15 }}>◆ {isNewMilestone ? t('new_milestone') : t('edit_milestone')}</span>
-              <button className="btn-icon" onClick={() => { setEditMilestone(null); setIsNewMilestone(false); }}>✕</button>
+              <button className="btn-icon" onClick={() => setConfirmAction(() => { setEditMilestone(null); setIsNewMilestone(false); })}><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 3.5h9M5 3.5V2.5h3v1M10.5 3.5l-.7 7H3.2l-.7-7" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg></button>
             </div>
             <div style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div>
@@ -593,10 +595,12 @@ export default function GanttView({ data, updateData, initialProjectId, onMounte
           </div>
         </div>
       )}
+      {confirmAction && <ConfirmDialog onConfirm={() => { confirmAction(); setConfirmAction(null); }} onCancel={() => setConfirmAction(null)} />}
     </div>
   );
 }
 function SubForm({ initial, phase, onSave, onClose }: { initial: GanttSubphase; phase: GanttPhase; onSave: (s: GanttSubphase) => void; onClose: () => void }) {
+  const [confirmAction, setConfirmAction] = useState<(() => void) | null>(null);
   const { t, settings } = useSettings();
   const [form, setForm] = useState<GanttSubphase>(initial);
   return (

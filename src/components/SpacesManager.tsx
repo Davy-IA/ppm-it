@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { useSettings } from '@/lib/context';
+import ConfirmDialog from './ConfirmDialog';
 import { useAuth } from '@/lib/auth-context';
 
 interface Space { id: string; name: string; description: string; color: string; icon: string; active: boolean; }
@@ -10,6 +11,7 @@ const SPACE_COLORS = ['#6366f1','#10b981','#f59e0b','#ef4444','#8b5cf6','#06b6d4
 const SPACE_ICONS = ['◈','◉','▦','◎','▣','🏪','🏭','💼','📦','🌐','🔧','💻'];
 
 export default function SpacesManager({ spaces, onRefresh }: Props) {
+  const [confirmAction, setConfirmAction] = useState<(() => void) | null>(null);
   const { token } = useAuth();
   const { t } = useSettings();
   const [editing, setEditing] = useState<Partial<Space> | null>(null);
@@ -68,7 +70,7 @@ export default function SpacesManager({ spaces, onRefresh }: Props) {
               <div style={{ display: 'flex', gap: 6 }}>
                 <button className="btn btn-ghost btn-sm" onClick={() => { setEditing({ ...space }); setIsNew(false); }}>{t('edit_btn')}</button>
                 <button className="btn btn-ghost btn-sm" onClick={() => toggleActive(space)}>{space.active ? t('deactivate') : t('activate')}</button>
-                <button className="btn btn-danger btn-sm" onClick={() => setConfirmDelete(space)}>✕</button>
+                <button className="btn btn-danger btn-sm" onClick={() => setConfirmDelete(space)}><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 3.5h9M5 3.5V2.5h3v1M10.5 3.5l-.7 7H3.2l-.7-7" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg></button>
               </div>
             </div>
           </div>
@@ -81,7 +83,7 @@ export default function SpacesManager({ spaces, onRefresh }: Props) {
           <div className="modal" style={{ maxWidth: 480 }} onClick={e => e.stopPropagation()}>
             <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between' }}>
               <span style={{ fontWeight: 700, fontSize: 15 }}>{isNew ? 'Nouvel espace' : `Modifier — ${editing.name}`}</span>
-              <button className="btn-icon" onClick={() => setEditing(null)}>✕</button>
+              <button className="btn-icon" onClick={() => setEditing(null)}><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 3.5h9M5 3.5V2.5h3v1M10.5 3.5l-.7 7H3.2l-.7-7" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg></button>
             </div>
             <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div>
@@ -136,6 +138,7 @@ export default function SpacesManager({ spaces, onRefresh }: Props) {
           </div>
         </div>
       )}
+      {confirmAction && <ConfirmDialog onConfirm={() => { confirmAction(); setConfirmAction(null); }} onCancel={() => setConfirmAction(null)} />}
     </div>
   );
 }

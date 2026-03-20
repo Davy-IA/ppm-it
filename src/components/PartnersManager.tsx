@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Partner, AppData } from '@/types';
 import { v4 as uuid } from 'uuid';
 import { useSettings } from '@/lib/context';
+import ConfirmDialog from './ConfirmDialog';
 
 interface Props { data: AppData; updateData: (d: AppData) => void; }
 
@@ -14,6 +15,7 @@ const getTypeBadge = (types: string[], type: string) => TYPE_COLORS[types.indexO
 const EMPTY: Omit<Partner, 'id'> = { name: '', type: 'Consulting', contact: '' };
 
 export default function PartnersManager({ data, updateData }: Props) {
+  const [confirmAction, setConfirmAction] = useState<(() => void) | null>(null);
   const { t, settings } = useSettings();
   const partnerTypes: string[] = (settings as any).partnerTypes ?? ['Consulting', 'Agency', 'Freelance', 'Software', 'Other'];
   const [editing, setEditing] = useState<Partner | null>(null);
@@ -76,7 +78,7 @@ export default function PartnersManager({ data, updateData }: Props) {
             </div>
             <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
               <button className="btn btn-ghost btn-sm" onClick={() => { setEditing({ ...p }); setIsNew(false); }}>✎</button>
-              <button className="btn btn-danger btn-sm" onClick={() => remove(p.id)}>✕</button>
+              <button className="btn btn-danger btn-sm" onClick={() => setConfirmAction(() => remove(p.id))}><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 3.5h9M5 3.5V2.5h3v1M10.5 3.5l-.7 7H3.2l-.7-7" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg></button>
             </div>
           </div>
         ))}
@@ -88,7 +90,7 @@ export default function PartnersManager({ data, updateData }: Props) {
           <div className="modal" style={{ maxWidth: 400 }} onClick={e => e.stopPropagation()}>
             <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <h2 style={{ fontSize: 15, fontWeight: 700 }}>{isNew ? t('new_partner') : t('edit_partner')}</h2>
-              <button className="btn-icon" onClick={() => setEditing(null)}>✕</button>
+              <button className="btn-icon" onClick={() => setEditing(null)}><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 3.5h9M5 3.5V2.5h3v1M10.5 3.5l-.7 7H3.2l-.7-7" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg></button>
             </div>
             <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 14 }}>
               <div>
@@ -113,6 +115,7 @@ export default function PartnersManager({ data, updateData }: Props) {
           </div>
         </div>
       )}
+      {confirmAction && <ConfirmDialog onConfirm={() => { confirmAction(); setConfirmAction(null); }} onCancel={() => setConfirmAction(null)} />}
     </div>
   );
 }

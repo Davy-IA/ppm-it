@@ -515,6 +515,7 @@ export const translations = {
     only_dated_projects: 'Seuls les projets avec dates de début et de fin sont affichés',
     select_project: 'Sélectionner un projet',
     select_resource: 'Sélectionner une ressource',
+    confirm_delete: 'Confirmez vous la suppression ?',
   },
   en: {
     nav_dashboard: 'Dashboard',
@@ -1021,6 +1022,7 @@ export const translations = {
     only_dated_projects: 'Only projects with start and end dates are shown',
     select_project: 'Select a project',
     select_resource: 'Select a resource',
+    confirm_delete: 'Confirm deletion?',
   },
   pt: {
     nav_dashboard: 'Painel',
@@ -1527,6 +1529,7 @@ export const translations = {
     only_dated_projects: 'Apenas projetos com datas de início e fim são exibidos',
     select_project: 'Selecionar um projeto',
     select_resource: 'Selecionar um recurso',
+    confirm_delete: 'Confirma a exclusão?',
   },
   zh: {
     nav_dashboard: '仪表板',
@@ -2033,6 +2036,7 @@ export const translations = {
     only_dated_projects: '仅显示有开始和结束日期的项目',
     select_project: '选择项目',
     select_resource: '选择资源',
+    confirm_delete: '确认删除？',
   },
 } as const;
 

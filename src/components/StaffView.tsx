@@ -4,6 +4,7 @@ import { formatMonth, formatDate, formatDateTime } from '@/lib/locale-utils';
 import { AppData, Staff, MONTHS_2026_2028, PROFILES, DEPARTMENTS, COUNTRIES } from '@/types';
 import { v4 as uuid } from 'uuid';
 import { useSettings } from '@/lib/context';
+import ConfirmDialog from './ConfirmDialog';
 import { useAuth } from '@/lib/auth-context';
 
 interface Props { data: AppData; updateData: (d: AppData) => void; }
@@ -15,6 +16,7 @@ const EMPTY_STAFF: Omit<Staff, 'id'> = {
 export default function StaffView({ data, updateData }: Props) {
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
+  const [confirmAction, setConfirmAction] = useState<(() => void) | null>(null);
   const { t, settings } = useSettings();
   const { token } = useAuth();
   const [ppmUsers, setPpmUsers] = useState<{ id: string; name: string; email: string }[]>([]);
@@ -222,7 +224,7 @@ export default function StaffView({ data, updateData }: Props) {
                     <td>
                       <div style={{ display: 'flex', gap: 4 }}>
                         <button className="btn btn-ghost btn-sm" onClick={() => { setEditing({ ...s }); setIsNew(false); }}>{t('edit_btn')}</button>
-                        <button className="btn btn-danger btn-sm" onClick={() => remove(s.id)}>✕</button>
+                        <button className="btn btn-danger btn-sm" onClick={() => setConfirmAction(() => remove(s.id))}><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 3.5h9M5 3.5V2.5h3v1M10.5 3.5l-.7 7H3.2l-.7-7" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg></button>
                       </div>
                     </td>
                   </tr>
@@ -239,7 +241,7 @@ export default function StaffView({ data, updateData }: Props) {
           <div className="modal" style={{ maxWidth: 780 }} onClick={e => e.stopPropagation()}>
             <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <h2 style={{ fontSize: 16, fontWeight: 700 }}>{isNew ? t('new_staff') : `Éditer — ${editing.name}`}</h2>
-              <button className="btn btn-ghost btn-sm" onClick={() => setEditing(null)}>✕</button>
+              <button className="btn btn-ghost btn-sm" onClick={() => setEditing(null)}><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 3.5h9M5 3.5V2.5h3v1M10.5 3.5l-.7 7H3.2l-.7-7" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg></button>
             </div>
             <div style={{ padding: 24 }}>
               {/* Info fields */}
@@ -330,6 +332,7 @@ export default function StaffView({ data, updateData }: Props) {
           </div>
         </div>
       )}
+      {confirmAction && <ConfirmDialog onConfirm={() => { confirmAction(); setConfirmAction(null); }} onCancel={() => setConfirmAction(null)} />}
     </div>
   );
 }

@@ -2,6 +2,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { AppData } from '@/types';
 import { useSettings } from '@/lib/context';
+import ConfirmDialog from './ConfirmDialog';
 import { useAuth } from '@/lib/auth-context';
 import { COLOR_THEMES, AppSettings } from '@/lib/settings';
 import { LOCALES } from '@/lib/i18n';
@@ -18,6 +19,7 @@ export default function SettingsView({ data, updateData, spaces, onRefreshSpaces
   const { settings, updateSettings, t } = useSettings();
   const { user, token } = useAuth();
   const [saved, setSaved] = useState(false);
+  const [confirmAction, setConfirmAction] = useState<(() => void) | null>(null);
   const [activeTab, setActiveTab] = useState<'identity' | 'theme' | 'lists' | 'lang' | 'users' | 'spaces' | 'partners' | 'milestones'>('identity');
   const [spacesList, setSpacesList] = useState<Space[]>(spaces);
   const [selectedSpaceId, setSelectedSpaceId] = useState<string>('__global__');
@@ -333,7 +335,7 @@ export default function SettingsView({ data, updateData, spaces, onRefreshSpaces
                             disabled={!isGlobal && !isOverridden} />
                           {(isGlobal || isOverridden) && (
                             <button className="btn-icon" style={{ flexShrink: 0, color: 'var(--danger)' }}
-                              onClick={() => { updateListForScope(key, values.filter((_, j) => j !== i)); }}>✕</button>
+                              onClick={() => setConfirmAction(() => { updateListForScope(key, values.filter((_, j) => j !== i)); })}><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 3.5h9M5 3.5V2.5h3v1M10.5 3.5l-.7 7H3.2l-.7-7" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg></button>
                           )}
                         </div>
                       ))}
@@ -417,7 +419,7 @@ export default function SettingsView({ data, updateData, spaces, onRefreshSpaces
                     onBlur={showSaved}
                     disabled={!isGlobal && !isOverridden} />
                   {(isGlobal || isOverridden) && (
-                    <button className="btn btn-danger btn-sm" onClick={() => updateTypes(types.filter((_: string, i: number) => i !== idx))}>✕</button>
+                    <button className="btn btn-danger btn-sm" onClick={() => updateTypes(types.filter((_: string, i: number) => i !== idx))}><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 3.5h9M5 3.5V2.5h3v1M10.5 3.5l-.7 7H3.2l-.7-7" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg></button>
                   )}
                 </div>
               ))}
@@ -434,6 +436,7 @@ export default function SettingsView({ data, updateData, spaces, onRefreshSpaces
       {activeTab === 'users' && isAdmin && (
         <UsersManager spaces={spacesList.map(s => ({ id: s.id, name: s.name, color: s.color }))} partners={(data.partners ?? []).map(p => ({ id: p.id, name: p.name, type: p.type }))} />
       )}
+      {confirmAction && <ConfirmDialog onConfirm={() => { confirmAction(); setConfirmAction(null); }} onCancel={() => setConfirmAction(null)} />}
     </div>
   );
 }
