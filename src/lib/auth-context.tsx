@@ -8,10 +8,11 @@ interface AuthCtx {
   login: (email: string, password: string) => Promise<string | null>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
+  updateUser: (patch: Partial<SessionUser & { avatar?: string }>) => void;
   token: string | null;
 }
 
-const Ctx = createContext<AuthCtx>({ user: null, loading: true, login: async () => null, logout: async () => {}, refreshUser: async () => {}, token: null });
+const Ctx = createContext<AuthCtx>({ user: null, loading: true, login: async () => null, logout: async () => {}, refreshUser: async () => {}, updateUser: () => {}, token: null });
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<SessionUser | null>(null);
@@ -45,6 +46,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return null;
   };
 
+  const updateUser = (patch: Partial<SessionUser & { avatar?: string }>) => {
+    setUser(prev => prev ? { ...prev, ...patch } : prev);
+  };
+
   const refreshUser = async () => {
     const saved = localStorage.getItem('ppm_token');
     if (!saved) return;
@@ -62,7 +67,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem('ppm_token');
   };
 
-  return <Ctx.Provider value={{ user, loading, login, logout, refreshUser, token }}>{children}</Ctx.Provider>;
+  return <Ctx.Provider value={{ user, loading, login, logout, refreshUser, updateUser, token }}>{children}</Ctx.Provider>;
 }
 
 export const useAuth = () => useContext(Ctx);

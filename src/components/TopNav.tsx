@@ -1,5 +1,5 @@
 'use client';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { View } from './App';
 import { AppData } from '@/types';
 import { computeAlerts } from '@/lib/alerts';
@@ -98,7 +98,7 @@ function useTheme() {
 
 export default function TopNav({ view, setView, saving, data, currentSpace, onChangeSpace, spaces = [], onSelectSpace }: Props) {
   const { t, settings, updateSettings } = useSettings();
-  const { user, logout, token, refreshUser } = useAuth();
+  const { user, logout, token, refreshUser, updateUser } = useAuth();
   const { theme, toggle } = useTheme();
   const alerts = computeAlerts(data);
   const alertCount = alerts.length;
@@ -292,15 +292,17 @@ export default function TopNav({ view, setView, saving, data, currentSpace, onCh
         </div>
 
         {/* Profile panel */}
-        {showProfile && <ProfilePanel user={user} onClose={() => { setShowProfile(false); setShowUser(false); }} t={t} token={token} refreshUser={refreshUser} />}
+        {showProfile && <ProfilePanel user={user} onClose={() => { setShowProfile(false); setShowUser(false); }} t={t} token={token} refreshUser={refreshUser} updateUser={updateUser} />}
       </div>
     </header>
   );
 }
 
 // ── Profile Panel ──────────────────────────────────────────────
-function ProfilePanel({ user, onClose, t, token, refreshUser }: { user: any; onClose: () => void; t: Function; token: string | null; refreshUser: () => Promise<void> }) {
+function ProfilePanel({ user, onClose, t, token, refreshUser, updateUser }: { user: any; onClose: () => void; t: Function; token: string | null; refreshUser: () => Promise<void>; updateUser: (patch: any) => void }) {
   const [avatar, setAvatar] = useState<string | null>((user as any)?.avatar ?? null);
+  // Keep local state in sync if parent user updates
+  useEffect(() => { setAvatar((user as any)?.avatar ?? null); }, [(user as any)?.avatar]);
   const [curPw, setCurPw] = useState('');
   const [newPw, setNewPw] = useState('');
   const [confirmPw, setConfirmPw] = useState('');
@@ -358,7 +360,8 @@ function ProfilePanel({ user, onClose, t, token, refreshUser }: { user: any; onC
         }
         return;
       }
-      // Refresh user in context so avatar shows immediately everywhere
+      // Update user in context immediately — no reload needed
+      updateUser({ avatar });
       await refreshUser();
     }
 
