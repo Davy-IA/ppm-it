@@ -7,10 +7,11 @@ interface AuthCtx {
   loading: boolean;
   login: (email: string, password: string) => Promise<string | null>;
   logout: () => Promise<void>;
+  refreshUser: () => Promise<void>;
   token: string | null;
 }
 
-const Ctx = createContext<AuthCtx>({ user: null, loading: true, login: async () => null, logout: async () => {}, token: null });
+const Ctx = createContext<AuthCtx>({ user: null, loading: true, login: async () => null, logout: async () => {}, refreshUser: async () => {}, token: null });
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<SessionUser | null>(null);
@@ -44,6 +45,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return null;
   };
 
+  const refreshUser = async () => {
+    const saved = localStorage.getItem('ppm_token');
+    if (!saved) return;
+    const r = await fetch('/api/auth/me', { headers: { Authorization: `Bearer ${saved}` } });
+    if (r.ok) {
+      const d = await r.json();
+      if (d?.user) setUser(d.user);
+    }
+  };
+
   const logout = async () => {
     await fetch('/api/auth/logout', { method: 'POST' });
     setUser(null);
@@ -51,7 +62,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem('ppm_token');
   };
 
-  return <Ctx.Provider value={{ user, loading, login, logout, token }}>{children}</Ctx.Provider>;
+  return <Ctx.Provider value={{ user, loading, login, logout, refreshUser, token }}>{children}</Ctx.Provider>;
 }
 
 export const useAuth = () => useContext(Ctx);

@@ -98,7 +98,7 @@ function useTheme() {
 
 export default function TopNav({ view, setView, saving, data, currentSpace, onChangeSpace, spaces = [], onSelectSpace }: Props) {
   const { t, settings, updateSettings } = useSettings();
-  const { user, logout, token } = useAuth();
+  const { user, logout, token, refreshUser } = useAuth();
   const { theme, toggle } = useTheme();
   const alerts = computeAlerts(data);
   const alertCount = alerts.length;
@@ -292,14 +292,14 @@ export default function TopNav({ view, setView, saving, data, currentSpace, onCh
         </div>
 
         {/* Profile panel */}
-        {showProfile && <ProfilePanel user={user} onClose={() => { setShowProfile(false); setShowUser(false); }} t={t} token={token} />}
+        {showProfile && <ProfilePanel user={user} onClose={() => { setShowProfile(false); setShowUser(false); }} t={t} token={token} refreshUser={refreshUser} />}
       </div>
     </header>
   );
 }
 
 // ── Profile Panel ──────────────────────────────────────────────
-function ProfilePanel({ user, onClose, t, token }: { user: any; onClose: () => void; t: Function; token: string | null }) {
+function ProfilePanel({ user, onClose, t, token, refreshUser }: { user: any; onClose: () => void; t: Function; token: string | null; refreshUser: () => Promise<void> }) {
   const [avatar, setAvatar] = useState<string | null>((user as any)?.avatar ?? null);
   const [curPw, setCurPw] = useState('');
   const [newPw, setNewPw] = useState('');
@@ -342,6 +342,8 @@ function ProfilePanel({ user, onClose, t, token }: { user: any; onClose: () => v
         }
         return;
       }
+      // Refresh user in context so avatar shows immediately everywhere
+      await refreshUser();
     }
 
     // Save password separately
