@@ -72,6 +72,8 @@ export default function GanttView({ data, updateData }: Props) {
   const [editMilestone, setEditMilestone] = useState<Milestone | null>(null);
   const [isNewMilestone, setIsNewMilestone] = useState(false);
   const [showNewMenu, setShowNewMenu] = useState(false);
+  const [timeScale, setTimeScale] = useState<'week' | 'month' | 'year'>('month');
+  const [showScaleMenu, setShowScaleMenu] = useState(false);
 
   const [statusFilter, setStatusFilter] = useState('');
   const [domainFilter, setDomainFilter] = useState('');
@@ -122,25 +124,62 @@ export default function GanttView({ data, updateData }: Props) {
   const overdue = ganttEnd && endDeadline && ganttEnd > endDeadline;
 
   // ── Chart
-  const minDate = range?.start ?? new Date().toISOString().slice(0,10);
-  const maxDate = range?.end ?? addDays(minDate, 90);
-  const totalDays = Math.max(daysBetween(minDate, maxDate) + 14, 60);
-  const chartW = totalDays * DAY_PX;
+  // Dynamic px per day based on time scale
+  const DAY_PX_DYN = timeScale === 'week' ? 42 : timeScale === 'month' ? 17 : 4;
+
+  // For year view: pad to cover full project duration nicely
+  const minDate = timeScale === 'year' && range
+    ? `${new Date(range.start).getFullYear()}-01-01`
+    : range?.start ?? new Date().toISOString().slice(0,10);
+  const maxDate = timeScale === 'year' && range
+    ? `${new Date(range.end).getFullYear()}-12-31`
+    : range?.end ?? addDays(minDate, 90);
+  const totalDays = Math.max(daysBetween(minDate, maxDate) + (timeScale === 'year' ? 0 : 14), 60);
+  const chartW = totalDays * DAY_PX_DYN;
   const LEFT_W = 260;
   const today = new Date().toISOString().slice(0,10);
-  const todayX = daysBetween(minDate, today) * DAY_PX;
-  const goLiveX = goLive ? daysBetween(minDate, goLive) * DAY_PX : null;
-  const hypercareX = hypercare ? daysBetween(minDate, hypercare) * DAY_PX : null;
+  const todayX = daysBetween(minDate, today) * DAY_PX_DYN;
+  const goLiveX = goLive ? daysBetween(minDate, goLive) * DAY_PX_DYN : null;
+  const hypercareX = hypercare ? daysBetween(minDate, hypercare) * DAY_PX_DYN : null;
 
-  // Month headers
+  // Time columns based on scale
   const months: { label: string; left: number; width: number }[] = [];
-  let cur = new Date(minDate); cur.setDate(1);
-  while (cur.toISOString().slice(0,10) <= addDays(minDate, totalDays)) {
-    const mEnd = new Date(cur.getFullYear(), cur.getMonth()+1, 0);
-    const left = Math.max(0, daysBetween(minDate, cur.toISOString().slice(0,10))) * DAY_PX;
-    const right = Math.min(totalDays, daysBetween(minDate, mEnd.toISOString().slice(0,10))) * DAY_PX;
-    months.push({ label: cur.toLocaleDateString(({ fr: 'fr-FR', en: 'en-US', pt: 'pt-BR', zh: 'zh-CN' }[locale] ?? 'fr-FR'), {month:'short',year:'2-digit'}), left, width: right - left });
-    cur.setMonth(cur.getMonth()+1);
+  const localeStr = ({ fr: 'fr-FR', en: 'en-US', pt: 'pt-BR', zh: 'zh-CN' } as Record<string,string>)[locale] ?? 'fr-FR';
+
+  if (timeScale === 'week') {
+    // Week columns — start from Monday of minDate week
+    let cur = new Date(minDate);
+    const dow = cur.getDay(); // 0=Sun
+    cur.setDate(cur.getDate() - (dow === 0 ? 6 : dow - 1));
+    while (cur.toISOString().slice(0,10) <= addDays(minDate, totalDays)) {
+      const wEnd = new Date(cur); wEnd.setDate(wEnd.getDate() + 6);
+      const left = Math.max(0, daysBetween(minDate, cur.toISOString().slice(0,10))) * DAY_PX_DYN;
+      const right = Math.min(totalDays, daysBetween(minDate, wEnd.toISOString().slice(0,10))) * DAY_PX_DYN;
+      const label = cur.toLocaleDateString(localeStr, { day: 'numeric', month: 'short' });
+      months.push({ label, left, width: right - left });
+      cur.setDate(cur.getDate() + 7);
+    }
+  } else if (timeScale === 'year') {
+    // Quarter columns
+    let cur = new Date(minDate); cur.setMonth(Math.floor(cur.getMonth()/3)*3, 1);
+    while (cur.toISOString().slice(0,10) <= addDays(minDate, totalDays)) {
+      const qEnd = new Date(cur); qEnd.setMonth(qEnd.getMonth()+3, 0);
+      const left = Math.max(0, daysBetween(minDate, cur.toISOString().slice(0,10))) * DAY_PX_DYN;
+      const right = Math.min(totalDays, daysBetween(minDate, qEnd.toISOString().slice(0,10))) * DAY_PX_DYN;
+      const q = Math.floor(cur.getMonth()/3)+1;
+      months.push({ label: `Q${q} ${cur.getFullYear()}`, left, width: right - left });
+      cur.setMonth(cur.getMonth()+3);
+    }
+  } else {
+    // Month columns (default)
+    let cur = new Date(minDate); cur.setDate(1);
+    while (cur.toISOString().slice(0,10) <= addDays(minDate, totalDays)) {
+      const mEnd = new Date(cur.getFullYear(), cur.getMonth()+1, 0);
+      const left = Math.max(0, daysBetween(minDate, cur.toISOString().slice(0,10))) * DAY_PX_DYN;
+      const right = Math.min(totalDays, daysBetween(minDate, mEnd.toISOString().slice(0,10))) * DAY_PX_DYN;
+      months.push({ label: cur.toLocaleDateString(localeStr, {month:'short',year:'2-digit'}), left, width: right - left });
+      cur.setMonth(cur.getMonth()+1);
+    }
   }
 
   return (
@@ -185,6 +224,29 @@ export default function GanttView({ data, updateData }: Props) {
           {project?.startDate && <span className="badge badge-blue">{t('gantt_start')} : {fmt(project.startDate)}</span>}
           {goLive && <span className="badge badge-purple">{t('go_live')} : {fmt(goLive)}</span>}
           <div style={{ flex: 1 }} />
+          {/* Scale selector */}
+          <div style={{ position: 'relative' }}>
+            <button onClick={() => setShowScaleMenu(m => !m)}
+              style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '6px 11px', borderRadius: 8, border: '1.5px solid var(--border)', background: 'var(--bg2)', color: 'var(--text-muted)', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M1 6h10M1 3h10M1 9h6" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg>
+              {timeScale === 'week' ? t('scale_week') : timeScale === 'month' ? t('scale_month') : t('scale_year')}
+              <svg width="8" height="8" viewBox="0 0 8 8" fill="none"><path d="M1 3l3 3 3-3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg>
+            </button>
+            {showScaleMenu && (
+              <>
+                <div style={{ position: 'fixed', inset: 0, zIndex: 49 }} onClick={() => setShowScaleMenu(false)} />
+                <div style={{ position: 'absolute', right: 0, top: 'calc(100% + 4px)', background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 10, boxShadow: '0 8px 24px rgba(99,102,241,0.15)', zIndex: 50, overflow: 'hidden', minWidth: 140 }}>
+                  {(['week', 'month', 'year'] as const).map(scale => (
+                    <button key={scale} onClick={() => { setTimeScale(scale); setShowScaleMenu(false); }}
+                      style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '9px 14px', border: 'none', background: timeScale === scale ? 'var(--accent-subtle)' : 'none', color: timeScale === scale ? 'var(--accent)' : 'var(--text)', cursor: 'pointer', fontSize: 13, fontWeight: timeScale === scale ? 700 : 400, fontFamily: 'inherit', textAlign: 'left' }}>
+                      {timeScale === scale && <span style={{ color: 'var(--accent)', fontSize: 10 }}>✓</span>}
+                      {scale === 'week' ? t('scale_week') : scale === 'month' ? t('scale_month') : t('scale_year')}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
           {/* + New dropdown */}
           <div style={{ position: 'relative' }}>
             <button className="btn btn-primary" onClick={() => setShowNewMenu(m => !m)}
@@ -339,7 +401,7 @@ export default function GanttView({ data, updateData }: Props) {
 
                   {/* Milestone diamonds ◆ on phase bars */}
                   {milestones.filter(m => !m.isAutoGoLive).map(m => {
-                    const mx = daysBetween(minDate, m.date) * DAY_PX;
+                    const mx = daysBetween(minDate, m.date) * DAY_PX_DYN;
                     if (mx < -20 || mx > chartW + 20) return null;
                     return (
                       <div key={m.id}
@@ -354,8 +416,8 @@ export default function GanttView({ data, updateData }: Props) {
                   })}
 
                   {phases.map(ph => {
-                    const px = daysBetween(minDate, ph.startDate)*DAY_PX;
-                    const pw = Math.max(ph.duration*DAY_PX, 16);
+                    const px = daysBetween(minDate, ph.startDate)*DAY_PX_DYN;
+                    const pw = Math.max(ph.duration*DAY_PX_DYN, 16);
                     return (
                       <div key={ph.id}>
                         {/* Phase row */}

@@ -499,6 +499,9 @@ export const translations = {
     user_is_external: 'Externe à VEJA',
     user_is_external_hint: 'Prestataire, consultant ou partenaire non-salarié',
     settings_partner_types: 'Types de partenaires',
+    scale_week: 'Semaine',
+    scale_month: 'Mois',
+    scale_year: 'Année',
   },
   en: {
     nav_dashboard: 'Dashboard',
@@ -989,6 +992,9 @@ export const translations = {
     user_is_external: 'External to VEJA',
     user_is_external_hint: 'Contractor, consultant or non-employee partner',
     settings_partner_types: 'Partner types',
+    scale_week: 'Week',
+    scale_month: 'Month',
+    scale_year: 'Year',
   },
   pt: {
     nav_dashboard: 'Painel',
@@ -1479,6 +1485,9 @@ export const translations = {
     user_is_external: 'Externo à VEJA',
     user_is_external_hint: 'Prestador, consultor ou parceiro não-funcionário',
     settings_partner_types: 'Tipos de parceiros',
+    scale_week: 'Semana',
+    scale_month: 'Mês',
+    scale_year: 'Ano',
   },
   zh: {
     nav_dashboard: '仪表板',
@@ -1969,6 +1978,9 @@ export const translations = {
     user_is_external: 'VEJA外部人员',
     user_is_external_hint: '承包商、顾问或非员工合作伙伴',
     settings_partner_types: '合作伙伴类型',
+    scale_week: '周',
+    scale_month: '月',
+    scale_year: '年',
   },
 } as const;
 
