@@ -10,9 +10,24 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [forgotMode, setForgotMode] = useState(false);
+  const [resetSent, setResetSent] = useState(false);
+  const [resetLoading, setResetLoading] = useState(false);
 
   const appName = settings.appName || settings.appName || 'VEJA Project Management';
   const logo = settings.logo;
+
+  const handleForgot = async () => {
+    if (!email) return;
+    setResetLoading(true);
+    await fetch('/api/auth/reset-request', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    });
+    setResetSent(true);
+    setResetLoading(false);
+  };
 
   const handleSubmit = async () => {
     if (!email || !password) return;
@@ -73,17 +88,27 @@ export default function LoginScreen() {
                 autoFocus style={{ fontSize: 14 }}
               />
             </div>
-            <div>
-              <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                Mot de passe
-              </label>
-              <input
-                className="input" type="password" placeholder="••••••••"
-                value={password} onChange={e => setPassword(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && handleSubmit()}
-                style={{ fontSize: 14 }}
-              />
-            </div>
+            {!forgotMode && (
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                  <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                    {t('login_password')}
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => { setForgotMode(true); setError(''); }}
+                    style={{ fontSize: 11, color: 'var(--accent)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 600 }}>
+                    {t('forgot_password')}
+                  </button>
+                </div>
+                <input
+                  className="input" type="password" placeholder="••••••••"
+                  value={password} onChange={e => setPassword(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && handleSubmit()}
+                  style={{ fontSize: 14 }}
+                />
+              </div>
+            )}
 
             {error && (
               <div style={{ background: 'var(--danger-subtle)', border: '1px solid var(--danger)', borderRadius: 8, padding: '10px 14px', color: 'var(--danger)', fontSize: 13, fontWeight: 500 }}>
@@ -91,14 +116,35 @@ export default function LoginScreen() {
               </div>
             )}
 
-            <button
-              className="btn btn-primary"
-              onClick={handleSubmit}
-              disabled={loading || !email || !password}
-              style={{ width: '100%', padding: '12px', fontSize: 14, marginTop: 4, opacity: (loading || !email || !password) ? 0.7 : 1 }}
-            >
-              {loading ? t('login_loading') : t('login_btn')}
-            </button>
+            {forgotMode ? (
+              resetSent ? (
+                <div style={{ background: 'var(--success-subtle)', border: '1px solid var(--success)', borderRadius: 8, padding: '12px 14px', color: 'var(--success)', fontSize: 13 }}>
+                  ✓ {t('reset_email_sent')}
+                </div>
+              ) : (
+                <button
+                  className="btn btn-primary"
+                  onClick={handleForgot}
+                  disabled={resetLoading || !email}
+                  style={{ width: '100%', padding: '12px', fontSize: 14, opacity: (resetLoading || !email) ? 0.7 : 1 }}>
+                  {resetLoading ? '⏳…' : t('send_reset_link')}
+                </button>
+              )
+            ) : (
+              <button
+                className="btn btn-primary"
+                onClick={handleSubmit}
+                disabled={loading || !email || !password}
+                style={{ width: '100%', padding: '12px', fontSize: 14, marginTop: 4, opacity: (loading || !email || !password) ? 0.7 : 1 }}>
+                {loading ? t('login_loading') : t('login_btn')}
+              </button>
+            )}
+            {forgotMode && !resetSent && (
+              <button type="button" onClick={() => { setForgotMode(false); setError(''); }}
+                style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: 12, cursor: 'pointer', textAlign: 'center', width: '100%', fontFamily: 'inherit' }}>
+                ← {t('back_to_login')}
+              </button>
+            )}
           </div>
         </div>
 

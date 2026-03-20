@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { View } from './App';
 import { AppData } from '@/types';
 import { computeAlerts } from '@/lib/alerts';
@@ -96,12 +96,13 @@ function useTheme() {
 
 export default function TopNav({ view, setView, saving, data, currentSpace, onChangeSpace }: Props) {
   const { t, settings, updateSettings } = useSettings();
-  const { user, logout } = useAuth();
+  const { user, logout, token } = useAuth();
   const { theme, toggle } = useTheme();
   const alerts = computeAlerts(data);
   const alertCount = alerts.length;
   const [showLang, setShowLang] = useState(false);
   const [showUser, setShowUser] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
 
   const NAV_ITEMS = [
     { id: 'dashboard', labelKey: 'nav_dashboard', icon: Icons.dashboard },
@@ -213,15 +214,31 @@ export default function TopNav({ view, setView, saving, data, currentSpace, onCh
 
         {/* User menu */}
         <div style={{ position: 'relative' }}>
-          <button className="topnav-avatar" onClick={() => setShowUser(!showUser)}>
-            <span>{user?.firstName?.[0]}{user?.lastName?.[0]}</span>
+          <button className="topnav-avatar" onClick={() => { setShowUser(!showUser); setShowProfile(false); }}
+            style={{ overflow: 'hidden', padding: 0 }}>
+            {(user as any)?.avatar
+              ? <img src={(user as any).avatar} alt="avatar" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
+              : <span>{user?.firstName?.[0]}{user?.lastName?.[0]}</span>
+            }
           </button>
-          {showUser && (
-            <div className="topnav-dropdown" onClick={() => setShowUser(false)}>
-              <div className="topnav-dropdown-header">
-                <div style={{ fontWeight: 700, fontSize: 13 }}>{user?.firstName} {user?.lastName}</div>
-                <div style={{ fontSize: 11, color: 'var(--text-faint)' }}>{user?.email}</div>
+          {showUser && !showProfile && (
+            <div className="topnav-dropdown" onClick={e => e.stopPropagation()}>
+              <div className="topnav-dropdown-header" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <div className="topnav-avatar" style={{ width: 36, height: 36, fontSize: 12, flexShrink: 0, overflow: 'hidden', padding: 0 }}>
+                  {(user as any)?.avatar
+                    ? <img src={(user as any).avatar} alt="avatar" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
+                    : <span>{user?.firstName?.[0]}{user?.lastName?.[0]}</span>
+                  }
+                </div>
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: 13 }}>{user?.firstName} {user?.lastName}</div>
+                  <div style={{ fontSize: 11, color: 'var(--text-faint)' }}>{user?.email}</div>
+                </div>
               </div>
+              <button className="topnav-dropdown-item" onClick={() => { setShowProfile(true); }}>
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="4.5" r="2.5" stroke="currentColor" strokeWidth="1.4"/><path d="M2 12c0-2.76 2.24-5 5-5s5 2.24 5 5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg>
+                <span>{t('my_profile')}</span>
+              </button>
               <button className="topnav-dropdown-item danger" onClick={logout}>
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M5 7h7M9 5l2 2-2 2" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/><path d="M7 2H3a1 1 0 00-1 1v8a1 1 0 001 1h4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg>
                 <span>{t('logout')}</span>
@@ -229,7 +246,107 @@ export default function TopNav({ view, setView, saving, data, currentSpace, onCh
             </div>
           )}
         </div>
+
+        {/* Profile panel */}
+        {showProfile && <ProfilePanel user={user} onClose={() => { setShowProfile(false); setShowUser(false); }} t={t} token={token} />}
       </div>
     </header>
+  );
+}
+
+// ── Profile Panel ──────────────────────────────────────────────
+function ProfilePanel({ user, onClose, t, token }: { user: any; onClose: () => void; t: Function; token: string | null }) {
+  const [avatar, setAvatar] = useState<string | null>((user as any)?.avatar ?? null);
+  const [curPw, setCurPw] = useState('');
+  const [newPw, setNewPw] = useState('');
+  const [confirmPw, setConfirmPw] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [msg, setMsg] = useState('');
+  const [err, setErr] = useState('');
+  const avatarRef = useRef<HTMLInputElement>(null);
+
+  const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 250_000) { setErr('Image too large (max 200kb)'); return; }
+    const reader = new FileReader();
+    reader.onload = () => setAvatar(reader.result as string);
+    reader.readAsDataURL(file);
+  };
+
+  const save = async () => {
+    setErr(''); setMsg('');
+    if (newPw && newPw !== confirmPw) { setErr('Passwords do not match'); return; }
+    if (newPw && newPw.length < 8) { setErr('Password must be at least 8 characters'); return; }
+    if (newPw && !curPw) { setErr('Please enter your current password'); return; }
+    setSaving(true);
+    const body: any = {};
+    if (avatar !== (user as any)?.avatar) body.avatar = avatar;
+    if (newPw) { body.currentPassword = curPw; body.newPassword = newPw; }
+    if (Object.keys(body).length === 0) { setSaving(false); onClose(); return; }
+    const r = await fetch('/api/auth/me-update', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify(body),
+    });
+    const d = await r.json();
+    setSaving(false);
+    if (d.ok) { setMsg('Saved! Reload to see avatar changes.'); setCurPw(''); setNewPw(''); setConfirmPw(''); }
+    else setErr(d.error || 'Error saving');
+  };
+
+  return (
+    <>
+      <div style={{ position: 'fixed', inset: 0, zIndex: 299 }} onClick={onClose} />
+      <div style={{ position: 'absolute', top: 'calc(100% + 6px)', right: 0, width: 300, background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 14, boxShadow: '0 8px 30px rgba(99,102,241,0.15)', zIndex: 300, overflow: 'hidden', animation: 'dropIn 0.15s ease' }}>
+        <div style={{ padding: '14px 16px 12px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span style={{ fontWeight: 700, fontSize: 13 }}>{t('my_profile')}</span>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 16 }}>✕</button>
+        </div>
+        <div style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 14 }}>
+          {/* Avatar */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ position: 'relative', flexShrink: 0 }}>
+              <div style={{ width: 56, height: 56, borderRadius: '50%', background: avatar ? 'transparent' : 'var(--accent-gradient)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', border: '2px solid var(--border)', cursor: 'pointer' }} onClick={() => avatarRef.current?.click()}>
+                {avatar ? <img src={avatar} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: '#fff', fontWeight: 700, fontSize: 18 }}>{user?.firstName?.[0]}{user?.lastName?.[0]}</span>}
+              </div>
+              <div style={{ position: 'absolute', bottom: -2, right: -2, width: 18, height: 18, borderRadius: '50%', background: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', border: '2px solid var(--bg2)' }} onClick={() => avatarRef.current?.click()}>
+                <svg width="9" height="9" viewBox="0 0 9 9" fill="none"><path d="M1 8l2-2 4-4 1 1-4 4-2 1H1z" fill="white"/><path d="M6 2l1 1" stroke="white" strokeWidth="1" strokeLinecap="round"/></svg>
+              </div>
+              <input ref={avatarRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleAvatarUpload} />
+            </div>
+            <div>
+              <div style={{ fontWeight: 700, fontSize: 13 }}>{user?.firstName} {user?.lastName}</div>
+              <div style={{ fontSize: 11, color: 'var(--text-faint)' }}>{user?.email}</div>
+              <button onClick={() => avatarRef.current?.click()} style={{ fontSize: 11, color: 'var(--accent)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginTop: 3, fontFamily: 'inherit' }}>
+                {t('change_avatar')}
+              </button>
+              {avatar && (
+                <button onClick={() => setAvatar(null)} style={{ fontSize: 11, color: 'var(--danger)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginTop: 3, marginLeft: 8, fontFamily: 'inherit' }}>
+                  {t('remove')}
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Change password */}
+          <div style={{ borderTop: '1px solid var(--border)', paddingTop: 12 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }}>{t('change_password')}</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <input className="input" type="password" placeholder={String(t('current_password'))} value={curPw} onChange={e => setCurPw(e.target.value)} style={{ fontSize: 12 }} />
+              <input className="input" type="password" placeholder={String(t('new_password'))} value={newPw} onChange={e => setNewPw(e.target.value)} style={{ fontSize: 12 }} />
+              <input className="input" type="password" placeholder={String(t('confirm_password'))} value={confirmPw} onChange={e => setConfirmPw(e.target.value)} style={{ fontSize: 12 }} />
+            </div>
+          </div>
+
+          {err && <div style={{ background: 'var(--danger-subtle)', color: 'var(--danger)', borderRadius: 8, padding: '8px 10px', fontSize: 12 }}>⚠ {err}</div>}
+          {msg && <div style={{ background: 'var(--success-subtle)', color: 'var(--success)', borderRadius: 8, padding: '8px 10px', fontSize: 12 }}>✓ {msg}</div>}
+
+          <button className="btn btn-primary" onClick={save} disabled={saving} style={{ width: '100%', fontSize: 13 }}>
+            {saving ? '⏳…' : t('save')}
+          </button>
+        </div>
+      </div>
+    </>
   );
 }
