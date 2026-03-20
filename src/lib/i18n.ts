@@ -503,6 +503,9 @@ export const translations = {
     scale_month: 'Mois',
     scale_year: 'Année',
     days_allocated: 'j alloués',
+    days_covered: 'j alloué(s)',
+    workload_need: 'Besoin',
+    workload_covered: 'Couvert',
   },
   en: {
     nav_dashboard: 'Dashboard',
@@ -997,6 +1000,9 @@ export const translations = {
     scale_month: 'Month',
     scale_year: 'Year',
     days_allocated: 'd allocated',
+    days_covered: 'd allocated',
+    workload_need: 'Need',
+    workload_covered: 'Covered',
   },
   pt: {
     nav_dashboard: 'Painel',
@@ -1491,6 +1497,9 @@ export const translations = {
     scale_month: 'Mês',
     scale_year: 'Ano',
     days_allocated: 'd alocados',
+    days_covered: 'd alocado(s)',
+    workload_need: 'Necessidade',
+    workload_covered: 'Coberto',
   },
   zh: {
     nav_dashboard: '仪表板',
@@ -1985,6 +1994,9 @@ export const translations = {
     scale_month: '月',
     scale_year: '年',
     days_allocated: '天已分配',
+    days_covered: '天已分配',
+    workload_need: '需求',
+    workload_covered: '已覆盖',
   },
 } as const;
 

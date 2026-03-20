@@ -238,7 +238,7 @@ export default function WorkloadView({ data, updateData }: Props) {
                         const cls = need === 0 ? 'cap-cell cap-zero' : covered >= need ? 'cap-cell cap-ok' : covered > 0 ? 'cap-cell cap-under' : 'cap-cell cap-over';
                         return (
                           <td key={m} className={cls + ' cell-edit'}
-                            title={`Besoin: ${need}j | Couvert: ${covered}j`}
+                            title={`${t('workload_need')}: ${need}j | ${t('workload_covered')}: ${covered}j`}
                             onClick={() => setInlineEdit({ id: w.id, field: 'w_' + m })}>
                             {inlineEdit?.id === w.id && inlineEdit.field === 'w_' + m
                               ? <input type="number" min={0} step={0.5} className="cell-input" autoFocus defaultValue={need || ''}
@@ -246,7 +246,14 @@ export default function WorkloadView({ data, updateData }: Props) {
                                   onBlur={e => { updateWorkloadMonth(w.id, m, e.target.value); setInlineEdit(null); }}
                                   onKeyDown={e => { if (e.key === 'Enter') { updateWorkloadMonth(w.id, m, (e.target as HTMLInputElement).value); setInlineEdit(null); } if (e.key === 'Escape') setInlineEdit(null); }}
                                   onClick={e => e.stopPropagation()} />
-                              : need > 0 ? need : '—'
+                              : <>
+                                {need > 0 ? need : '—'}
+                                {need > 0 && covered > 0 && (
+                                  <div style={{ fontSize: 10, color: 'var(--text-faint)', marginTop: 1 }}>
+                                    {covered}{t('days_covered')}
+                                  </div>
+                                )}
+                              </>
                             }
                           </td>
                         );
