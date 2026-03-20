@@ -110,32 +110,6 @@ export default function WorkloadView({ data, updateData }: Props) {
   return (
     <div className="animate-in">
       <div className="page-sticky-header">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
-        <div>
-          <h1 style={{ fontSize: 22, fontWeight: 700, letterSpacing: '-0.02em' }}>{t('workload_title')}</h1>
-          <p style={{ color: 'var(--text-muted)', fontSize: 13, marginTop: 4 }}>
-            {t('workload_subtitle')}
-          </p>
-        </div>
-        <div style={{ display: 'flex', gap: 8 }}>
-          {tab === 'workload' && (
-            <button className="btn btn-primary" onClick={() => {
-              const proj = data.projects[0];
-              setEditingWorkload({ id: '', projectId: proj?.id ?? '', projectName: proj?.name ?? '', profile: 'FUNC', monthly: {} });
-              setIsNew(true);
-            }}>{t('add_workload')}</button>
-          )}
-          {tab === 'allocation' && (
-            <button className="btn btn-primary" onClick={() => {
-              const proj = data.projects[0];
-              const staff = data.staff[0];
-              setEditingAlloc({ id: '', projectId: proj?.id ?? '', projectName: proj?.name ?? '', profile: 'FUNC', staffId: staff?.id ?? '', staffName: staff?.name ?? '', monthly: {} });
-              setIsNew(true);
-            }}>{t('add_allocation_btn')}</button>
-          )}
-        </div>
-      </div>
-
       {/* Filters + tabs */}
       <div style={{ display: 'flex', gap: 10, marginBottom: showFilters ? 0 : 16, flexWrap: 'wrap', alignItems: 'center' }}>
         <select className="input" value={projectFilter} onChange={e => setProjectFilter(e.target.value)} style={{ maxWidth: 280 }}>
@@ -164,9 +138,23 @@ export default function WorkloadView({ data, updateData }: Props) {
             ✕ {t('clear_filters')}
           </button>
         )}
-        <span style={{ marginLeft: 'auto', fontSize: 12, color: 'var(--text-faint)' }}>
-          {tab === 'workload' ? `${filteredWorkloads.length} ${t('workload_lines')}` : `${filteredAllocs.length} ${t('alloc_lines')}`}
-        </span>
+        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
+          {tab === 'workload' && (
+            <button className="btn btn-primary" onClick={() => {
+              const proj = data.projects[0];
+              setEditingWorkload({ id: '', projectId: proj?.id ?? '', projectName: proj?.name ?? '', profile: 'FUNC', monthly: {} });
+              setIsNew(true);
+            }}>{t('add_workload')}</button>
+          )}
+          {tab === 'allocation' && (
+            <button className="btn btn-primary" onClick={() => {
+              const proj = data.projects[0];
+              const staff = data.staff[0];
+              setEditingAlloc({ id: '', projectId: proj?.id ?? '', projectName: proj?.name ?? '', profile: 'FUNC', staffId: staff?.id ?? '', staffName: staff?.name ?? '', monthly: {} });
+              setIsNew(true);
+            }}>{t('add_allocation_btn')}</button>
+          )}
+        </div>
       </div>
 
       {/* Advanced filter panel */}
@@ -219,7 +207,7 @@ export default function WorkloadView({ data, updateData }: Props) {
 
       {/* WORKLOAD TABLE */}
       {tab === 'workload' && (
-        <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+        <div className="card" style={{ padding: 0, overflow: 'hidden', marginTop: 16 }}>
           <div style={{ overflowX: 'auto' }}>
             <table className="data-table">
               <thead>

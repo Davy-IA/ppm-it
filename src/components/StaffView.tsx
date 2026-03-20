@@ -99,37 +99,26 @@ export default function StaffView({ data, updateData }: Props) {
   return (
     <div className="animate-in">
       <div className="page-sticky-header">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
-        <div>
-          <h1 style={{ fontSize: 22, fontWeight: 700, letterSpacing: '-0.02em' }}>{t('staff_title')}</h1>
-          <p style={{ color: 'var(--text-muted)', fontSize: 13, marginTop: 4 }}>
-            {t('staff_subtitle_fmt').replace('{i}', String(data.staff.filter(s => s.type === 'Internal').length)).replace('{e}', String(data.staff.filter(s => s.type === 'External').length))}
-          </p>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <input className="input" placeholder={t('search')} value={search} onChange={e => setSearch(e.target.value)} style={{ maxWidth: 220 }} />
+          <select className="input" value={typeFilter} onChange={e => setTypeFilter(e.target.value)} style={{ maxWidth: 150 }}>
+            <option value="">{t('all_types')}</option>
+            <option value="Internal">{t('internal')}</option>
+            <option value="External">{t('contract_external')}</option>
+          </select>
+          <select className="input" value={yearFilter} onChange={e => setYearFilter(e.target.value)} style={{ maxWidth: 110 }}>
+            <option value="2026">2026</option>
+            <option value="2027">2027</option>
+            <option value="2028">2028</option>
+          </select>
+          <div style={{ flex: 1 }} />
+          <button className="btn btn-primary" onClick={() => { setEditing({ id: '', ...EMPTY_STAFF }); setIsNew(true); }}>
+            {t('add_staff')}
+          </button>
         </div>
-        <button className="btn btn-primary" onClick={() => { setEditing({ id: '', ...EMPTY_STAFF }); setIsNew(true); }}>
-          {t('add_staff')}
-        </button>
       </div>
 
-      {/* Filters */}
-      <div style={{ display: 'flex', gap: 10, marginBottom: 16 }}>
-        <input className="input" placeholder={t('search')} value={search} onChange={e => setSearch(e.target.value)} style={{ maxWidth: 240 }} />
-        <select className="input" value={typeFilter} onChange={e => setTypeFilter(e.target.value)} style={{ maxWidth: 160 }}>
-          <option value="">{t('all_types')}</option>
-          <option value="Internal">{t('internal')}</option>
-          <option value="External">{t('contract_external')}</option>
-        </select>
-        <select className="input" value={yearFilter} onChange={e => setYearFilter(e.target.value)} style={{ maxWidth: 120 }}>
-          <option value="2026">2026</option>
-          <option value="2027">2027</option>
-          <option value="2028">2028</option>
-        </select>
-      </div>
-
-      {/* Capacity grid table */}
-      </div>
-
-      <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+      <div className="card" style={{ padding: 0, overflow: 'hidden', marginTop: 16 }}>
         <div style={{ overflowX: 'auto' }}>
           <table className="data-table">
             <thead>

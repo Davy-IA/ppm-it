@@ -145,94 +145,86 @@ export default function GanttView({ data, updateData }: Props) {
   return (
     <div className="animate-in">
       <div className="page-sticky-header">
-      <div className="page-header">
-        <div>
-          <h1 className="page-title">{t('gantt_title')}</h1>
-          <p className="page-subtitle">{t('gantt_subtitle')}</p>
-        </div>
-        <div style={{ position: 'relative' }}>
-          <button className="btn btn-primary" onClick={() => setShowNewMenu(m => !m)}
-            style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            + {t('new_btn')}
-            <svg width="10" height="10" viewBox="0 0 10 10" fill="none" style={{ opacity: 0.8 }}>
-              <path d="M2 4l3 3 3-3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </button>
-          {showNewMenu && (
-            <>
-              <div style={{ position: 'fixed', inset: 0, zIndex: 49 }} onClick={() => setShowNewMenu(false)} />
-              <div style={{ position: 'absolute', right: 0, top: 'calc(100% + 6px)', background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 10, boxShadow: '0 8px 24px rgba(99,102,241,0.15)', zIndex: 50, overflow: 'hidden', minWidth: 160, animation: 'dropIn 0.12s ease' }}>
-                <button style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '10px 16px', border: 'none', background: 'none', cursor: 'pointer', fontSize: 13, color: 'var(--text)', fontFamily: 'inherit', textAlign: 'left' }}
-                  onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg3)')}
-                  onMouseLeave={e => (e.currentTarget.style.background = 'none')}
-                  onClick={() => {
-                    setShowNewMenu(false);
-                    setEditPhase({ id: uuid(), projectId: selProj, name: '', startDate: new Date().toISOString().slice(0,10), duration: 30, color: PHASE_COLORS[phases.length % PHASE_COLORS.length], dependsOn: null, subphases: [] } as unknown as GanttPhase);
-                    setIsNew(true);
-                  }}>
-                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1" y="4" width="8" height="3" rx="1.5" fill="var(--accent)"/><rect x="4" y="8" width="9" height="3" rx="1.5" fill="var(--accent)" opacity="0.5"/></svg>
-                  <span><strong>{t('new_phase')}</strong><div style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 1 }}>{t('phase_hint')}</div></span>
-                </button>
-                <div style={{ height: 1, background: 'var(--border)', margin: '0 10px' }} />
-                <button style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '10px 16px', border: 'none', background: 'none', cursor: 'pointer', fontSize: 13, color: 'var(--text)', fontFamily: 'inherit', textAlign: 'left' }}
-                  onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg3)')}
-                  onMouseLeave={e => (e.currentTarget.style.background = 'none')}
-                  onClick={() => {
-                    setShowNewMenu(false);
-                    setEditMilestone({ id: uuid(), projectId: selProj, name: '', date: project?.goLive ?? new Date().toISOString().slice(0,10), type: (settings.milestoneTypes as any)?.[1] ?? 'Kick-off', isAutoGoLive: false });
-                    setIsNewMilestone(true);
-                  }}>
-                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1L13 7L7 13L1 7L7 1Z" fill="var(--accent2)"/></svg>
-                  <span><strong>{t('new_milestone')}</strong><div style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 1 }}>{t('milestone_hint')}</div></span>
-                </button>
-              </div>
-            </>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+          {/* Pre-filters */}
+          <select className="input" value={statusFilter} onChange={e => { setStatusFilter(e.target.value); setSelProj(''); }} style={{ maxWidth: 155 }}>
+            <option value="">{t('all_statuses')}</option>
+            {['1-To arbitrate','2-Validated','3-In progress','4-Frozen','5-Completed','6-Aborted'].map(s => (
+              <option key={s} value={s}>{s.replace(/^\d-/, '')}</option>
+            ))}
+          </select>
+          <select className="input" value={domainFilter} onChange={e => { setDomainFilter(e.target.value); setSelProj(''); }} style={{ maxWidth: 115 }}>
+            <option value="">{t('all_domains')}</option>
+            {['APPLI','INFRA','INNOV','DATA'].map(d => <option key={d} value={d}>{d}</option>)}
+          </select>
+          <select className="input" value={deptFilter} onChange={e => { setDeptFilter(e.target.value); setSelProj(''); }} style={{ maxWidth: 155 }}>
+            <option value="">{t('all_depts')}</option>
+            {data.projects.map(p => p.leadDept).filter((v, i, a) => v && a.indexOf(v) === i).sort().map(d => (
+              <option key={d} value={d}>{d}</option>
+            ))}
+          </select>
+          {(statusFilter || domainFilter || deptFilter) && (
+            <button onClick={() => { setStatusFilter(''); setDomainFilter(''); setDeptFilter(''); }}
+              style={{ fontSize: 11, color: 'var(--danger)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 600 }}>
+              ✕ {t('clear_filters')}
+            </button>
           )}
+          <div style={{ width: 1, height: 24, background: 'var(--border)', flexShrink: 0 }} />
+          {/* Project selector */}
+          <select className="input"
+            value={selProjValid ? selProj : (filteredProjects[0]?.id ?? '')}
+            onChange={e => setSelProj(e.target.value)}
+            style={{ maxWidth: 300, fontWeight: 600 }}>
+            {filteredProjects.length === 0
+              ? <option value="">{t('no_project')}</option>
+              : filteredProjects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)
+            }
+          </select>
+          <span style={{ fontSize: 11, color: 'var(--text-faint)' }}>{filteredProjects.length}/{data.projects.length}</span>
+          {project?.startDate && <span className="badge badge-blue">{t('gantt_start')} : {fmt(project.startDate)}</span>}
+          {goLive && <span className="badge badge-purple">{t('go_live')} : {fmt(goLive)}</span>}
+          <div style={{ flex: 1 }} />
+          {/* + New dropdown */}
+          <div style={{ position: 'relative' }}>
+            <button className="btn btn-primary" onClick={() => setShowNewMenu(m => !m)}
+              style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              + {t('new_btn')}
+              <svg width="10" height="10" viewBox="0 0 10 10" fill="none" style={{ opacity: 0.8 }}>
+                <path d="M2 4l3 3 3-3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </button>
+            {showNewMenu && (
+              <>
+                <div style={{ position: 'fixed', inset: 0, zIndex: 49 }} onClick={() => setShowNewMenu(false)} />
+                <div style={{ position: 'absolute', right: 0, top: 'calc(100% + 6px)', background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 10, boxShadow: '0 8px 24px rgba(99,102,241,0.15)', zIndex: 50, overflow: 'hidden', minWidth: 160, animation: 'dropIn 0.12s ease' }}>
+                  <button style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '10px 16px', border: 'none', background: 'none', cursor: 'pointer', fontSize: 13, color: 'var(--text)', fontFamily: 'inherit', textAlign: 'left' }}
+                    onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg3)')}
+                    onMouseLeave={e => (e.currentTarget.style.background = 'none')}
+                    onClick={() => {
+                      setShowNewMenu(false);
+                      setEditPhase({ id: uuid(), projectId: selProj, name: '', startDate: new Date().toISOString().slice(0,10), duration: 30, color: PHASE_COLORS[phases.length % PHASE_COLORS.length], dependsOn: null, subphases: [] } as unknown as GanttPhase);
+                      setIsNew(true);
+                    }}>
+                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1" y="4" width="8" height="3" rx="1.5" fill="var(--accent)"/><rect x="4" y="8" width="9" height="3" rx="1.5" fill="var(--accent)" opacity="0.5"/></svg>
+                    <span><strong>{t('new_phase')}</strong><div style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 1 }}>{t('phase_hint')}</div></span>
+                  </button>
+                  <div style={{ height: 1, background: 'var(--border)', margin: '0 10px' }} />
+                  <button style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '10px 16px', border: 'none', background: 'none', cursor: 'pointer', fontSize: 13, color: 'var(--text)', fontFamily: 'inherit', textAlign: 'left' }}
+                    onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg3)')}
+                    onMouseLeave={e => (e.currentTarget.style.background = 'none')}
+                    onClick={() => {
+                      setShowNewMenu(false);
+                      setEditMilestone({ id: uuid(), projectId: selProj, name: '', date: project?.goLive ?? new Date().toISOString().slice(0,10), type: (settings.milestoneTypes as any)?.[1] ?? 'Kick-off', isAutoGoLive: false });
+                      setIsNewMilestone(true);
+                    }}>
+                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1L13 7L7 13L1 7L7 1Z" fill="var(--accent2)"/></svg>
+                    <span><strong>{t('new_milestone')}</strong><div style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 1 }}>{t('milestone_hint')}</div></span>
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
         </div>
-      </div>
-
-      {/* Project selector with pre-filters */}
-      <div style={{ display: 'flex', gap: 8, marginBottom: 18, alignItems: 'center', flexWrap: 'wrap' }}>
-        {/* Filter pills */}
-        <select className="input" value={statusFilter} onChange={e => { setStatusFilter(e.target.value); setSelProj(''); }} style={{ maxWidth: 160 }}>
-          <option value="">{t('all_statuses')}</option>
-          {['1-To arbitrate','2-Validated','3-In progress','4-Frozen','5-Completed','6-Aborted'].map(s => (
-            <option key={s} value={s}>{s.replace(/^\d-/, '')}</option>
-          ))}
-        </select>
-        <select className="input" value={domainFilter} onChange={e => { setDomainFilter(e.target.value); setSelProj(''); }} style={{ maxWidth: 120 }}>
-          <option value="">{t('all_domains')}</option>
-          {['APPLI','INFRA','INNOV','DATA'].map(d => <option key={d} value={d}>{d}</option>)}
-        </select>
-        <select className="input" value={deptFilter} onChange={e => { setDeptFilter(e.target.value); setSelProj(''); }} style={{ maxWidth: 160 }}>
-          <option value="">{t('all_depts')}</option>
-          {data.projects.map(p => p.leadDept).filter((v, i, a) => v && a.indexOf(v) === i).sort().map(d => (
-            <option key={d} value={d}>{d}</option>
-          ))}
-        </select>
-        {(statusFilter || domainFilter || deptFilter) && (
-          <button onClick={() => { setStatusFilter(''); setDomainFilter(''); setDeptFilter(''); }}
-            style={{ fontSize: 11, color: 'var(--danger)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 600 }}>
-            ✕ {t('clear_filters')}
-          </button>
-        )}
-        <div style={{ width: 1, height: 24, background: 'var(--border)', flexShrink: 0 }} />
-        {/* Project select — filtered + alpha sorted */}
-        <select className="input"
-          value={selProjValid ? selProj : (filteredProjects[0]?.id ?? '')}
-          onChange={e => setSelProj(e.target.value)}
-          style={{ maxWidth: 320, fontWeight: 600 }}>
-          {filteredProjects.length === 0
-            ? <option value="">{t('no_project')}</option>
-            : filteredProjects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)
-          }
-        </select>
-        <span style={{ fontSize: 11, color: 'var(--text-faint)' }}>{filteredProjects.length} / {data.projects.length}</span>
-        {project?.startDate && <span className="badge badge-blue">{t('gantt_start')} : {fmt(project.startDate)}</span>}
-        {goLive && <span className="badge badge-purple">{t('go_live')} : {fmt(goLive)}</span>}
-        <span className="badge badge-gray">{phases.length} {t('gantt_phases').toLowerCase()} · {phases.reduce((s,p)=>s+p.subphases.length,0)} {t('gantt_subphases').toLowerCase()}</span>
-      </div>
-
       </div>
 
       {/* Coherence alert */}
