@@ -224,8 +224,11 @@ export default function WorkloadView({ data, updateData }: Props) {
                   <tr><td colSpan={months.length + 4} style={{ textAlign: 'center', padding: 32, color: 'var(--text-faint)' }}>{t('no_workload')}</td></tr>
                 )}
                 {filteredWorkloads.map(w => {
-                  // Coverage per month
                   const totalRow = months.reduce((s, m) => s + (w.monthly[m] ?? 0), 0);
+                  const proj = data.projects.find(p => p.id === w.projectId);
+                  const projStart = proj?.startDate ?? null;
+                  const projEnd = (proj as any)?.hypercare ?? proj?.goLive ?? null;
+                  const hasDateRange = projStart && projEnd;
                   return (
                     <tr key={w.id}>
                       <td className="sticky-left" style={{ fontWeight: 500, maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis' }}>{w.projectName}</td>
@@ -235,19 +238,31 @@ export default function WorkloadView({ data, updateData }: Props) {
                         const covered = data.allocations
                           .filter(a => a.projectId === w.projectId && a.profile === w.profile)
                           .reduce((s, a) => s + (a.monthly[m] ?? 0), 0);
-                        const cls = need === 0 ? 'cap-cell cap-zero' : covered >= need ? 'cap-cell cap-ok' : covered > 0 ? 'cap-cell cap-under' : 'cap-cell cap-over';
+                        // Month in range?
+                        const mStart = m + '-01';
+                        const mEnd = m + '-31';
+                        const inRange = !hasDateRange
+                          ? false
+                          : mEnd >= projStart! && mStart <= projEnd!;
+                        const outOfRange = hasDateRange && !inRange;
+                        // Cell class: if has value use standard, else if in range use tint, else zero
+                        const cls = outOfRange
+                          ? 'cap-cell cap-zero'
+                          : need === 0
+                            ? inRange ? 'cap-cell cap-in-range' : 'cap-cell cap-zero'
+                            : covered >= need ? 'cap-cell cap-ok' : covered > 0 ? 'cap-cell cap-under' : 'cap-cell cap-over';
                         return (
-                          <td key={m} className={cls + ' cell-edit'}
-                            title={`${t('workload_need')}: ${need}j | ${t('workload_covered')}: ${covered}j`}
-                            onClick={() => setInlineEdit({ id: w.id, field: 'w_' + m })}>
-                            {inlineEdit?.id === w.id && inlineEdit.field === 'w_' + m
+                          <td key={m} className={cls + (outOfRange ? '' : ' cell-edit')}
+                            title={outOfRange ? t('out_of_project_range') as string : `${t('workload_need')}: ${need}j | ${t('workload_covered')}: ${covered}j`}
+                            onClick={outOfRange ? undefined : () => setInlineEdit({ id: w.id, field: 'w_' + m })}>
+                            {!outOfRange && inlineEdit?.id === w.id && inlineEdit.field === 'w_' + m
                               ? <input type="number" min={0} step={0.5} className="cell-input" autoFocus defaultValue={need || ''}
                                   style={{ minWidth: 44, width: 50, textAlign: 'center' }}
                                   onBlur={e => { updateWorkloadMonth(w.id, m, e.target.value); setInlineEdit(null); }}
                                   onKeyDown={e => { if (e.key === 'Enter') { updateWorkloadMonth(w.id, m, (e.target as HTMLInputElement).value); setInlineEdit(null); } if (e.key === 'Escape') setInlineEdit(null); }}
                                   onClick={e => e.stopPropagation()} />
                               : <>
-                                <span style={{ fontWeight: 700 }}>{need > 0 ? need : '—'}</span>
+                                <span style={{ fontWeight: 700 }}>{need > 0 ? need : outOfRange ? '' : '—'}</span>
                                 {need > 0 && covered > 0 && (
                                   <div style={{ fontSize: 10, color: 'var(--text-faint)', marginTop: 1 }}>
                                     {covered}{t('days_covered')}
@@ -260,10 +275,7 @@ export default function WorkloadView({ data, updateData }: Props) {
                       })}
                       <td style={{ fontFamily: 'DM Mono, monospace', fontSize: 12, fontWeight: 600, color: 'var(--accent)' }}>{totalRow > 0 ? `${totalRow}j` : '—'}</td>
                       <td>
-                        <div style={{ display: 'flex', gap: 4 }}>
-                          <button className="btn btn-ghost btn-sm" onClick={() => { setEditingWorkload({ ...w }); setIsNew(false); }}>{t('edit_btn')}</button>
-                          <button className="btn btn-danger btn-sm" onClick={() => deleteWorkload(w.id)}>✕</button>
-                        </div>
+                        <button className="btn btn-danger btn-sm" onClick={() => deleteWorkload(w.id)}>✕</button>
                       </td>
                     </tr>
                   );
@@ -301,6 +313,10 @@ export default function WorkloadView({ data, updateData }: Props) {
                 {filteredAllocs.map(a => {
                   const staff = data.staff.find(s => s.id === a.staffId);
                   const totalRow = months.reduce((s, m) => s + (a.monthly[m] ?? 0), 0);
+                  const proj = data.projects.find(p => p.id === a.projectId);
+                  const projStart = proj?.startDate ?? null;
+                  const projEnd = (proj as any)?.hypercare ?? proj?.goLive ?? null;
+                  const hasDateRange = projStart && projEnd;
                   return (
                     <tr key={a.id}>
                       <td className="sticky-left" style={{ fontWeight: 500, maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis' }}>{a.projectName}</td>
@@ -312,19 +328,28 @@ export default function WorkloadView({ data, updateData }: Props) {
                       {months.map(m => {
                         const alloc = a.monthly[m] ?? 0;
                         const cap = staff?.capacity[m] ?? 0;
-                        const cls = alloc === 0 ? 'cap-cell cap-zero' : alloc > cap ? 'cap-cell cap-over' : 'cap-cell cap-ok';
+                        const mStart = m + '-01';
+                        const mEnd = m + '-31';
+                        const inRange = !hasDateRange ? false : mEnd >= projStart! && mStart <= projEnd!;
+                        const outOfRange = hasDateRange && !inRange;
+                        const cls = outOfRange
+                          ? 'cap-cell cap-zero'
+                          : alloc === 0
+                            ? inRange ? 'cap-cell cap-in-range' : 'cap-cell cap-zero'
+                            : alloc > cap ? 'cap-cell cap-over' : 'cap-cell cap-ok';
                         return (
-                          <td key={m} className={cls + ' cell-edit'}
-                            onClick={() => setInlineEdit({ id: a.id, field: 'a_' + m })}>
-                            {inlineEdit?.id === a.id && inlineEdit.field === 'a_' + m
+                          <td key={m} className={cls + (outOfRange ? '' : ' cell-edit')}
+                            title={outOfRange ? t('out_of_project_range') as string : undefined}
+                            onClick={outOfRange ? undefined : () => setInlineEdit({ id: a.id, field: 'a_' + m })}>
+                            {!outOfRange && inlineEdit?.id === a.id && inlineEdit.field === 'a_' + m
                               ? <input type="number" min={0} step={0.5} className="cell-input" autoFocus defaultValue={alloc || ''}
                                   style={{ minWidth: 44, width: 50, textAlign: 'center' }}
                                   onBlur={e => { updateAllocMonth(a.id, m, e.target.value); setInlineEdit(null); }}
                                   onKeyDown={e => { if (e.key === 'Enter') { updateAllocMonth(a.id, m, (e.target as HTMLInputElement).value); setInlineEdit(null); } if (e.key === 'Escape') setInlineEdit(null); }}
                                   onClick={e => e.stopPropagation()} />
                               : <>
-                                <span style={{ fontWeight: 700 }}>{alloc > 0 ? alloc : '—'}</span>
-                                {cap > 0 && (
+                                <span style={{ fontWeight: 700 }}>{alloc > 0 ? alloc : outOfRange ? '' : '—'}</span>
+                                {!outOfRange && cap > 0 && (
                                   <div style={{ fontSize: 10, color: 'var(--text-faint)', marginTop: 1 }}>
                                     {cap}{t('days_available')}
                                   </div>
@@ -336,10 +361,7 @@ export default function WorkloadView({ data, updateData }: Props) {
                       })}
                       <td style={{ fontFamily: 'DM Mono, monospace', fontSize: 12, fontWeight: 600, color: 'var(--accent)' }}>{totalRow > 0 ? `${totalRow}j` : '—'}</td>
                       <td>
-                        <div style={{ display: 'flex', gap: 4 }}>
-                          <button className="btn btn-ghost btn-sm" onClick={() => { setEditingAlloc({ ...a }); setIsNew(false); }}>{t('edit_btn')}</button>
-                          <button className="btn btn-danger btn-sm" onClick={() => deleteAlloc(a.id)}>✕</button>
-                        </div>
+                        <button className="btn btn-danger btn-sm" onClick={() => deleteAlloc(a.id)}>✕</button>
                       </td>
                     </tr>
                   );

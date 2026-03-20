@@ -555,3 +555,11 @@ body { background: var(--bg-gradient) !important; min-height: 100vh; }
   border-bottom: 2px solid var(--border);
   box-shadow: 0 2px 4px rgba(0,0,0,0.04);
 }
+
+/* ── In-range project tint (workload/assignment cells within project dates) ── */
+.cap-in-range {
+  background: rgba(99,102,241,0.06) !important;
+}
+[data-theme="dark"] .cap-in-range {
+  background: rgba(99,102,241,0.1) !important;
+}
