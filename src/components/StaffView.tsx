@@ -224,6 +224,12 @@ export default function StaffView({ data, updateData }: Props) {
                     <td>
                       <div style={{ display: 'flex', gap: 4 }}>
                         <button className="btn btn-ghost btn-sm" onClick={() => { setEditing({ ...s }); setIsNew(false); }}>{t('edit_btn')}</button>
+                        <button className="btn btn-ghost btn-sm" title={t('copy_resource') as string} onClick={() => {
+                          const copy = { ...s, id: '', name: s.name + ' (copy)' };
+                          setEditing(copy); setIsNew(true);
+                        }}>
+                          <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><rect x="1" y="4" width="7" height="8" rx="1.2" stroke="currentColor" strokeWidth="1.3"/><path d="M4 4V2.5A1.5 1.5 0 015.5 1H10a1.5 1.5 0 011.5 1.5V8A1.5 1.5 0 0110 9.5H8.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg>
+                        </button>
                         <button className="btn btn-danger btn-sm" onClick={() => setConfirmAction(() => remove(s.id))}><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 3.5h9M5 3.5V2.5h3v1M10.5 3.5l-.7 7H3.2l-.7-7" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg></button>
                       </div>
                     </td>
@@ -238,7 +244,7 @@ export default function StaffView({ data, updateData }: Props) {
       {/* Modal */}
       {editing && (
         <div className="modal-overlay" onClick={() => setEditing(null)}>
-          <div className="modal" style={{ maxWidth: 780 }} onClick={e => e.stopPropagation()}>
+          <div className="modal" style={{ maxWidth: 520 }} onClick={e => e.stopPropagation()}>
             <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <h2 style={{ fontSize: 16, fontWeight: 700 }}>{isNew ? t('new_staff') : `Éditer — ${editing.name}`}</h2>
               <button className="btn btn-ghost btn-sm" onClick={() => setEditing(null)}><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 3.5h9M5 3.5V2.5h3v1M10.5 3.5l-.7 7H3.2l-.7-7" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg></button>
@@ -272,16 +278,14 @@ export default function StaffView({ data, updateData }: Props) {
                     </select>
                   </div>
                 )}
-                {editing.type === 'External' && (
-                  <div>
-                    <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>{t('link_to_user')}</label>
-                    <select className="input" value={(editing as any).userId ?? ''} onChange={e => setEditing({ ...editing, userId: e.target.value || null } as any)}>
-                      <option value="">— {t('no_linked_user')} —</option>
-                      {ppmUsers.map(u => <option key={u.id} value={u.id}>{u.name} — {u.email}</option>)}
-                    </select>
-                    <div style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 3 }}>{t('link_user_hint')}</div>
-                  </div>
-                )}
+                <div>
+                  <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>{t('link_to_user')}</label>
+                  <select className="input" value={(editing as any).userId ?? ''} onChange={e => setEditing({ ...editing, userId: e.target.value || null } as any)}>
+                    <option value="">— {t('no_linked_user')} —</option>
+                    {ppmUsers.map(u => <option key={u.id} value={u.id}>{u.name} — {u.email}</option>)}
+                  </select>
+                  <div style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 3 }}>{t('link_user_hint')}</div>
+                </div>
                 <div>
                   <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>{t('field_entity')}</label>
                   <select className="input" value={editing.entity} onChange={e => setEditing({ ...editing, entity: e.target.value })}>
@@ -296,34 +300,6 @@ export default function StaffView({ data, updateData }: Props) {
                 </div>
               </div>
 
-              {/* Capacity by year */}
-              {['2026', '2027', '2028'].map(year => (
-                <div key={year} style={{ marginBottom: 20 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>{t('availability_year').replace('{year}', String(year))}</div>
-                    <button className="btn btn-ghost btn-sm" onClick={() => fillYear(21)}>{t('btn_fill21')}</button>
-                    <button className="btn btn-ghost btn-sm" onClick={() => fillYear(0)}>{t('btn_clear')}</button>
-                  </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(12, 1fr)', gap: 6 }}>
-                    {MONTHS_2026_2028.filter(m => m.startsWith(year)).map(m => {
-                      const label = formatMonth(m, locale);
-                      return (
-                        <div key={m} style={{ textAlign: 'center' }}>
-                          <div style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 3 }}>{label}</div>
-                          <input
-                            type="number"
-                            min={0} max={31} step={0.5}
-                            className="input"
-                            value={editing.capacity[m] ?? ''}
-                            onChange={e => setCapacity(m, e.target.value)}
-                            style={{ textAlign: 'center', padding: '4px', fontFamily: 'DM Mono, monospace', fontSize: 13 }}
-                          />
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              ))}
             </div>
             <div style={{ padding: '16px 24px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
               <button className="btn btn-ghost" onClick={() => setEditing(null)}>{t('cancel')}</button>

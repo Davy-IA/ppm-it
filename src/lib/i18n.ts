@@ -516,6 +516,7 @@ export const translations = {
     select_project: 'Sélectionner un projet',
     select_resource: 'Sélectionner une ressource',
     confirm_delete: 'Confirmez vous la suppression ?',
+    copy_resource: 'Copier cette ressource',
   },
   en: {
     nav_dashboard: 'Dashboard',
@@ -1023,6 +1024,7 @@ export const translations = {
     select_project: 'Select a project',
     select_resource: 'Select a resource',
     confirm_delete: 'Confirm deletion?',
+    copy_resource: 'Copy this resource',
   },
   pt: {
     nav_dashboard: 'Painel',
@@ -1530,6 +1532,7 @@ export const translations = {
     select_project: 'Selecionar um projeto',
     select_resource: 'Selecionar um recurso',
     confirm_delete: 'Confirma a exclusão?',
+    copy_resource: 'Copiar recurso',
   },
   zh: {
     nav_dashboard: '仪表板',
@@ -2037,6 +2040,7 @@ export const translations = {
     select_project: '选择项目',
     select_resource: '选择资源',
     confirm_delete: '确认删除？',
+    copy_resource: '复制资源',
   },
 } as const;
 
