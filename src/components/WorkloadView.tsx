@@ -274,7 +274,7 @@ export default function WorkloadView({ data, updateData }: Props) {
 
       {/* ALLOCATION TABLE */}
       {tab === 'allocation' && (
-        <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+        <div className="card" style={{ padding: 0, overflow: 'hidden', marginTop: 16 }}>
           <div style={{ overflowX: 'auto' }}>
             <table className="data-table">
               <thead>

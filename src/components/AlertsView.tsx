@@ -40,11 +40,6 @@ export default function AlertsView({ data }: Props) {
 
   return (
     <div className="animate-in">
-      <div style={{ marginBottom: 24 }}>
-        <h1 style={{ fontSize: 22, fontWeight: 700, letterSpacing: '-0.02em' }}>{t('alerts_title')}</h1>
-        <p style={{ color: 'var(--text-muted)', fontSize: 13, marginTop: 4 }}>{t('alerts_subtitle')}</p>
-      </div>
-
       {/* Summary banners */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 14, marginBottom: 24 }}>
         <div className="card" style={{ borderLeft: `3px solid ${overCount > 0 ? 'var(--danger)' : 'var(--success)'}` }}>

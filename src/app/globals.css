@@ -548,15 +548,9 @@ body { background: var(--bg-gradient) !important; min-height: 100vh; }
 /* ── Sticky table header (thead) ─────────────────────────── */
 .data-table thead tr th {
   position: sticky;
-  top: 56px; /* toolbar: 10px padding-top + 36px input + 10px padding-bottom */
+  top: 56px; /* height of page-sticky-header toolbar */
   z-index: 10;
   background: var(--bg3);
-}
-/* Separator line under sticky thead */
-.data-table thead tr th::after {
-  content: '';
-  position: absolute;
-  left: 0; right: 0; bottom: 0;
-  height: 2px;
-  background: var(--border);
+  border-bottom: 2px solid var(--border);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.04);
 }

@@ -230,7 +230,7 @@ export default function CapacityView({ data }: Props) {
       </div>
 
       {/* Summary chart */}
-      <div className="card" style={{ marginBottom: 16 }}>
+      <div className="card" style={{ marginBottom: 16, marginTop: 16 }}>
         <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 12, color: 'var(--text-muted)' }}>{t('summary_chart').replace('{year}', yearFilter)}</div>
         <ResponsiveContainer width="100%" height={180}>
           <BarChart data={chartData} barGap={3} barSize={18}>

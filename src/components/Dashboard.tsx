@@ -54,13 +54,6 @@ export default function Dashboard({ data, setView, onSubNav }: Props) {
 
   return (
     <div className="animate-in">
-      <div className="page-header">
-        <div>
-          <h1 className="page-title">{t('dashboard_title')}</h1>
-          <p className="page-subtitle">{t('dashboard_subtitle')}</p>
-        </div>
-      </div>
-
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 16, marginBottom: 24 }}>
         {statCards.map(c => (
           <div key={c.label} className="card" style={{ borderLeft: `3px solid ${c.color}` }}>
