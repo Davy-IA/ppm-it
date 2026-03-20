@@ -51,7 +51,12 @@ export default function CapacityView({ data }: Props) {
     });
 
   // --- PROJECT VIEW: workload vs allocated per project ---
-  const projectRows = data.projects.map(p => {
+  const projectRows = data.projects
+    .filter(p => !projectFilterCapacity || p.id === projectFilterCapacity)
+    .filter(p => !projectSearch || p.name.toLowerCase().includes(projectSearch.toLowerCase()))
+    .filter(p => !projectStatusFilter || p.status === projectStatusFilter)
+    .filter(p => !projectDomainFilter || p.domain === projectDomainFilter)
+    .map(p => {
     const wloads: Record<string, Record<string, number>> = {};
     const allocs: Record<string, Record<string, number>> = {};
     PROFILES.forEach(prof => {
@@ -74,12 +79,35 @@ export default function CapacityView({ data }: Props) {
 
 
 
-  // Chart data for selected profile or global
+  // Chart data — respects active filters
   const chartData = months.map(m => {
     const label = monthLabel(m);
-const totalCap = data.staff.reduce((s, st) => s + (st.capacity[m] ?? 0), 0);
-    const totalAlloc = data.allocations.reduce((s, a) => s + (a.monthly[m] ?? 0), 0);
-    const totalWork = data.workloads.reduce((s, w) => s + (w.monthly[m] ?? 0), 0);
+    // Filter staff for chart
+    const activeStaff = staffRows; // already filtered
+    const activeProjectIds = projectRows.map(p => p.id);
+
+    const totalCap = viewMode === 'staff'
+      ? activeStaff.reduce((s, st) => s + (st.capacity[m] ?? 0), 0)
+      : data.staff
+          .filter(s => !profileFilter || s.profile === profileFilter)
+          .reduce((s, st) => s + (st.capacity[m] ?? 0), 0);
+
+    const totalAlloc = viewMode === 'staff'
+      ? data.allocations
+          .filter(a => activeStaff.some(s => s.id === a.staffId))
+          .reduce((s, a) => s + (a.monthly[m] ?? 0), 0)
+      : data.allocations
+          .filter(a => activeProjectIds.includes(a.projectId) && (!profileFilter || (data.workloads.find(w => w.projectId === a.projectId && w.profile === a.profile)?.profile === profileFilter)))
+          .reduce((s, a) => s + (a.monthly[m] ?? 0), 0);
+
+    const totalWork = viewMode === 'staff'
+      ? data.workloads
+          .filter(w => activeStaff.some(s => s.id) && (!profileFilter || w.profile === profileFilter))
+          .reduce((s, w) => s + (w.monthly[m] ?? 0), 0)
+      : data.workloads
+          .filter(w => activeProjectIds.includes(w.projectId) && (!profileFilter || w.profile === profileFilter))
+          .reduce((s, w) => s + (w.monthly[m] ?? 0), 0);
+
     return { month: label, capacity: totalCap, workload: totalWork, allocated: totalAlloc, gap: totalCap - totalWork };
   });
 
@@ -116,15 +144,19 @@ const totalCap = data.staff.reduce((s, st) => s + (st.capacity[m] ?? 0), 0);
           <option value="2028">2028</option>
         </select>
 
-        {/* 3 filter selects: All resources | All projects | All profiles */}
-        <select className="input" value={staffFilterCapacity} onChange={e => setStaffFilterCapacity(e.target.value)} style={{ maxWidth: 180 }}>
-          <option value="">{t('all_resources')}</option>
-          {data.staff.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-        </select>
-        <select className="input" value={projectFilterCapacity} onChange={e => setProjectFilterCapacity(e.target.value)} style={{ maxWidth: 200 }}>
-          <option value="">{t('all_projects')}</option>
-          {data.projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-        </select>
+        {/* Contextual selects */}
+        {viewMode === 'staff' && (
+          <select className="input" value={staffFilterCapacity} onChange={e => setStaffFilterCapacity(e.target.value)} style={{ maxWidth: 190 }}>
+            <option value="">{t('all_resources')}</option>
+            {data.staff.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+          </select>
+        )}
+        {viewMode === 'project' && (
+          <select className="input" value={projectFilterCapacity} onChange={e => setProjectFilterCapacity(e.target.value)} style={{ maxWidth: 210 }}>
+            <option value="">{t('all_projects')}</option>
+            {data.projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+          </select>
+        )}
         <select className="input" value={profileFilter} onChange={e => setProfileFilter(e.target.value)} style={{ maxWidth: 150 }}>
           <option value="">{t('all_profiles')}</option>
           {PROFILES.map(p => <option key={p}>{p}</option>)}
