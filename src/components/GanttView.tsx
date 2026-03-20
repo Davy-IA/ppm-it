@@ -349,10 +349,10 @@ export default function GanttView({ data, updateData, initialProjectId, onMounte
             <div style={{ minWidth: LEFT_W + chartW }}>
               {/* Sticky header row */}
               <div style={{ display:'flex', background:'var(--bg3)', borderBottom:'2px solid var(--border)' }}>
-                <div style={{ width:LEFT_W, minWidth:LEFT_W, flexShrink:0, borderRight:'1px solid var(--border)', height:40, display:'flex', alignItems:'center', padding:'0 16px' }}>
+                <div style={{ width:LEFT_W, minWidth:LEFT_W, flexShrink:0, borderRight:'1px solid var(--border)', height:40, display:'flex', alignItems:'center', padding:'0 16px', position:'sticky', left:0, zIndex:5, background:'var(--bg3)' }}>
                   <span style={{ fontSize:11, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.07em', color:'var(--text-faint)' }}>{t('structure')}</span>
                 </div>
-                <div style={{ flex:1, position:'relative', height:40 }}>
+                <div style={{ width:chartW, flexShrink:0, position:'relative', height:40 }}>
                   {months.map((m,i) => (
                     <div key={i} style={{ position:'absolute', left:m.left, width:m.width, height:'100%', display:'flex', alignItems:'center', justifyContent:'center', borderRight:'1px solid var(--border)', fontSize:11, fontWeight:700, color:'var(--text-muted)', textTransform:'capitalize' }}>{m.label}</div>
                   ))}
@@ -360,11 +360,11 @@ export default function GanttView({ data, updateData, initialProjectId, onMounte
               </div>
               {/* Body row */}
               <div style={{ display:'flex' }}>
-              {/* Labels */}
-              <div style={{ width:LEFT_W, minWidth:LEFT_W, borderRight:'1px solid var(--border)', flexShrink:0 }}>
+              {/* Labels - sticky left */}
+              <div style={{ width:LEFT_W, minWidth:LEFT_W, borderRight:'1px solid var(--border)', flexShrink:0, position:'sticky', left:0, zIndex:4, background:'var(--bg2)' }}>
                 {phases.map(ph => (
                   <div key={ph.id}>
-                    <div style={{ height:40, borderBottom:'1px solid var(--border)', display:'flex', alignItems:'center', padding:'0 8px', gap:6, background:'var(--bg2)' }}>
+                    <div style={{ height:40, borderBottom:'1px solid var(--border)', display:'flex', alignItems:'center', padding:'0 8px', gap:6, background:'var(--bg2)', isolation:'isolate' }}>
                       <button onClick={() => {
                         const updated = phases.map(p => p.id === ph.id ? {...p, collapsed:!p.collapsed} : p);
                         savePhases(updated);
@@ -380,7 +380,7 @@ export default function GanttView({ data, updateData, initialProjectId, onMounte
                       </div>
                     </div>
                     {!ph.collapsed && ph.subphases.map(sub => (
-                      <div key={sub.id} style={{ height:34, borderBottom:'1px solid var(--border)', background:'var(--bg3)', display:'flex', alignItems:'center', padding:'0 8px 0 30px', gap:6 }}>
+                      <div key={sub.id} style={{ height:34, borderBottom:'1px solid var(--border)', background:'var(--bg3)', display:'flex', alignItems:'center', padding:'0 8px 0 30px', gap:6, isolation:'isolate' }}>
                         <div style={{width:7,height:7,borderRadius:2,background:ph.color||'#10b981',opacity:0.6,flexShrink:0}}/>
                         <span style={{fontSize:12,flex:1,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',color:'var(--text-muted)'}}>{sub.name}</span>
                         <div style={{display:'flex',gap:2,flexShrink:0}}>
