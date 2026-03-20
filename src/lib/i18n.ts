@@ -481,6 +481,7 @@ export const translations = {
     reset_to_global: 'Réinitialiser',
     using_global_values: 'Utilise les valeurs globales',
     customize_for_space: 'Personnaliser pour cet espace',
+    all_depts: 'Tous les départements',
   },
   en: {
     nav_dashboard: 'Dashboard',
@@ -953,6 +954,7 @@ export const translations = {
     reset_to_global: 'Reset',
     using_global_values: 'Using global values',
     customize_for_space: 'Customize for this space',
+    all_depts: 'All departments',
   },
   pt: {
     nav_dashboard: 'Painel',
@@ -1425,6 +1427,7 @@ export const translations = {
     reset_to_global: 'Redefinir',
     using_global_values: 'Usando valores globais',
     customize_for_space: 'Personalizar para este espaço',
+    all_depts: 'Todos os departamentos',
   },
   zh: {
     nav_dashboard: '仪表板',
@@ -1897,6 +1900,7 @@ export const translations = {
     reset_to_global: '重置',
     using_global_values: '使用全局值',
     customize_for_space: '为此空间自定义',
+    all_depts: '所有部门',
   },
 } as const;
 

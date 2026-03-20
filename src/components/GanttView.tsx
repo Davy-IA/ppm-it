@@ -72,6 +72,19 @@ export default function GanttView({ data, updateData }: Props) {
   const [editMilestone, setEditMilestone] = useState<Milestone | null>(null);
   const [isNewMilestone, setIsNewMilestone] = useState(false);
   const [showNewMenu, setShowNewMenu] = useState(false);
+  const [statusFilter, setStatusFilter] = useState('');
+  const [domainFilter, setDomainFilter] = useState('');
+  const [deptFilter, setDeptFilter] = useState('');
+
+  // Filtered + alpha-sorted project list for selector
+  const filteredProjects = data.projects
+    .filter(p => !statusFilter || p.status === statusFilter)
+    .filter(p => !domainFilter || p.domain === domainFilter)
+    .filter(p => !deptFilter || p.leadDept === deptFilter)
+    .sort((a, b) => a.name.localeCompare(b.name));
+
+  // Auto-select first project if current selection is filtered out
+  const selProjValid = filteredProjects.some(p => p.id === selProj);
 
   const project = data.projects.find(p => p.id === selProj);
   const milestones: Milestone[] = [
@@ -177,11 +190,43 @@ export default function GanttView({ data, updateData }: Props) {
         </div>
       </div>
 
-      {/* Project selector */}
-      <div style={{ display: 'flex', gap: 10, marginBottom: 18, alignItems: 'center', flexWrap: 'wrap' }}>
-        <select className="input" value={selProj} onChange={e => setSelProj(e.target.value)} style={{ maxWidth: 340, fontWeight: 600 }}>
-          {data.projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+      {/* Project selector with pre-filters */}
+      <div style={{ display: 'flex', gap: 8, marginBottom: 18, alignItems: 'center', flexWrap: 'wrap' }}>
+        {/* Filter pills */}
+        <select className="input" value={statusFilter} onChange={e => { setStatusFilter(e.target.value); setSelProj(''); }} style={{ maxWidth: 160 }}>
+          <option value="">{t('all_statuses')}</option>
+          {['1-To arbitrate','2-Validated','3-In progress','4-Frozen','5-Completed','6-Aborted'].map(s => (
+            <option key={s} value={s}>{s.replace(/^\d-/, '')}</option>
+          ))}
         </select>
+        <select className="input" value={domainFilter} onChange={e => { setDomainFilter(e.target.value); setSelProj(''); }} style={{ maxWidth: 120 }}>
+          <option value="">{t('all_domains')}</option>
+          {['APPLI','INFRA','INNOV','DATA'].map(d => <option key={d} value={d}>{d}</option>)}
+        </select>
+        <select className="input" value={deptFilter} onChange={e => { setDeptFilter(e.target.value); setSelProj(''); }} style={{ maxWidth: 160 }}>
+          <option value="">{t('all_depts')}</option>
+          {data.projects.map(p => p.leadDept).filter((v, i, a) => v && a.indexOf(v) === i).sort().map(d => (
+            <option key={d} value={d}>{d}</option>
+          ))}
+        </select>
+        {(statusFilter || domainFilter || deptFilter) && (
+          <button onClick={() => { setStatusFilter(''); setDomainFilter(''); setDeptFilter(''); }}
+            style={{ fontSize: 11, color: 'var(--danger)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 600 }}>
+            ✕ {t('clear_filters')}
+          </button>
+        )}
+        <div style={{ width: 1, height: 24, background: 'var(--border)', flexShrink: 0 }} />
+        {/* Project select — filtered + alpha sorted */}
+        <select className="input"
+          value={selProjValid ? selProj : (filteredProjects[0]?.id ?? '')}
+          onChange={e => setSelProj(e.target.value)}
+          style={{ maxWidth: 320, fontWeight: 600 }}>
+          {filteredProjects.length === 0
+            ? <option value="">{t('no_project')}</option>
+            : filteredProjects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)
+          }
+        </select>
+        <span style={{ fontSize: 11, color: 'var(--text-faint)' }}>{filteredProjects.length} / {data.projects.length}</span>
         {project?.startDate && <span className="badge badge-blue">{t('gantt_start')} : {fmt(project.startDate)}</span>}
         {goLive && <span className="badge badge-purple">{t('go_live')} : {fmt(goLive)}</span>}
         <span className="badge badge-gray">{phases.length} {t('gantt_phases').toLowerCase()} · {phases.reduce((s,p)=>s+p.subphases.length,0)} {t('gantt_subphases').toLowerCase()}</span>
