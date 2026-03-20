@@ -142,7 +142,7 @@ export default function Sidebar({ view, setView, open, setOpen, saving, data, cu
               <div style={{ fontSize: 12, fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user.firstName} {user.lastName}</div>
               <div style={{ fontSize: 10, color: ROLE_COLORS[user.role] ?? 'var(--text-faint)', fontWeight: 600 }}>{ROLE_LABELS[user.role] ?? user.role}</div>
             </div>
-            <button onClick={logout} className="btn-icon" style={{ width: 24, height: 24, fontSize: 12 }} title="Déconnexion">⎋</button>
+            <button onClick={logout} className="btn-icon" style={{ width: 24, height: 24, fontSize: 12 }} {...{title: String(t('logout'))}}>⎋</button>
           </div>
         )}
 

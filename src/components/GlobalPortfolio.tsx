@@ -136,7 +136,7 @@ export default function GlobalPortfolio({ spaces, onBack }: Props) {
 
                     {/* Status bar */}
                     <div style={{ marginTop: 14 }}>
-                      <div style={{ fontSize: 11, color: 'var(--text-faint)', marginBottom: 6 }}>Statut des projets</div>
+                      <div style={{ fontSize: 11, color: 'var(--text-faint)', marginBottom: 6 }}>{t('project_status_chart')}</div>
                       {(() => {
                         const d = allData[space.id];
                         const statuses: Record<string, number> = {};
@@ -144,7 +144,7 @@ export default function GlobalPortfolio({ spaces, onBack }: Props) {
                         const colors: Record<string, string> = { '3-In progress': 'var(--success)', '2-Validated': 'var(--accent)', '1-To arbitrate': 'var(--text-faint)', '4-Frozen': 'var(--warning)', '5-Completed': 'var(--purple)', '6-Aborted': 'var(--danger)' };
                         return Object.entries(statuses).map(([status, count]) => (
                           <div key={status} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginBottom: 3 }}>
-                            <span style={{ color: 'var(--text-muted)' }}>{status.replace(/^\d-/, '')}</span>
+                            <span style={{ color: 'var(--text-muted)' }}>{t(({'1-To arbitrate':'status_to_arbitrate','2-Validated':'status_validated','3-In progress':'status_in_progress','4-Frozen':'status_frozen','5-Completed':'status_completed','6-Aborted':'status_aborted'} as Record<string,string>)[status] ?? 'status_to_arbitrate') || status.replace(/^\d-/, '')}</span>
                             <span style={{ fontWeight: 700, color: colors[status] ?? 'var(--text-faint)', fontFamily: 'JetBrains Mono, monospace' }}>{count}</span>
                           </div>
                         ));
