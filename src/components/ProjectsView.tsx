@@ -88,13 +88,29 @@ export default function ProjectsView({ data, updateData }: Props) {
   return (
     <div className="animate-in">
       <div className="page-sticky-header">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
-        <div>
-          <h1 className="page-title">{t('projects_title')}</h1>
-          <p style={{ color: 'var(--text-muted)', fontSize: 13, marginTop: 4 }}>{t('projects_subtitle_fmt').replace('{n}', String(data.projects.length))}</p>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          {/* View toggle */}
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+          <input className="input" placeholder={t('search')} value={search} onChange={e => setSearch(e.target.value)} style={{ maxWidth: 220 }} />
+          <select className="input" value={statusFilter} onChange={e => setStatusFilter(e.target.value)} style={{ maxWidth: 155 }}>
+            <option value="">{t('all_statuses')}</option>
+            {spaceStatuses.map(s => <option key={s} value={s}>{s.replace(/^\d-/, '')}</option>)}
+          </select>
+          <select className="input" value={domainFilter} onChange={e => setDomainFilter(e.target.value)} style={{ maxWidth: 120 }}>
+            <option value="">{t('all_domains')}</option>
+            {spaceDomains.map(d => <option key={d} value={d}>{d}</option>)}
+          </select>
+          <button onClick={() => setShowFilters(f => !f)}
+            style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '7px 11px', borderRadius: 8, border: `1.5px solid ${activeFilterCount > 0 ? 'var(--accent)' : 'var(--border)'}`, background: activeFilterCount > 0 ? 'var(--accent-subtle)' : 'var(--bg2)', color: activeFilterCount > 0 ? 'var(--accent)' : 'var(--text-muted)', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.15s' }}>
+            <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M1 3h11M3 6.5h7M5 10h3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+            {t('filters_btn')}
+            {activeFilterCount > 0 && <span style={{ background: 'var(--accent)', color: '#fff', borderRadius: 10, padding: '1px 6px', fontSize: 10, fontWeight: 700 }}>{activeFilterCount}</span>}
+          </button>
+          {activeFilterCount > 0 && (
+            <button onClick={() => { setAdvFilters({}); setStatusFilter(''); setDomainFilter(''); }}
+              style={{ fontSize: 11, color: 'var(--danger)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 600 }}>
+              ✕ {t('clear_filters')}
+            </button>
+          )}
+          <div style={{ flex: 1 }} />
           <div style={{ display: 'flex', border: '1px solid var(--border)', borderRadius: 8, overflow: 'hidden' }}>
             <button onClick={() => setViewMode('list')} style={{ padding: '6px 12px', fontSize: 12, fontWeight: 600, border: 'none', cursor: 'pointer', background: viewMode === 'list' ? 'var(--accent-gradient)' : 'var(--bg2)', color: viewMode === 'list' ? '#fff' : 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 5 }}>
               <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><rect x="1" y="1" width="11" height="2" rx="1" fill="currentColor"/><rect x="1" y="5" width="11" height="2" rx="1" fill="currentColor"/><rect x="1" y="9" width="11" height="2" rx="1" fill="currentColor"/></svg>
@@ -109,36 +125,6 @@ export default function ProjectsView({ data, updateData }: Props) {
             {t('new_project')}
           </button>
         </div>
-      </div>
-
-      {/* Filters bar */}
-      <div style={{ display: 'flex', gap: 10, marginBottom: showFilters ? 0 : 16, flexWrap: 'wrap', alignItems: 'center' }}>
-        <input className="input" placeholder={t('search')} value={search} onChange={e => setSearch(e.target.value)} style={{ maxWidth: 260 }} />
-        <select className="input" value={statusFilter} onChange={e => setStatusFilter(e.target.value)} style={{ maxWidth: 170 }}>
-          <option value="">{t('all_statuses')}</option>
-          {spaceStatuses.map(s => <option key={s} value={s}>{s.replace(/^\d-/, '')}</option>)}
-        </select>
-        <select className="input" value={domainFilter} onChange={e => setDomainFilter(e.target.value)} style={{ maxWidth: 130 }}>
-          <option value="">{t('all_domains')}</option>
-          {spaceDomains.map(d => <option key={d} value={d}>{d}</option>)}
-        </select>
-        {/* Advanced filters button */}
-        <button
-          onClick={() => setShowFilters(f => !f)}
-          style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 12px', borderRadius: 8, border: `1.5px solid ${activeFilterCount > 0 ? 'var(--accent)' : 'var(--border)'}`, background: activeFilterCount > 0 ? 'var(--accent-subtle)' : 'var(--bg2)', color: activeFilterCount > 0 ? 'var(--accent)' : 'var(--text-muted)', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.15s' }}>
-          <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M1 3h11M3 6.5h7M5 10h3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
-          {t('filters_btn')}
-          {activeFilterCount > 0 && <span style={{ background: 'var(--accent)', color: '#fff', borderRadius: 10, padding: '1px 6px', fontSize: 10, fontWeight: 700 }}>{activeFilterCount}</span>}
-        </button>
-        {activeFilterCount > 0 && (
-          <button onClick={() => { setAdvFilters({}); setStatusFilter(''); setDomainFilter(''); }}
-            style={{ fontSize: 11, color: 'var(--danger)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 600 }}>
-            ✕ {t('clear_filters')}
-          </button>
-        )}
-        <span style={{ marginLeft: 'auto', fontSize: 12, color: 'var(--text-faint)' }}>
-          {filtered.length} / {data.projects.length} {t('projects_count')}
-        </span>
       </div>
 
       {/* Advanced filters panel */}
@@ -172,8 +158,6 @@ export default function ProjectsView({ data, updateData }: Props) {
           ))}
         </div>
       )}
-
-      </div>
 
       {/* Gantt Portfolio View */}
       {viewMode === 'gantt' && <PortfolioGantt data={data} filtered={filtered} t={t} />}

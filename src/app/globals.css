@@ -532,19 +532,23 @@ body { background: var(--bg-gradient) !important; min-height: 100vh; }
   box-shadow: 0 0 0 3px var(--accent-subtle);
 }
 
-/* ── Sticky page header (titre + filtres) ────────────────── */
+/* ── Sticky toolbar (filters bar) ────────────────────────── */
 .page-sticky-header {
   position: sticky;
   top: 0;
   z-index: 20;
   background: var(--bg);
   margin: -20px -28px 0;
-  padding: 16px 28px 12px;
+  padding: 10px 28px 10px;
   border-bottom: 1px solid var(--border);
-  margin-bottom: 16px;
+  margin-bottom: 0;
 }
 
-/* Small shadow on scroll to show it's floating */
-.page-sticky-header.scrolled {
-  box-shadow: 0 2px 12px rgba(99,102,241,0.08);
+/* ── Sticky table header (thead) ─────────────────────────── */
+.data-table thead tr th {
+  position: sticky;
+  top: 57px; /* height of .page-sticky-header */
+  z-index: 10;
+  background: var(--bg3);
+  box-shadow: 0 1px 0 var(--border);
 }
