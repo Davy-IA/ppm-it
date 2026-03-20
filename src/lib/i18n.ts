@@ -502,6 +502,7 @@ export const translations = {
     scale_week: 'Semaine',
     scale_month: 'Mois',
     scale_year: 'Année',
+    days_allocated: 'j alloués',
   },
   en: {
     nav_dashboard: 'Dashboard',
@@ -995,6 +996,7 @@ export const translations = {
     scale_week: 'Week',
     scale_month: 'Month',
     scale_year: 'Year',
+    days_allocated: 'd allocated',
   },
   pt: {
     nav_dashboard: 'Painel',
@@ -1488,6 +1490,7 @@ export const translations = {
     scale_week: 'Semana',
     scale_month: 'Mês',
     scale_year: 'Ano',
+    days_allocated: 'd alocados',
   },
   zh: {
     nav_dashboard: '仪表板',
@@ -1981,6 +1984,7 @@ export const translations = {
     scale_week: '周',
     scale_month: '月',
     scale_year: '年',
+    days_allocated: '天已分配',
   },
 } as const;
 

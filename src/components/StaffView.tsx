@@ -210,9 +210,9 @@ export default function StaffView({ data, updateData }: Props) {
                                 onKeyDown={e => { if (e.key === 'Enter') { updateCapacity(s.id, m, (e.target as HTMLInputElement).value); setInlineEdit(null); } if (e.key === 'Escape') setInlineEdit(null); }}
                                 onClick={e => e.stopPropagation()} />
                             : <>{cap > 0 ? cap : '—'}{alloc > 0 && (
-                              <div style={{ fontSize: 10, color: alloc > cap ? 'var(--danger)' : alloc / cap >= 0.8 ? 'var(--success)' : 'var(--warning)', fontWeight: 600, marginTop: 1 }}
-                                title={`${alloc}j alloués / ${cap}j dispo (${Math.round(alloc/cap*100)}%)`}>
-                                {alloc}j alloués
+                              <div style={{ fontSize: 10, color: 'var(--text-faint)', marginTop: 1 }}
+                                title={`${alloc} ${t('days_allocated')} / ${cap} (${Math.round(alloc/cap*100)}%)`}>
+                                {alloc}{t('days_allocated')}
                               </div>
                             )}</>
                           }
