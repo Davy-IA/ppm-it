@@ -461,6 +461,9 @@ export const translations = {
     legend_project_bar: 'Barre projet (start → Go-Live)',
     legend_hypercare: 'Hypercare / Rollout',
     legend_golive: 'Jalon Go-Live',
+    new_btn: 'Nouveau',
+    phase_hint: 'Durée avec sous-phases',
+    milestone_hint: 'Date ponctuelle',
   },
   en: {
     nav_dashboard: 'Dashboard',
@@ -913,6 +916,9 @@ export const translations = {
     legend_project_bar: 'Project bar (start → Go-Live)',
     legend_hypercare: 'Hypercare / Rollout',
     legend_golive: 'Go-Live milestone',
+    new_btn: 'New',
+    phase_hint: 'Duration with subphases',
+    milestone_hint: 'Single date event',
   },
   pt: {
     nav_dashboard: 'Painel',
@@ -1365,6 +1371,9 @@ export const translations = {
     legend_project_bar: 'Barra do projeto (início → Go-Live)',
     legend_hypercare: 'Hypercare / Rollout',
     legend_golive: 'Marco Go-Live',
+    new_btn: 'Novo',
+    phase_hint: 'Duração com subfases',
+    milestone_hint: 'Data pontual',
   },
   zh: {
     nav_dashboard: '仪表板',
@@ -1817,6 +1826,9 @@ export const translations = {
     legend_project_bar: '项目条（开始 → Go-Live）',
     legend_hypercare: 'Hypercare / 推广',
     legend_golive: 'Go-Live里程碑',
+    new_btn: '新建',
+    phase_hint: '带子阶段的持续时间',
+    milestone_hint: '单次日期事件',
   },
 } as const;
 

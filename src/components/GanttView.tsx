@@ -71,6 +71,7 @@ export default function GanttView({ data, updateData }: Props) {
   const [isNew, setIsNew] = useState(false);
   const [editMilestone, setEditMilestone] = useState<Milestone | null>(null);
   const [isNewMilestone, setIsNewMilestone] = useState(false);
+  const [showNewMenu, setShowNewMenu] = useState(false);
 
   const project = data.projects.find(p => p.id === selProj);
   const milestones: Milestone[] = [
@@ -135,14 +136,45 @@ export default function GanttView({ data, updateData }: Props) {
           <h1 className="page-title">{t('gantt_title')}</h1>
           <p className="page-subtitle">{t('gantt_subtitle')}</p>
         </div>
-        <button className="btn btn-primary" onClick={() => {
-          setEditPhase({ id: uuid(), projectId: selProj, name: '', startDate: new Date().toISOString().slice(0,10), duration: 30, color: PHASE_COLORS[phases.length % PHASE_COLORS.length], dependsOn: null, subphases: [] } as unknown as GanttPhase);
-          setIsNew(true);
-        }}>{t('new_phase')}</button>
-        <button className="btn btn-ghost" onClick={() => {
-          setEditMilestone({ id: uuid(), projectId: selProj, name: '', date: project?.goLive ?? new Date().toISOString().slice(0,10), type: (settings.milestoneTypes as any)?.[1] ?? 'Kick-off', isAutoGoLive: false });
-          setIsNewMilestone(true);
-        }}>{t('new_milestone')}</button>
+        <div style={{ position: 'relative' }}>
+          <button className="btn btn-primary" onClick={() => setShowNewMenu(m => !m)}
+            style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            + {t('new_btn')}
+            <svg width="10" height="10" viewBox="0 0 10 10" fill="none" style={{ opacity: 0.8 }}>
+              <path d="M2 4l3 3 3-3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
+          {showNewMenu && (
+            <>
+              <div style={{ position: 'fixed', inset: 0, zIndex: 49 }} onClick={() => setShowNewMenu(false)} />
+              <div style={{ position: 'absolute', right: 0, top: 'calc(100% + 6px)', background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 10, boxShadow: '0 8px 24px rgba(99,102,241,0.15)', zIndex: 50, overflow: 'hidden', minWidth: 160, animation: 'dropIn 0.12s ease' }}>
+                <button style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '10px 16px', border: 'none', background: 'none', cursor: 'pointer', fontSize: 13, color: 'var(--text)', fontFamily: 'inherit', textAlign: 'left' }}
+                  onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg3)')}
+                  onMouseLeave={e => (e.currentTarget.style.background = 'none')}
+                  onClick={() => {
+                    setShowNewMenu(false);
+                    setEditPhase({ id: uuid(), projectId: selProj, name: '', startDate: new Date().toISOString().slice(0,10), duration: 30, color: PHASE_COLORS[phases.length % PHASE_COLORS.length], dependsOn: null, subphases: [] } as unknown as GanttPhase);
+                    setIsNew(true);
+                  }}>
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1" y="4" width="8" height="3" rx="1.5" fill="var(--accent)"/><rect x="4" y="8" width="9" height="3" rx="1.5" fill="var(--accent)" opacity="0.5"/></svg>
+                  <span><strong>{t('new_phase')}</strong><div style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 1 }}>{t('phase_hint')}</div></span>
+                </button>
+                <div style={{ height: 1, background: 'var(--border)', margin: '0 10px' }} />
+                <button style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '10px 16px', border: 'none', background: 'none', cursor: 'pointer', fontSize: 13, color: 'var(--text)', fontFamily: 'inherit', textAlign: 'left' }}
+                  onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg3)')}
+                  onMouseLeave={e => (e.currentTarget.style.background = 'none')}
+                  onClick={() => {
+                    setShowNewMenu(false);
+                    setEditMilestone({ id: uuid(), projectId: selProj, name: '', date: project?.goLive ?? new Date().toISOString().slice(0,10), type: (settings.milestoneTypes as any)?.[1] ?? 'Kick-off', isAutoGoLive: false });
+                    setIsNewMilestone(true);
+                  }}>
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1L13 7L7 13L1 7L7 1Z" fill="var(--accent2)"/></svg>
+                  <span><strong>{t('new_milestone')}</strong><div style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 1 }}>{t('milestone_hint')}</div></span>
+                </button>
+              </div>
+            </>
+          )}
+        </div>
       </div>
 
       {/* Project selector */}
