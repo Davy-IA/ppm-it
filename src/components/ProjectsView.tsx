@@ -47,6 +47,9 @@ export default function ProjectsView({ data, updateData, setView, onNavigateToPl
   const [editing, setEditing] = useState<Project | null>(null);
   const [isNew, setIsNew] = useState(false);
   const [viewMode, setViewMode] = useState<'list' | 'gantt'>('list');
+  const [ganttTimeScale, setGanttTimeScale] = useState<'week' | 'month' | 'semester' | 'year'>('month');
+  const [showGanttScaleMenu, setShowGanttScaleMenu] = useState(false);
+  const [ganttScale, setGanttScale] = useState<'week' | 'month' | 'semester' | 'year'>('month');
   const [inlineEdit, setInlineEdit] = useState<{ id: string; field: string } | null>(null);
 
   const updateField = (id: string, field: string, value: any) => {
@@ -134,6 +137,31 @@ export default function ProjectsView({ data, updateData, setView, onNavigateToPl
             </button>
           )}
           <div style={{ flex: 1 }} />
+          {/* Gantt scale selector — only in gantt mode */}
+          {viewMode === 'gantt' && (
+            <div style={{ position: 'relative' }}>
+              <button onClick={() => setShowGanttScaleMenu(m => !m)}
+                style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '6px 11px', borderRadius: 8, border: '1.5px solid var(--border)', background: 'var(--bg2)', color: 'var(--text-muted)', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M1 6h10M1 3h10M1 9h6" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg>
+                {ganttScale === 'week' ? String(t('scale_week')) : ganttScale === 'month' ? String(t('scale_month')) : ganttScale === 'semester' ? String(t('scale_semester')) : String(t('scale_year'))}
+                <svg width="8" height="8" viewBox="0 0 8 8" fill="none"><path d="M1 3l3 3 3-3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg>
+              </button>
+              {showGanttScaleMenu && (
+                <>
+                  <div style={{ position: 'fixed', inset: 0, zIndex: 49 }} onClick={() => setShowGanttScaleMenu(false)} />
+                  <div style={{ position: 'absolute', right: 0, top: 'calc(100% + 4px)', background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 10, boxShadow: '0 8px 24px rgba(99,102,241,0.15)', zIndex: 50, overflow: 'hidden', minWidth: 140 }}>
+                    {(['week', 'month', 'semester', 'year'] as const).map(scale => (
+                      <button key={scale} onClick={() => { setGanttScale(scale); setShowGanttScaleMenu(false); }}
+                        style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '9px 14px', border: 'none', background: ganttScale === scale ? 'var(--accent-subtle)' : 'none', color: ganttScale === scale ? 'var(--accent)' : 'var(--text)', cursor: 'pointer', fontSize: 13, fontWeight: ganttScale === scale ? 700 : 400, fontFamily: 'inherit', textAlign: 'left' as const }}>
+                        {ganttScale === scale && <span style={{ color: 'var(--accent)', fontSize: 10 }}>✓</span>}
+                        {scale === 'week' ? String(t('scale_week')) : scale === 'month' ? String(t('scale_month')) : scale === 'semester' ? String(t('scale_semester')) : String(t('scale_year'))}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+          )}
           <div style={{ display: 'flex', border: '1px solid var(--border)', borderRadius: 8, overflow: 'hidden' }}>
             <button onClick={() => setViewMode('list')} style={{ padding: '6px 12px', fontSize: 12, fontWeight: 600, border: 'none', cursor: 'pointer', background: viewMode === 'list' ? 'var(--accent-gradient)' : 'var(--bg2)', color: viewMode === 'list' ? '#fff' : 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 5 }}>
               <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><rect x="1" y="1" width="11" height="2" rx="1" fill="currentColor"/><rect x="1" y="5" width="11" height="2" rx="1" fill="currentColor"/><rect x="1" y="9" width="11" height="2" rx="1" fill="currentColor"/></svg>
@@ -183,7 +211,7 @@ export default function ProjectsView({ data, updateData, setView, onNavigateToPl
       )}
 
       {/* Gantt Portfolio View */}
-      {viewMode === 'gantt' && <PortfolioGantt data={data} filtered={filtered} t={t} />}
+      {viewMode === 'gantt' && <PortfolioGantt data={data} filtered={filtered} t={t} timeScale={ganttScale} />}
 
       {/* Table */}
       {viewMode === 'list' && <div className="card" style={{ padding: 0, overflow: 'visible', marginTop: 16 }}>
@@ -441,10 +469,8 @@ export default function ProjectsView({ data, updateData, setView, onNavigateToPl
 
 // ─── Portfolio Gantt View ────────────────────────────────────────────────────
 // ── Portfolio Gantt ──────────────────────────────────────────────────────────
-function PortfolioGantt({ data, filtered, t }: { data: AppData; filtered: Project[]; t: Function }) {
+function PortfolioGantt({ data, filtered, t, timeScale }: { data: AppData; filtered: Project[]; t: Function; timeScale: 'week' | 'month' | 'semester' | 'year' }) {
   const { settings } = useSettings(); const locale = settings.locale ?? 'fr';
-  const [timeScale, setTimeScale] = useState<'week' | 'month' | 'semester' | 'year'>('month');
-  const [showScaleMenu, setShowScaleMenu] = useState(false);
   const now = new Date();
   const today = now.toISOString().slice(0, 10);
   const LEFT_W = 220;
@@ -458,7 +484,7 @@ function PortfolioGantt({ data, filtered, t }: { data: AppData; filtered: Projec
     return Math.round((new Date(b).getTime() - new Date(a).getTime()) / 86400000);
   }
 
-  const DAY_PX = timeScale === 'week' ? 42 : timeScale === 'month' ? 17 : timeScale === 'semester' ? 4 : 1.5;
+  const DAY_PX = timeScale === 'week' ? 22 : timeScale === 'month' ? 8 : timeScale === 'semester' ? 2.7 : 0.9;
 
   // Anchor on earliest project date, fixed window per scale
   const anchorD    = new Date(minProjDate);
@@ -474,14 +500,18 @@ function PortfolioGantt({ data, filtered, t }: { data: AppData; filtered: Projec
     const d = new Date(minProjDate);
     const dow = d.getDay(); d.setDate(d.getDate() - (dow === 0 ? 6 : dow - 1));
     displayMin = d.toISOString().slice(0,10);
-    displayMax = addDaysPG(displayMin, 12 * 7 - 1);
+    // Cover full project range in weeks
+    const endW = new Date(maxProjDate); endW.setDate(endW.getDate() + 14);
+    displayMax = endW.toISOString().slice(0,10);
   } else if (timeScale === 'month') {
+    // Show from earliest project start to latest end + 1 month padding
     displayMin = `${anchorYear}-${String(anchorMon + 1).padStart(2,'0')}-01`;
-    displayMax = new Date(anchorYear, anchorMon + 6, 0).toISOString().slice(0,10);
+    const endD = new Date(maxProjDate); endD.setMonth(endD.getMonth() + 1);
+    displayMax = endD.toISOString().slice(0,10);
   } else if (timeScale === 'semester') {
     const semStart = anchorMon < 6 ? 0 : 6;
     displayMin = `${anchorYear}-${String(semStart + 1).padStart(2,'0')}-01`;
-    displayMax = new Date(anchorYear + 1, semStart + 12, 0).toISOString().slice(0,10);
+    displayMax = `${new Date(maxProjDate).getFullYear()}-12-31`;
   } else {
     displayMin = `${anchorYear}-01-01`;
     displayMax = `${anchorYear + 2}-12-31`;
@@ -546,38 +576,10 @@ function PortfolioGantt({ data, filtered, t }: { data: AppData; filtered: Projec
     '6-Aborted': 'var(--danger)',
   };
 
-  const scaleLabel = timeScale === 'week' ? t('scale_week') : timeScale === 'month' ? t('scale_month') : timeScale === 'semester' ? t('scale_semester') : t('scale_year');
-
   return (
     <div style={{ marginTop: 16 }}>
-      {/* Scale selector toolbar */}
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
-        <div style={{ position: 'relative' }}>
-          <button onClick={() => setShowScaleMenu(m => !m)}
-            style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '6px 11px', borderRadius: 8, border: '1.5px solid var(--border)', background: 'var(--bg2)', color: 'var(--text-muted)', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
-            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M1 6h10M1 3h10M1 9h6" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg>
-            {String(scaleLabel)}
-            <svg width="8" height="8" viewBox="0 0 8 8" fill="none"><path d="M1 3l3 3 3-3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg>
-          </button>
-          {showScaleMenu && (
-            <>
-              <div style={{ position: 'fixed', inset: 0, zIndex: 49 }} onClick={() => setShowScaleMenu(false)} />
-              <div style={{ position: 'absolute', right: 0, top: 'calc(100% + 4px)', background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 10, boxShadow: '0 8px 24px rgba(99,102,241,0.15)', zIndex: 50, overflow: 'hidden', minWidth: 140 }}>
-                {(['week', 'month', 'semester', 'year'] as const).map(scale => (
-                  <button key={scale} onClick={() => { setTimeScale(scale); setShowScaleMenu(false); }}
-                    style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '9px 14px', border: 'none', background: timeScale === scale ? 'var(--accent-subtle)' : 'none', color: timeScale === scale ? 'var(--accent)' : 'var(--text)', cursor: 'pointer', fontSize: 13, fontWeight: timeScale === scale ? 700 : 400, fontFamily: 'inherit', textAlign: 'left' as const }}>
-                    {timeScale === scale && <span style={{ color: 'var(--accent)', fontSize: 10 }}>✓</span>}
-                    {scale === 'week' ? String(t('scale_week')) : scale === 'month' ? String(t('scale_month')) : scale === 'semester' ? String(t('scale_semester')) : String(t('scale_year'))}
-                  </button>
-                ))}
-              </div>
-            </>
-          )}
-        </div>
-      </div>
-
       <div className="card" style={{ padding: 0, overflow: 'visible' }}>
-        <div style={{ overflow: 'auto', maxHeight: 'calc(100vh - 210px)' }}>
+        <div style={{ overflowX: 'auto' }}>
           <div style={{ minWidth: LEFT_W + chartW }}>
             {/* Header row — sticky */}
             <div style={{ display: 'flex', background: 'var(--bg3)', borderBottom: '2px solid var(--border)', position: 'sticky', top: 0, zIndex: 6 }}>
