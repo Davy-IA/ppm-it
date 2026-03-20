@@ -442,28 +442,66 @@ export default function ProjectsView({ data, updateData, setView, onNavigateToPl
 // ─── Portfolio Gantt View ────────────────────────────────────────────────────
 // ── Portfolio Gantt ──────────────────────────────────────────────────────────
 function PortfolioGantt({ data, filtered, t }: { data: AppData; filtered: Project[]; t: Function }) {
+  const [zoom, setZoom] = useState(1); // 0.5=2 years, 1=1 year, 2=6 months
   const now = new Date();
-  const yearStart = `${now.getFullYear()}-01-01`;
-  const yearEnd   = `${now.getFullYear()}-12-31`;
-  const DAY = 2.8;
+
+  // Compute display range from filtered projects or default to current year
+  const projectDates = filtered.flatMap(p => [p.startDate, p.goLive, (p as any).hypercare].filter(Boolean) as string[]);
+  const minProjDate = projectDates.length ? projectDates.reduce((a,b) => a<b?a:b) : `${now.getFullYear()}-01-01`;
+  const maxProjDate = projectDates.length ? projectDates.reduce((a,b) => a>b?a:b) : `${now.getFullYear()}-12-31`;
+
+  // Expand range to full years
+  const rangeStart = `${new Date(minProjDate).getFullYear()}-01-01`;
+  const rangeEnd   = `${new Date(maxProjDate).getFullYear()}-12-31`;
+
+  // Zoom: 1 = fit all projects, higher = zoom in (fewer months visible)
+  const BASE_DAY = 2.5;
+  const DAY = BASE_DAY * zoom;
   const LEFT_W = 220;
   const today = now.toISOString().slice(0, 10);
 
   function daysBetween(a: string, b: string) {
     return Math.round((new Date(b).getTime() - new Date(a).getTime()) / 86400000);
   }
-  const totalDays = daysBetween(yearStart, yearEnd) + 1;
+  const totalDays = Math.max(daysBetween(rangeStart, rangeEnd) + 1, 30);
   const chartW = totalDays * DAY;
-  const todayX = Math.max(0, daysBetween(yearStart, today)) * DAY;
+  const todayX = Math.max(0, daysBetween(rangeStart, today)) * DAY;
   const ROW_H = 38;
 
+  // Build month/quarter columns depending on zoom
   const months: { label: string; left: number; width: number }[] = [];
-  for (let m = 0; m < 12; m++) {
-    const mDate = new Date(now.getFullYear(), m, 1);
-    const mEnd  = new Date(now.getFullYear(), m + 1, 0);
-    const left  = daysBetween(yearStart, mDate.toISOString().slice(0, 10)) * DAY;
-    const right = daysBetween(yearStart, mEnd.toISOString().slice(0, 10)) * DAY;
-    months.push({ label: mDate.toLocaleDateString('fr-FR', { month: 'short' }), left, width: right - left });
+  if (zoom >= 3) {
+    // Week columns
+    let cur = new Date(rangeStart);
+    const dow = cur.getDay();
+    cur.setDate(cur.getDate() - (dow === 0 ? 6 : dow - 1));
+    while (cur.toISOString().slice(0,10) <= rangeEnd) {
+      const wEnd = new Date(cur); wEnd.setDate(wEnd.getDate() + 6);
+      const left = Math.max(0, daysBetween(rangeStart, cur.toISOString().slice(0,10))) * DAY;
+      const right = Math.min(totalDays, daysBetween(rangeStart, wEnd.toISOString().slice(0,10))) * DAY;
+      months.push({ label: cur.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }), left, width: right - left });
+      cur.setDate(cur.getDate() + 7);
+    }
+  } else if (zoom <= 0.4) {
+    // Year columns
+    let yr = new Date(rangeStart).getFullYear();
+    const endYr = new Date(rangeEnd).getFullYear();
+    while (yr <= endYr) {
+      const left = Math.max(0, daysBetween(rangeStart, `${yr}-01-01`)) * DAY;
+      const right = Math.min(totalDays, daysBetween(rangeStart, `${yr}-12-31`)) * DAY;
+      months.push({ label: String(yr), left, width: right - left });
+      yr++;
+    }
+  } else {
+    // Month columns
+    let cur = new Date(rangeStart); cur.setDate(1);
+    while (cur.toISOString().slice(0,10) <= rangeEnd) {
+      const mEnd = new Date(cur.getFullYear(), cur.getMonth()+1, 0);
+      const left = Math.max(0, daysBetween(rangeStart, cur.toISOString().slice(0,10))) * DAY;
+      const right = Math.min(totalDays, daysBetween(rangeStart, mEnd.toISOString().slice(0,10))) * DAY;
+      months.push({ label: cur.toLocaleDateString('fr-FR', { month: 'short', year: zoom < 0.8 ? '2-digit' : undefined }), left, width: right - left });
+      cur.setMonth(cur.getMonth()+1);
+    }
   }
 
   const statusColor: Record<string, string> = {
@@ -482,8 +520,16 @@ function PortfolioGantt({ data, filtered, t }: { data: AppData; filtered: Projec
 
           {/* Month header */}
           <div style={{ display: 'flex', borderBottom: '1px solid var(--border)', background: 'var(--bg3)', position: 'sticky', top: 0, zIndex: 6 }}>
-            <div style={{ width: LEFT_W, flexShrink: 0, padding: '8px 14px', fontSize: 11, fontWeight: 700, color: 'var(--text-faint)', textTransform: 'uppercase' as const, letterSpacing: '0.07em', position: 'sticky', left: 0, zIndex: 5, background: 'var(--bg3)' }}>
-              {t('project_name')}
+            <div style={{ width: LEFT_W, flexShrink: 0, padding: '8px 14px', fontSize: 11, fontWeight: 700, color: 'var(--text-faint)', textTransform: 'uppercase' as const, letterSpacing: '0.07em', position: 'sticky', left: 0, zIndex: 5, background: 'var(--bg3)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span>{t('project_name')}</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                <button onClick={() => setZoom(z => Math.max(0.25, +(z/1.5).toFixed(2)))}
+                  title="Zoom out" style={{ width: 22, height: 22, border: '1px solid var(--border)', borderRadius: 4, background: 'var(--bg2)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, color: 'var(--text-muted)', fontFamily: 'inherit', lineHeight: 1 }}>−</button>
+                <button onClick={() => setZoom(1)}
+                  title="Reset" style={{ width: 22, height: 22, border: '1px solid var(--border)', borderRadius: 4, background: 'var(--bg2)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, color: 'var(--text-muted)', fontFamily: 'inherit' }}>↺</button>
+                <button onClick={() => setZoom(z => Math.min(6, +(z*1.5).toFixed(2)))}
+                  title="Zoom in" style={{ width: 22, height: 22, border: '1px solid var(--border)', borderRadius: 4, background: 'var(--bg2)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, color: 'var(--text-muted)', fontFamily: 'inherit', lineHeight: 1 }}>+</button>
+              </div>
             </div>
             <div style={{ flex: 1, position: 'relative', height: 32 }}>
               {months.map((m, i) => (
@@ -499,10 +545,10 @@ function PortfolioGantt({ data, filtered, t }: { data: AppData; filtered: Projec
 
           {/* Project rows */}
           {filtered.map((p, idx) => {
-            const barStart = p.startDate ? Math.max(0, daysBetween(yearStart, p.startDate)) : null;
-            const barGl    = p.goLive    ? Math.min(totalDays, daysBetween(yearStart, p.goLive)) : null;
+            const barStart = p.startDate ? Math.max(0, daysBetween(rangeStart, p.startDate)) : null;
+            const barGl    = p.goLive    ? Math.min(totalDays, daysBetween(rangeStart, p.goLive)) : null;
             const hc       = (p as any).hypercare as string | null;
-            const barHc    = hc ? Math.min(totalDays, daysBetween(yearStart, hc)) : null;
+            const barHc    = hc ? Math.min(totalDays, daysBetween(rangeStart, hc)) : null;
             const hasBar   = barStart !== null && barGl !== null;
             const glX      = barGl !== null ? barGl * DAY : null;
             const hcX      = barHc !== null ? barHc * DAY : null;
@@ -536,7 +582,7 @@ function PortfolioGantt({ data, filtered, t }: { data: AppData; filtered: Projec
                   )}
                   {/* Manual milestones */}
                   {(data.milestones ?? []).filter(m => m.projectId === p.id && !m.isAutoGoLive).map(m => {
-                    const mx = daysBetween(yearStart, m.date) * DAY;
+                    const mx = daysBetween(rangeStart, m.date) * DAY;
                     if (mx < -10 || mx > chartW + 10) return null;
                     return (
                       <div key={m.id} style={{ position: 'absolute', left: mx - 5, top: '50%', transform: 'translateY(-50%) rotate(45deg)', width: 9, height: 9, background: 'var(--accent2)', border: '1.5px solid white', zIndex: 5 }} title={`${m.name}: ${m.date}`} />

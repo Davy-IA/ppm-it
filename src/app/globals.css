@@ -80,7 +80,7 @@ html, body {
   border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow-sm);
 }
 
-.data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.data-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 13px; }
 .data-table th {
   background: var(--bg3); color: var(--text-muted); font-weight: 700;
   font-size: 11px; text-transform: uppercase; letter-spacing: 0.07em;
