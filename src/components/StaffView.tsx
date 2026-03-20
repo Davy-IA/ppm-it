@@ -223,7 +223,11 @@ export default function StaffView({ data, updateData }: Props) {
                     })}
                     <td>
                       <div style={{ display: 'flex', gap: 4 }}>
-                        <button className="btn btn-ghost btn-sm" onClick={() => { setEditing({ ...s }); setIsNew(false); }}>{t('edit_btn')}</button>
+                        <button className="btn-icon" title={t('link_to_user') as string}
+                          style={{ width: 26, height: 26, color: (s as any).userId ? 'var(--success)' : 'var(--text-faint)' }}
+                          onClick={() => { setEditing({ ...s }); setIsNew(false); }}>
+                          <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><circle cx="7.5" cy="5" r="3" stroke="currentColor" strokeWidth="1.3"/><path d="M2 13c0-3 2.5-5 5.5-5s5.5 2 5.5 5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg>
+                        </button>
                         <button className="btn btn-ghost btn-sm" title={t('copy_resource') as string} onClick={() => {
                           const copy = { ...s, id: '', name: s.name + ' (copy)' };
                           setEditing(copy); setIsNew(true);
@@ -246,7 +250,7 @@ export default function StaffView({ data, updateData }: Props) {
         <div className="modal-overlay" onClick={() => setEditing(null)}>
           <div className="modal" style={{ maxWidth: 520 }} onClick={e => e.stopPropagation()}>
             <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h2 style={{ fontSize: 16, fontWeight: 700 }}>{isNew ? t('new_staff') : `Éditer — ${editing.name}`}</h2>
+              <h2 style={{ fontSize: 16, fontWeight: 700 }}>{isNew ? t('new_staff') : editing.name}</h2>
               <button className="btn btn-ghost btn-sm" onClick={() => setEditing(null)}><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 3.5h9M5 3.5V2.5h3v1M10.5 3.5l-.7 7H3.2l-.7-7" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg></button>
             </div>
             <div style={{ padding: 24 }}>
