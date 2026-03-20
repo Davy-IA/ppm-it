@@ -224,7 +224,6 @@ export default function GanttView({ data, updateData }: Props) {
               : filteredProjects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)
             }
           </select>
-          <span style={{ fontSize: 11, color: 'var(--text-faint)' }}>{filteredProjects.length}/{data.projects.length}</span>
           {project?.startDate && <span className="badge badge-blue">{t('gantt_start')} : {fmt(project.startDate)}</span>}
           {goLive && <span className="badge badge-purple">{t('go_live')} : {fmt(goLive)}</span>}
           <div style={{ flex: 1 }} />
