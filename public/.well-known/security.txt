@@ -1,0 +1,4 @@
+Contact: it@veja.fr
+Expires: 2027-01-01T00:00:00.000Z
+Policy: This application is proprietary internal software owned by VEJA Fair Trade SAS.
+Unauthorized access, crawling, scraping or reproduction is strictly prohibited.
