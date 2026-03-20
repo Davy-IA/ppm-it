@@ -97,9 +97,28 @@ html, body {
   position: sticky; left: 0; z-index: 3;
   background: var(--bg2);
 }
-.data-table thead .sticky-left { z-index: 12; background: var(--bg3); }
-.data-table tbody tr:hover .sticky-left { background: var(--bg3); }
-.data-table tbody tr .sticky-left { background: var(--bg2); }
+/* thead sticky cell */
+.data-table thead .sticky-left {
+  z-index: 12;
+  background: var(--bg3) !important;
+}
+/* tbody: inherit the tr background so alternating rows show correctly */
+.data-table tbody tr .sticky-left {
+  background: inherit;
+}
+.data-table tbody tr:hover .sticky-left {
+  background: var(--bg3);
+}
+/* Give tr a default background so inherit works */
+.data-table tbody tr {
+  background: var(--bg2);
+}
+.data-table tbody tr:nth-child(even) {
+  background: var(--bg2);
+}
+.data-table tbody tr:hover {
+  background: var(--bg3);
+}
 .sticky-left::after {
   content: '';
   position: absolute;
