@@ -140,7 +140,7 @@ export default function GanttView({ data, updateData, initialProjectId, onMounte
 
   // ── Chart
   // Dynamic px per day based on time scale
-  const DAY_PX_DYN = timeScale === 'week' ? 42 : timeScale === 'month' ? 17 : timeScale === 'semester' ? 4 : 1.5;
+  const DAY_PX_DYN = timeScale === 'week' ? 42 : timeScale === 'month' ? 8 : timeScale === 'semester' ? 4 : 1.5;
 
   // Always use real phase start/end as origin — never shift minDate
   const minDate = range?.start ?? new Date().toISOString().slice(0,10);
