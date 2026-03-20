@@ -472,6 +472,7 @@ export const translations = {
     workload_lines: 'lignes charge',
     alloc_lines: 'affectations',
     year: 'Année',
+    all_resources: 'Toutes les ressources',
   },
   en: {
     nav_dashboard: 'Dashboard',
@@ -935,6 +936,7 @@ export const translations = {
     workload_lines: 'workload lines',
     alloc_lines: 'assignments',
     year: 'Year',
+    all_resources: 'All resources',
   },
   pt: {
     nav_dashboard: 'Painel',
@@ -1398,6 +1400,7 @@ export const translations = {
     workload_lines: 'linhas carga',
     alloc_lines: 'atribuições',
     year: 'Ano',
+    all_resources: 'Todos os recursos',
   },
   zh: {
     nav_dashboard: '仪表板',
@@ -1861,6 +1864,7 @@ export const translations = {
     workload_lines: '工作量行',
     alloc_lines: '分配',
     year: '年份',
+    all_resources: '所有资源',
   },
 } as const;
 

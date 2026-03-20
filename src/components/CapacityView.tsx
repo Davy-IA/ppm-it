@@ -17,6 +17,8 @@ export default function CapacityView({ data }: Props) {
   const [profileFilter, setProfileFilter] = useState('');
   const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
   const [showFilters, setShowFilters] = useState(false);
+  const [staffFilterCapacity, setStaffFilterCapacity] = useState('');
+  const [projectFilterCapacity, setProjectFilterCapacity] = useState('');
   // Staff view filters
   const [staffSearch, setStaffSearch] = useState('');
   const [deptFilter, setDeptFilter] = useState('');
@@ -33,6 +35,7 @@ export default function CapacityView({ data }: Props) {
   const staffRows = data.staff
     .filter(s => !profileFilter || s.profile === profileFilter)
     .filter(s => !staffSearch || s.name.toLowerCase().includes(staffSearch.toLowerCase()))
+    .filter(s => !staffFilterCapacity || s.id === staffFilterCapacity)
     .filter(s => !deptFilter || s.department === deptFilter)
     .filter(s => !typeFilter || s.type === typeFilter)
     .map(s => {
@@ -91,7 +94,7 @@ const totalCap = data.staff.reduce((s, st) => s + (st.capacity[m] ?? 0), 0);
 
   const activeFilters =
     (viewMode === 'staff' ? [staffSearch, deptFilter, typeFilter] : [projectSearch, projectStatusFilter, projectDomainFilter])
-    .filter(Boolean).length + (profileFilter ? 1 : 0);
+    .filter(Boolean).length + (profileFilter ? 1 : 0) + (staffFilterCapacity ? 1 : 0) + (projectFilterCapacity ? 1 : 0);
 
   return (
     <div className="animate-in">
@@ -102,6 +105,7 @@ const totalCap = data.staff.reduce((s, st) => s + (st.capacity[m] ?? 0), 0);
 
       {/* Controls */}
       <div style={{ display: 'flex', gap: 10, marginBottom: showFilters ? 0 : 16, flexWrap: 'wrap', alignItems: 'center' }}>
+        {/* View toggle — only By resource / By project */}
         <div style={{ display: 'flex', background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 6, padding: 3, gap: 3 }}>
           <button className={`btn btn-sm ${viewMode === 'staff' ? 'btn-primary' : 'btn-ghost'}`} onClick={() => { setViewMode('staff'); setShowFilters(false); }}>{t('by_resource')}</button>
           <button className={`btn btn-sm ${viewMode === 'project' ? 'btn-primary' : 'btn-ghost'}`} onClick={() => { setViewMode('project'); setShowFilters(false); }}>{t('by_project')}</button>
@@ -111,25 +115,17 @@ const totalCap = data.staff.reduce((s, st) => s + (st.capacity[m] ?? 0), 0);
           <option value="2027">2027</option>
           <option value="2028">2028</option>
         </select>
-        {/* Quick-access pills */}
-        <div style={{ display: 'flex', gap: 6 }}>
-          <button
-            onClick={() => { setViewMode('staff'); setShowFilters(false); }}
-            style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 12px', borderRadius: 20, border: `1.5px solid ${viewMode === 'staff' ? 'var(--success)' : 'var(--border)'}`, background: viewMode === 'staff' ? 'rgba(16,185,129,0.1)' : 'var(--bg2)', color: viewMode === 'staff' ? 'var(--success)' : 'var(--text-muted)', fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.15s' }}>
-            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="4" r="2.5" stroke="currentColor" strokeWidth="1.4"/><path d="M1.5 11c0-2.49 2.01-4.5 4.5-4.5s4.5 2.01 4.5 4.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg>
-            {t('by_resource')}
-            <span style={{ background: viewMode === 'staff' ? 'var(--success)' : 'var(--border)', color: viewMode === 'staff' ? '#fff' : 'var(--text-faint)', borderRadius: 10, padding: '1px 6px', fontSize: 10, fontWeight: 700 }}>{data.staff.length}</span>
-          </button>
-          <button
-            onClick={() => { setViewMode('project'); setShowFilters(false); }}
-            style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 12px', borderRadius: 20, border: `1.5px solid ${viewMode === 'project' ? 'var(--accent)' : 'var(--border)'}`, background: viewMode === 'project' ? 'var(--accent-subtle)' : 'var(--bg2)', color: viewMode === 'project' ? 'var(--accent)' : 'var(--text-muted)', fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.15s' }}>
-            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect x="1" y="1" width="10" height="10" rx="1.5" stroke="currentColor" strokeWidth="1.4"/><path d="M4 5h4M4 7.5h2.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg>
-            {t('by_project')}
-            <span style={{ background: viewMode === 'project' ? 'var(--accent)' : 'var(--border)', color: viewMode === 'project' ? '#fff' : 'var(--text-faint)', borderRadius: 10, padding: '1px 6px', fontSize: 10, fontWeight: 700 }}>{projectRows.length}</span>
-          </button>
-        </div>
 
-        <select className="input" value={profileFilter} onChange={e => setProfileFilter(e.target.value)} style={{ maxWidth: 140 }}>
+        {/* 3 filter selects: All resources | All projects | All profiles */}
+        <select className="input" value={staffFilterCapacity} onChange={e => setStaffFilterCapacity(e.target.value)} style={{ maxWidth: 180 }}>
+          <option value="">{t('all_resources')}</option>
+          {data.staff.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+        </select>
+        <select className="input" value={projectFilterCapacity} onChange={e => setProjectFilterCapacity(e.target.value)} style={{ maxWidth: 200 }}>
+          <option value="">{t('all_projects')}</option>
+          {data.projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+        </select>
+        <select className="input" value={profileFilter} onChange={e => setProfileFilter(e.target.value)} style={{ maxWidth: 150 }}>
           <option value="">{t('all_profiles')}</option>
           {PROFILES.map(p => <option key={p}>{p}</option>)}
         </select>
@@ -142,7 +138,7 @@ const totalCap = data.staff.reduce((s, st) => s + (st.capacity[m] ?? 0), 0);
             {activeFilters > 0 && <span style={{ background: 'var(--accent)', color: '#fff', borderRadius: 10, padding: '1px 6px', fontSize: 10, fontWeight: 700 }}>{activeFilters}</span>}
           </button>
         {activeFilters > 0 && (
-          <button onClick={() => { setStaffSearch(''); setDeptFilter(''); setTypeFilter(''); setProjectSearch(''); setProjectStatusFilter(''); setProjectDomainFilter(''); setProfileFilter(''); }}
+          <button onClick={() => { setStaffSearch(''); setDeptFilter(''); setTypeFilter(''); setProjectSearch(''); setProjectStatusFilter(''); setProjectDomainFilter(''); setProfileFilter(''); setStaffFilterCapacity(''); setProjectFilterCapacity(''); }}
             style={{ fontSize: 11, color: 'var(--danger)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 600 }}>
             ✕ {t('clear_filters')}
           </button>
