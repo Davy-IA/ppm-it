@@ -163,7 +163,7 @@ export default function ProjectsView({ data, updateData }: Props) {
       {viewMode === 'gantt' && <PortfolioGantt data={data} filtered={filtered} t={t} />}
 
       {/* Table */}
-      {viewMode === 'list' && <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+      {viewMode === 'list' && <div className="card" style={{ padding: 0, overflow: 'hidden', marginTop: 16 }}>
         <div style={{ overflowX: 'auto' }}>
           <table className="data-table">
             <thead>

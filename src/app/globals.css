@@ -234,6 +234,7 @@ body { background: var(--bg-gradient) !important; min-height: 100vh; }
   flex: 1;
   overflow: auto;
   padding: 20px 28px;
+  scroll-padding-top: 110px; /* topnav (56) + toolbar (54) */
 }
 
 /* ── Top Nav bar ── */
@@ -547,8 +548,15 @@ body { background: var(--bg-gradient) !important; min-height: 100vh; }
 /* ── Sticky table header (thead) ─────────────────────────── */
 .data-table thead tr th {
   position: sticky;
-  top: 57px; /* height of .page-sticky-header */
+  top: 56px; /* toolbar: 10px padding-top + 36px input + 10px padding-bottom */
   z-index: 10;
   background: var(--bg3);
-  box-shadow: 0 1px 0 var(--border);
+}
+/* Separator line under sticky thead */
+.data-table thead tr th::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 2px;
+  background: var(--border);
 }
