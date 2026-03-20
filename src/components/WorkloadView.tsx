@@ -330,6 +330,11 @@ export default function WorkloadView({ data, updateData }: Props) {
                       {months.map(m => {
                         const alloc = a.monthly[m] ?? 0;
                         const cap = staff?.capacity[m] ?? 0;
+                        // Total already allocated to this staff member across ALL projects this month
+                        const totalAllocated = data.allocations
+                          .filter(al => al.staffId === a.staffId)
+                          .reduce((s, al) => s + (al.monthly[m] ?? 0), 0);
+                        const remaining = Math.max(0, cap - totalAllocated);
                         const mStart = m + '-01';
                         const mEnd = m + '-31';
                         const inRange = hasDateRange
@@ -354,8 +359,8 @@ export default function WorkloadView({ data, updateData }: Props) {
                               : <>
                                 <span style={{ fontWeight: 700 }}>{alloc > 0 ? alloc : outOfRange ? '' : '—'}</span>
                                 {!outOfRange && cap > 0 && (
-                                  <div style={{ fontSize: 10, color: 'var(--text-faint)', marginTop: 1, fontWeight: 400 }}>
-                                    {cap}{t('days_available')}
+                                  <div style={{ fontSize: 10, color: remaining === 0 ? 'var(--danger)' : 'var(--text-faint)', marginTop: 1, fontWeight: 400 }}>
+                                    {remaining}{t('days_available')}
                                   </div>
                                 )}
                               </>
