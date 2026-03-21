@@ -236,17 +236,7 @@ export default function ProjectsView({ data, updateData, setView, onNavigateToPl
                   ['hypercare_date',   95 ],
                   ['',                 44 ],
                 ] as [string, number][]).map(([k, w], i) => (
-                  <div key={i} style={{
-                    width: w, minWidth: w, flexShrink: 0,
-                    padding: '10px 8px',
-                    fontSize: 11, fontWeight: 700,
-                    textTransform: 'uppercase' as const, letterSpacing: '0.06em',
-                    color: 'var(--text-muted)',
-                    whiteSpace: 'nowrap' as const,
-                    overflow: 'hidden', textOverflow: 'ellipsis',
-                    borderRight: '1px solid var(--border)',
-                    textAlign: 'center' as const,
-                  }}>{k ? t(k as any) : ''}</div>
+                  <div key={i} className="utbl-th" style={{ width: w, minWidth: w, textAlign: 'center' as const }}>{k ? t(k as any) : ''}</div>
                 ))}
               </div>
 
