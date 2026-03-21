@@ -184,10 +184,12 @@ html, body {
 }
 .data-table thead .sticky-left { z-index: 12; background: #3D3A4E !important; }
 [data-theme="dark"] .data-table thead .sticky-left { background: #1A1730 !important; }
-.data-table tbody tr .sticky-left { background: inherit; }
+.data-table tbody tr .sticky-left { background: var(--bg2); }
 .data-table tbody tr:hover .sticky-left { background: var(--bg3); }
 .data-table tbody tr { background: var(--bg2); }
-.data-table tbody tr:hover { background: var(--bg3); }
+.data-table tbody tr:nth-child(even) { background: var(--bg2); }
+.data-table tbody tr:hover { background: var(--accent-subtle) !important; }
+.data-table tbody tr:hover .sticky-left { background: var(--accent-subtle) !important; }
 .sticky-left::after {
   content: ''; position: absolute;
   top: 0; right: -5px; bottom: 0; width: 5px;
