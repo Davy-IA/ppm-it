@@ -636,7 +636,7 @@ th.cap-cell {
   overflow: hidden;
   text-overflow: ellipsis;
   border-right: 1px solid var(--border);
-  background: var(--bg2);
+  background: inherit;  /* takes bg from .utbl-row */
 }
 .utbl-td:last-child { border-right: none; }
 
@@ -644,9 +644,8 @@ th.cap-cell {
 .utbl-td.sticky {
   position: sticky;
   left: 0;
-  z-index: 10;          /* must be above other scrolling cells */
-  background: var(--bg2);
-  isolation: isolate;   /* creates its own stacking context */
+  z-index: 10;
+  /* background set inline per row for alternating colors */
 }
 
 /* Cellule cliquable (édition inline) */
