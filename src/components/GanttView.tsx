@@ -277,7 +277,7 @@ export default function GanttView({ data, updateData, initialProjectId, onMounte
           {/* Scale selector */}
           <div style={{ position: 'relative' }}>
             <button onClick={() => setShowScaleMenu(m => !m)}
-              style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '6px 11px', borderRadius: 8, border: '1.5px solid var(--border)', background: 'var(--bg2)', color: 'var(--text-muted)', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+              className="toolbar-btn">
               <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M1 6h10M1 3h10M1 9h6" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg>
               {timeScale === 'week' ? t('scale_week') : timeScale === 'month' ? t('scale_month') : timeScale === 'semester' ? t('scale_semester') : t('scale_year')}
               <svg width="8" height="8" viewBox="0 0 8 8" fill="none"><path d="M1 3l3 3 3-3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg>

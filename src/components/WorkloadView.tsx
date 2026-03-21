@@ -164,7 +164,7 @@ export default function WorkloadView({ data, updateData }: Props) {
         <div style={{ background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 12, padding: 16, marginBottom: 16, display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 12 }}>
           <div>
             <label style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-faint)', textTransform: 'uppercase' as const, letterSpacing: '0.07em', display: 'block', marginBottom: 5 }}>{t('profile')}</label>
-            <select className="input" value={profileFilter} onChange={e => setProfileFilter(e.target.value)} style={{ fontSize: 12 }}>
+            <select className="toolbar-select" value={profileFilter} onChange={e => setProfileFilter(e.target.value)}>
               <option value="">— {t('all')} —</option>
               {spaceProfiles.map(p => <option key={p} value={p}>{p}</option>)}
             </select>
@@ -172,7 +172,7 @@ export default function WorkloadView({ data, updateData }: Props) {
           {tab === 'allocation' && (
             <div>
               <label style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-faint)', textTransform: 'uppercase' as const, letterSpacing: '0.07em', display: 'block', marginBottom: 5 }}>{t('resource')}</label>
-              <select className="input" value={staffFilter} onChange={e => setStaffFilter(e.target.value)} style={{ fontSize: 12 }}>
+              <select className="toolbar-select" value={staffFilter} onChange={e => setStaffFilter(e.target.value)}>
                 <option value="">— {t('all')} —</option>
                 {data.staff.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
               </select>
@@ -181,7 +181,7 @@ export default function WorkloadView({ data, updateData }: Props) {
           {tab === 'allocation' && (
             <div>
               <label style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-faint)', textTransform: 'uppercase' as const, letterSpacing: '0.07em', display: 'block', marginBottom: 5 }}>{t('field_dept')}</label>
-              <select className="input" value={deptFilter} onChange={e => setDeptFilter(e.target.value)} style={{ fontSize: 12 }}>
+              <select className="toolbar-select" value={deptFilter} onChange={e => setDeptFilter(e.target.value)}>
                 <option value="">— {t('all')} —</option>
                 {data.staff.map(s => s.department).filter((v, i, a) => v && a.indexOf(v) === i).sort().map(d => <option key={d} value={d}>{d}</option>)}
               </select>
@@ -189,14 +189,14 @@ export default function WorkloadView({ data, updateData }: Props) {
           )}
           <div>
             <label style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-faint)', textTransform: 'uppercase' as const, letterSpacing: '0.07em', display: 'block', marginBottom: 5 }}>{t('project_name')}</label>
-            <select className="input" value={projectFilter} onChange={e => setProjectFilter(e.target.value)} style={{ fontSize: 12 }}>
+            <select className="toolbar-select" value={projectFilter} onChange={e => setProjectFilter(e.target.value)}>
               <option value="">— {t('all')} —</option>
               {data.projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
             </select>
           </div>
           <div>
             <label style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-faint)', textTransform: 'uppercase' as const, letterSpacing: '0.07em', display: 'block', marginBottom: 5 }}>{t('year')}</label>
-            <select className="input" value={yearFilter} onChange={e => setYearFilter(e.target.value)} style={{ fontSize: 12 }}>
+            <select className="toolbar-select" value={yearFilter} onChange={e => setYearFilter(e.target.value)}>
               <option value="2026">2026</option>
               <option value="2027">2027</option>
               <option value="2028">2028</option>
@@ -295,7 +295,7 @@ export default function WorkloadView({ data, updateData }: Props) {
 
       {/* ALLOCATION TABLE */}
       {tab === 'allocation' && (
-        <div className="card" style={{ padding: 0, overflow: 'visible', marginTop: 16 }}>
+        <div className="card card-table" style={{ padding: 0, overflow: 'hidden', marginTop: 16 }}>
           <div className="utbl-wrap" style={{ maxHeight: 'calc(100vh - 180px)' }}>
             <table className="data-table">
               <thead>

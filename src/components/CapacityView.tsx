@@ -186,14 +186,14 @@ export default function CapacityView({ data }: Props) {
           </div>
           <div>
             <label style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-faint)', textTransform: 'uppercase' as const, letterSpacing: '0.07em', display: 'block', marginBottom: 5 }}>{t('field_dept')}</label>
-            <select className="input" value={deptFilter} onChange={e => setDeptFilter(e.target.value)} style={{ fontSize: 12 }}>
+            <select className="toolbar-select" value={deptFilter} onChange={e => setDeptFilter(e.target.value)}>
               <option value="">— {t('all')} —</option>
               {data.staff.map(s => s.department).filter((v, i, a) => v && a.indexOf(v) === i).sort().map(d => <option key={d} value={d}>{d}</option>)}
             </select>
           </div>
           <div>
             <label style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-faint)', textTransform: 'uppercase' as const, letterSpacing: '0.07em', display: 'block', marginBottom: 5 }}>{t('field_contract')}</label>
-            <select className="input" value={typeFilter} onChange={e => setTypeFilter(e.target.value)} style={{ fontSize: 12 }}>
+            <select className="toolbar-select" value={typeFilter} onChange={e => setTypeFilter(e.target.value)}>
               <option value="">— {t('all')} —</option>
               <option value="Internal">{t('internal')}</option>
               <option value="External">{t('external_label')}</option>
@@ -210,7 +210,7 @@ export default function CapacityView({ data }: Props) {
           </div>
           <div>
             <label style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-faint)', textTransform: 'uppercase' as const, letterSpacing: '0.07em', display: 'block', marginBottom: 5 }}>{t('status')}</label>
-            <select className="input" value={projectStatusFilter} onChange={e => setProjectStatusFilter(e.target.value)} style={{ fontSize: 12 }}>
+            <select className="toolbar-select" value={projectStatusFilter} onChange={e => setProjectStatusFilter(e.target.value)}>
               <option value="">— {t('all')} —</option>
               {['1-To arbitrate','2-Validated','3-In progress','4-Frozen','5-Completed','6-Aborted'].map(s => (
                 <option key={s} value={s}>{s.replace(/^\d-/, '')}</option>
@@ -219,7 +219,7 @@ export default function CapacityView({ data }: Props) {
           </div>
           <div>
             <label style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-faint)', textTransform: 'uppercase' as const, letterSpacing: '0.07em', display: 'block', marginBottom: 5 }}>{t('domain')}</label>
-            <select className="input" value={projectDomainFilter} onChange={e => setProjectDomainFilter(e.target.value)} style={{ fontSize: 12 }}>
+            <select className="toolbar-select" value={projectDomainFilter} onChange={e => setProjectDomainFilter(e.target.value)}>
               <option value="">— {t('all')} —</option>
               {['APPLI','INFRA','INNOV','DATA'].map(d => <option key={d} value={d}>{d}</option>)}
             </select>

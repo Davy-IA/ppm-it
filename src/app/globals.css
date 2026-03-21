@@ -654,3 +654,49 @@ th.cap-cell {
   text-align: center;
   font-family: var(--font);
 }
+
+/* ─── TOOLBAR BUTTONS — hauteur unifiée sur toutes les vues ─── */
+.toolbar-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  border-radius: 99px;
+  border: 1.5px solid var(--border);
+  background: var(--bg2);
+  color: var(--text-muted);
+  font-family: var(--font);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.13s;
+  height: 32px;
+  box-sizing: border-box;
+}
+.toolbar-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-subtle); }
+.toolbar-btn.active { background: var(--accent-subtle); border-color: var(--accent); color: var(--accent); }
+.toolbar-btn.primary { background: var(--accent-gradient); color: #fff; border-color: transparent; box-shadow: 0 2px 8px rgba(124,92,191,.25); }
+.toolbar-btn.primary:hover { opacity: .9; transform: translateY(-1px); }
+.toolbar-btn.danger { color: var(--danger); border-color: transparent; }
+
+/* Input/select in toolbar — same height */
+.toolbar-select {
+  height: 32px;
+  padding: 0 28px 0 10px;
+  border-radius: 99px;
+  border: 1.5px solid var(--border);
+  background: var(--bg2);
+  color: var(--text-muted);
+  font-family: var(--font);
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%23B5B0C8' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  transition: border-color 0.13s;
+  outline: none;
+}
+.toolbar-select:hover, .toolbar-select:focus { border-color: var(--accent); color: var(--text); }

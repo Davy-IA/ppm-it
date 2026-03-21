@@ -102,7 +102,7 @@ export default function StaffView({ data, updateData }: Props) {
     <div className="animate-in">
       <div className="page-sticky-header">
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <input className="input" placeholder={t('search')} value={search} onChange={e => setSearch(e.target.value)} style={{ maxWidth: 220 }} />
+          <input className="toolbar-select" placeholder={t('search')} value={search} onChange={e => setSearch(e.target.value)} />
           <select className="input" value={typeFilter} onChange={e => setTypeFilter(e.target.value)} style={{ maxWidth: 150 }}>
             <option value="">{t('all_types')}</option>
             <option value="Internal">{t('internal')}</option>

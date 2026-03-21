@@ -125,7 +125,7 @@ export default function ProjectsView({ data, updateData, setView, onNavigateToPl
             {spaceDomains.map(d => <option key={d} value={d}>{d}</option>)}
           </select>
           <button onClick={() => setShowFilters(f => !f)}
-            style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '7px 11px', borderRadius: 8, border: `1.5px solid ${activeFilterCount > 0 ? 'var(--accent)' : 'var(--border)'}`, background: activeFilterCount > 0 ? 'var(--accent-subtle)' : 'var(--bg2)', color: activeFilterCount > 0 ? 'var(--accent)' : 'var(--text-muted)', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.15s' }}>
+            className={`toolbar-btn${activeFilterCount > 0 ? ' active' : ''}`}>
             <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M1 3h11M3 6.5h7M5 10h3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
             {t('filters_btn')}
             {activeFilterCount > 0 && <span style={{ background: 'var(--accent)', color: '#fff', borderRadius: 10, padding: '1px 6px', fontSize: 10, fontWeight: 700 }}>{activeFilterCount}</span>}
@@ -141,7 +141,7 @@ export default function ProjectsView({ data, updateData, setView, onNavigateToPl
           {viewMode === 'gantt' && (
             <div style={{ position: 'relative' }}>
               <button onClick={() => setShowGanttScaleMenu(m => !m)}
-                style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '6px 11px', borderRadius: 8, border: '1.5px solid var(--border)', background: 'var(--bg2)', color: 'var(--text-muted)', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+                className="toolbar-btn">
                 <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M1 6h10M1 3h10M1 9h6" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg>
                 {ganttScale === 'week' ? String(t('scale_week')) : ganttScale === 'month' ? String(t('scale_month')) : ganttScale === 'semester' ? String(t('scale_semester')) : String(t('scale_year'))}
                 <svg width="8" height="8" viewBox="0 0 8 8" fill="none"><path d="M1 3l3 3 3-3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg>
@@ -163,11 +163,11 @@ export default function ProjectsView({ data, updateData, setView, onNavigateToPl
             </div>
           )}
           <div style={{ display: 'flex', border: '1px solid var(--border)', borderRadius: 8, overflow: 'hidden' }}>
-            <button onClick={() => setViewMode('list')} style={{ padding: '6px 12px', fontSize: 12, fontWeight: 600, border: 'none', cursor: 'pointer', background: viewMode === 'list' ? 'var(--accent-gradient)' : 'var(--bg2)', color: viewMode === 'list' ? '#fff' : 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 5 }}>
+            <button onClick={() => setViewMode('list')} className={`toolbar-btn${viewMode === 'list' ? ' primary' : ''}`}>
               <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><rect x="1" y="1" width="11" height="2" rx="1" fill="currentColor"/><rect x="1" y="5" width="11" height="2" rx="1" fill="currentColor"/><rect x="1" y="9" width="11" height="2" rx="1" fill="currentColor"/></svg>
               {t('view_list')}
             </button>
-            <button onClick={() => setViewMode('gantt')} style={{ padding: '6px 12px', fontSize: 12, fontWeight: 600, border: 'none', cursor: 'pointer', background: viewMode === 'gantt' ? 'var(--accent-gradient)' : 'var(--bg2)', color: viewMode === 'gantt' ? '#fff' : 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 5 }}>
+            <button onClick={() => setViewMode('gantt')} className={`toolbar-btn${viewMode === 'gantt' ? ' primary' : ''}`}>
               <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><rect x="1" y="1" width="5" height="3" rx="1" fill="currentColor" opacity="0.5"/><rect x="1" y="5" width="8" height="3" rx="1" fill="currentColor"/><rect x="1" y="9" width="6" height="3" rx="1" fill="currentColor" opacity="0.7"/></svg>
               {t('view_gantt')}
             </button>
@@ -254,10 +254,12 @@ export default function ProjectsView({ data, updateData, setView, onNavigateToPl
               {filtered.map((p, idx) => {
                 const rowBg = idx % 2 === 0 ? 'var(--bg2)' : 'var(--bg3)';
                 return (
-                  <div key={p.id} className="utbl-row" style={{ background: rowBg }}>
+                  <div key={p.id} className="utbl-row" style={{ background: rowBg }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'var(--accent-subtle)'; const sticky = (e.currentTarget as HTMLElement).querySelector('.utbl-td.sticky') as HTMLElement; if (sticky) sticky.style.background = 'var(--accent-subtle)'; }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = rowBg; const sticky = (e.currentTarget as HTMLElement).querySelector('.utbl-td.sticky') as HTMLElement; if (sticky) sticky.style.background = rowBg; }}>
 
                     {/* PROJECT NAME — sticky */}
-                    <div className="utbl-td sticky editable" style={{ width: 260, minWidth: 260 }}
+                    <div className="utbl-td sticky editable" style={{ width: 260, minWidth: 260, background: rowBg }}
                       onClick={() => setInlineEdit({ id: p.id, field: 'name' })}>
                       {inlineEdit?.id === p.id && inlineEdit.field === 'name'
                         ? <input className="cell-input" autoFocus defaultValue={p.name}
