@@ -179,7 +179,7 @@ html, body {
 
 /* Sticky left column */
 .sticky-left {
-  position: sticky; left: 0; z-index: 3;
+  position: sticky; left: 0; z-index: 10;
   background: var(--bg2);
 }
 .data-table thead .sticky-left { z-index: 12; background: #3D3A4E !important; }
