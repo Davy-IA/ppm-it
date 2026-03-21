@@ -144,6 +144,74 @@ html, body {
   font-weight: 400;
 }
 /* En-têtes */
+/* ═══════════════════════════════════════════════════════
+   STICKY — header row + first column, works like Excel
+   Rules:
+   · border-collapse:separate is set on .data-table (required)
+   · thead th         → sticky top,    z-index 3, anthracite
+   · tbody td:first   → sticky left,   z-index 2, opaque white
+   · thead th:first   → sticky top+left, z-index 4 (corner)
+═══════════════════════════════════════════════════════ */
+.tbl-wrap {
+  overflow: auto;
+}
+
+/* First column sticky — body cells */
+.data-table tbody td:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  background: var(--bg2);
+}
+.data-table tbody tr:hover td:first-child {
+  background: var(--accent-subtle);
+}
+
+/* Header row sticky */
+.data-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  background: #3D3A4E;
+  color: #FFFFFF;
+  border-bottom: none;
+  box-shadow: 0 1px 0 rgba(255,255,255,0.1);
+}
+
+/* Top-left corner cell — above everything */
+.data-table thead th:first-child {
+  position: sticky;
+  top: 0;
+  left: 0;
+  z-index: 4;
+  background: #3D3A4E;
+  color: #FFFFFF;
+}
+
+/* Dark mode */
+[data-theme="dark"] .data-table thead th,
+[data-theme="dark"] .data-table thead th:first-child {
+  background: #1A1730;
+  color: #C8C2E0;
+}
+[data-theme="dark"] .data-table tbody td:first-child {
+  background: var(--bg2);
+}
+[data-theme="dark"] .data-table tbody tr:hover td:first-child {
+  background: var(--accent-subtle);
+}
+
+/* Shadow on right edge of first column */
+.data-table tbody td:first-child::after,
+.data-table thead th:first-child::after {
+  content: '';
+  position: absolute;
+  top: 0; right: -4px; bottom: 0; width: 4px;
+  background: linear-gradient(to right, rgba(0,0,0,0.06), transparent);
+  pointer-events: none;
+}
+
+
 .data-table th {
   background: #3D3A4E;
   color: #FFFFFF;
@@ -178,24 +246,10 @@ html, body {
 .data-table tbody tr:hover td { background: var(--bg3); }
 
 /* Sticky left column */
-.sticky-left {
-  position: sticky; left: 0; z-index: 10;
-  background: var(--bg2); /* explicit white — never transparent */
-}
-/* thead sticky bg handled inline in JSX */
-.data-table tbody tr .sticky-left { background: var(--bg2); }
-.data-table tbody tr:hover .sticky-left { background: var(--bg3); }
-.data-table tbody tr { background: var(--bg2); }
+.data-table tbody tr:hover .data-table tbody tr { background: var(--bg2); }
 .data-table tbody tr:nth-child(even) { background: var(--bg2); }
 .data-table tbody tr:hover { background: var(--accent-subtle) !important; }
-.data-table tbody tr:hover .sticky-left { background: var(--accent-subtle) !important; }
-.sticky-left::after {
-  content: ''; position: absolute;
-  top: 0; right: -5px; bottom: 0; width: 5px;
-  background: linear-gradient(to right, rgba(124,92,191,0.06), transparent);
-  pointer-events: none;
-}
-
+.data-table tbody tr:hover 
 /* Cap cells (workload/capacity) */
 .cap-cell {
   text-align: center;

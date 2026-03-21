@@ -220,7 +220,7 @@ export default function ProjectsView({ data, updateData, setView, onNavigateToPl
             <table className="data-table">
               <thead>
                 <tr>
-                  <th className="sticky-left" style={{ background: '#3D3A4E', color: '#FFFFFF', minWidth: 240 }}>{t('project_name')}</th>
+                  <th className="sticky-left" style={{ minWidth: 240 }}>{t('project_name')}</th>
                   <th>{t('domain')}</th>
                   <th>{t('type')}</th>
                   <th>{t('lead_dept')}</th>
