@@ -216,12 +216,12 @@ export default function ProjectsView({ data, updateData, setView, onNavigateToPl
       {/* Table — div-based for reliable sticky left column */}
       {viewMode === 'list' && (
         <div className="card" style={{ padding: 0, overflow: 'hidden', marginTop: 16, borderRadius: 'var(--radius-lg)' }}>
-          <div style={{ overflow: 'auto', maxHeight: 'calc(100vh - 190px)', position: 'relative' }}>
+          <div className="utbl-wrap" style={{ maxHeight: 'calc(100vh - 190px)' }}>
             <div style={{ minWidth: 1580 }}>
 
               {/* Header row */}
-              <div style={{ display: 'flex', background: 'var(--bg3)', position: 'sticky', top: 0, zIndex: 6, borderBottom: '1px solid var(--border)' }}>
-                <div style={{ width: 260, minWidth: 260, flexShrink: 0, padding: '10px 14px', fontSize: 11, fontWeight: 700, textTransform: 'uppercase' as const, letterSpacing: '0.06em', color: 'var(--text-muted)', position: 'sticky', left: 0, zIndex: 25, background: 'var(--bg3)', borderRight: '1px solid var(--border)', whiteSpace: 'nowrap' as const, overflow: 'hidden' }}>{t('project_name')}</div>
+              <div className="utbl-head">
+                <div className="utbl-th sticky" style={{ width: 260, minWidth: 260 }}>{t('project_name')}</div>
                 {([
                   ['domain',          90 ],
                   ['type',            130 ],
@@ -254,12 +254,10 @@ export default function ProjectsView({ data, updateData, setView, onNavigateToPl
               {filtered.map((p, idx) => {
                 const rowBg = idx % 2 === 0 ? 'var(--bg2)' : 'var(--bg3)';
                 return (
-                  <div key={p.id} style={{ display: 'flex', background: rowBg, borderBottom: '1px solid var(--border)' }}
-                    onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg3)')}
-                    onMouseLeave={e => (e.currentTarget.style.background = rowBg)}>
+                  <div key={p.id} className="utbl-row" style={{ background: rowBg }}>
 
                     {/* PROJECT NAME — sticky */}
-                    <div style={{ width: 260, minWidth: 260, flexShrink: 0, padding: '10px 14px', position: 'sticky', left: 0, zIndex: 20, background: 'inherit', borderRight: '1px solid var(--border)', cursor: 'pointer' }}
+                    <div className="utbl-td sticky editable" style={{ width: 260, minWidth: 260 }}
                       onClick={() => setInlineEdit({ id: p.id, field: 'name' })}>
                       {inlineEdit?.id === p.id && inlineEdit.field === 'name'
                         ? <input className="cell-input" autoFocus defaultValue={p.name}

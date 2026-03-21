@@ -120,8 +120,8 @@ export default function StaffView({ data, updateData }: Props) {
         </div>
       </div>
 
-      <div className="card card-table" style={{ padding: 0, overflow: 'visible', marginTop: 16 }}>
-        <div style={{ overflow: 'auto', maxHeight: 'calc(100vh - 170px)' }}>
+      <div className="card card-table" style={{ padding: 0, overflow: 'hidden', marginTop: 16 }}>
+        <div className="utbl-wrap" style={{ maxHeight: 'calc(100vh - 180px)' }}>
           <table className="data-table">
             <thead>
               <tr>

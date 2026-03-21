@@ -549,3 +549,108 @@ th.cap-cell {
   border-radius: 0 0 var(--radius-lg) var(--radius-lg);
   overflow: auto;
 }
+
+/* ═══════════════════════════════════════════════════════════
+   UNIVERSAL TABLE — div/flex, sticky header + sticky col 1
+   Même structure que le Portfolio list (prouvé fonctionnel)
+   Utilisé par toutes les vues tabulaires
+═══════════════════════════════════════════════════════════ */
+.utbl-wrap {
+  /* scroll container — c'est lui le référentiel pour position:sticky */
+  overflow: auto;
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+}
+.utbl-inner {
+  /* largeur minimale définie inline par chaque vue */
+  display: block;
+}
+
+/* Ligne d'entête — sticky verticalement */
+.utbl-head {
+  display: flex;
+  background: var(--bg3);
+  position: sticky;
+  top: 0;
+  z-index: 6;
+  border-bottom: 1.5px solid var(--border);
+}
+
+/* Cellule d'entête */
+.utbl-th {
+  flex-shrink: 0;
+  padding: 10px 14px;
+  font-family: var(--font);
+  font-size: calc(var(--table-fs, 12px) - 0.5px);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  border-right: 1px solid var(--border);
+  background: var(--bg3);
+}
+.utbl-th:last-child { border-right: none; }
+
+/* Première cellule th — sticky horizontalement */
+.utbl-th.sticky {
+  position: sticky;
+  left: 0;
+  z-index: 9;  /* au-dessus des autres th */
+  background: var(--bg3);
+}
+/* Ombre droite sur colonne sticky */
+.utbl-th.sticky::after,
+.utbl-td.sticky::after {
+  content: '';
+  position: absolute;
+  top: 0; right: -6px; bottom: 0; width: 6px;
+  background: linear-gradient(to right, rgba(0,0,0,0.05), transparent);
+  pointer-events: none;
+}
+
+/* Ligne de données */
+.utbl-row {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.1s;
+  cursor: default;
+}
+.utbl-row:last-child { border-bottom: none; }
+.utbl-row:hover { background: var(--accent-subtle) !important; }
+.utbl-row:hover .utbl-td.sticky { background: var(--accent-subtle) !important; }
+
+/* Cellule de données */
+.utbl-td {
+  flex-shrink: 0;
+  padding: 10px 14px;
+  font-family: var(--font);
+  font-size: var(--table-fs, 12px);
+  font-weight: 400;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  border-right: 1px solid var(--border);
+  background: var(--bg2);
+}
+.utbl-td:last-child { border-right: none; }
+
+/* Première cellule td — sticky horizontalement */
+.utbl-td.sticky {
+  position: sticky;
+  left: 0;
+  z-index: 3;
+  background: var(--bg2);
+}
+
+/* Cellule cliquable (édition inline) */
+.utbl-td.editable { cursor: pointer; }
+.utbl-td.editable:hover { background: var(--accent-subtle) !important; }
+
+/* Cellule numérique (cap cells) */
+.utbl-td.num {
+  text-align: center;
+  font-family: var(--font);
+}

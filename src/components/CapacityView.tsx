@@ -261,7 +261,7 @@ export default function CapacityView({ data }: Props) {
       {/* STAFF GRID */}
       {viewMode === 'staff' && (
         <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-          <div style={{ overflowX: 'auto' }}>
+          <div className="utbl-wrap">
             <table className="data-table">
               <thead>
                 <tr>

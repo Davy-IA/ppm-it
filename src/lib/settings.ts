@@ -6,11 +6,10 @@ export const COLOR_THEMES = [
     name: 'Indigo Pro',
     preview: ['#6366f1', '#8b5cf6', '#f0f0f7'],
     vars: {
-      '--accent': '#6366f1',
-      '--accent2': '#8b5cf6',
-      '--accent-hover': '#4f46e5',
+      '--accent': '#6366f1', '--accent2': '#8b5cf6', '--accent-hover': '#4f46e5',
       '--accent-gradient': 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
       '--accent-subtle': 'rgba(99,102,241,0.10)',
+      '--bg': '#F0EDF8', '--bg2': '#FFFFFF', '--bg3': '#F4F2FC', '--border': '#E8E4F4',
     },
   },
   {
@@ -18,11 +17,10 @@ export const COLOR_THEMES = [
     name: 'Ocean Blue',
     preview: ['#0ea5e9', '#06b6d4', '#f0f7ff'],
     vars: {
-      '--accent': '#0ea5e9',
-      '--accent2': '#06b6d4',
-      '--accent-hover': '#0284c7',
+      '--accent': '#0ea5e9', '--accent2': '#06b6d4', '--accent-hover': '#0284c7',
       '--accent-gradient': 'linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%)',
       '--accent-subtle': 'rgba(14,165,233,0.10)',
+      '--bg': '#EDF6FD', '--bg2': '#FFFFFF', '--bg3': '#F2F9FE', '--border': '#D6EDFA',
     },
   },
   {
@@ -30,11 +28,10 @@ export const COLOR_THEMES = [
     name: 'Emerald Forest',
     preview: ['#10b981', '#059669', '#f0fdf4'],
     vars: {
-      '--accent': '#10b981',
-      '--accent2': '#059669',
-      '--accent-hover': '#047857',
+      '--accent': '#10b981', '--accent2': '#059669', '--accent-hover': '#047857',
       '--accent-gradient': 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
       '--accent-subtle': 'rgba(16,185,129,0.10)',
+      '--bg': '#EDFBF5', '--bg2': '#FFFFFF', '--bg3': '#F2FCF7', '--border': '#C6F0E0',
     },
   },
   {
@@ -42,11 +39,10 @@ export const COLOR_THEMES = [
     name: 'Rose Gold',
     preview: ['#f43f5e', '#e11d48', '#fff0f3'],
     vars: {
-      '--accent': '#f43f5e',
-      '--accent2': '#e11d48',
-      '--accent-hover': '#be123c',
+      '--accent': '#f43f5e', '--accent2': '#e11d48', '--accent-hover': '#be123c',
       '--accent-gradient': 'linear-gradient(135deg, #f43f5e 0%, #e11d48 100%)',
       '--accent-subtle': 'rgba(244,63,94,0.10)',
+      '--bg': '#FEF0F3', '--bg2': '#FFFFFF', '--bg3': '#FEF5F7', '--border': '#FBCDD5',
     },
   },
   {
@@ -54,11 +50,10 @@ export const COLOR_THEMES = [
     name: 'Amber Warm',
     preview: ['#f59e0b', '#d97706', '#fffbf0'],
     vars: {
-      '--accent': '#f59e0b',
-      '--accent2': '#d97706',
-      '--accent-hover': '#b45309',
+      '--accent': '#f59e0b', '--accent2': '#d97706', '--accent-hover': '#b45309',
       '--accent-gradient': 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
       '--accent-subtle': 'rgba(245,158,11,0.10)',
+      '--bg': '#FEF9ED', '--bg2': '#FFFFFF', '--bg3': '#FFFBF3', '--border': '#FAE7BC',
     },
   },
   {
@@ -66,11 +61,10 @@ export const COLOR_THEMES = [
     name: 'Slate Dark',
     preview: ['#475569', '#334155', '#f1f5f9'],
     vars: {
-      '--accent': '#475569',
-      '--accent2': '#334155',
-      '--accent-hover': '#1e293b',
+      '--accent': '#475569', '--accent2': '#334155', '--accent-hover': '#1e293b',
       '--accent-gradient': 'linear-gradient(135deg, #475569 0%, #334155 100%)',
       '--accent-subtle': 'rgba(71,85,105,0.10)',
+      '--bg': '#F1F5F9', '--bg2': '#FFFFFF', '--bg3': '#F6F8FB', '--border': '#E2E8F0',
     },
   },
 ];
