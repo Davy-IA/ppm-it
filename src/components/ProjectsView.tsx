@@ -259,7 +259,7 @@ export default function ProjectsView({ data, updateData, setView, onNavigateToPl
                     onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = rowBg; const sticky = (e.currentTarget as HTMLElement).querySelector('.utbl-td.sticky') as HTMLElement; if (sticky) sticky.style.background = rowBg; }}>
 
                     {/* PROJECT NAME — sticky */}
-                    <div className="utbl-td sticky editable" style={{ width: 260, minWidth: 260, background: rowBg }}
+                    <div className="utbl-td sticky editable" style={{ width: 260, minWidth: 260, background: rowBg, fontWeight: 600 }}
                       onClick={() => setInlineEdit({ id: p.id, field: 'name' })}>
                       {inlineEdit?.id === p.id && inlineEdit.field === 'name'
                         ? <input className="cell-input" autoFocus defaultValue={p.name}

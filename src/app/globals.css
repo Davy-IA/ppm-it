@@ -63,20 +63,21 @@
 }
 
 [data-theme="dark"] {
-  --bg:             #18152A;
-  --bg2:            #221E38;
-  --bg3:            #2A2545;
-  --bg-sidebar:     #221E38;
-  --bg-gradient:    #18152A;
-  --border:         #352F55;
-  --border-light:   #433A6A;
-  --text:           #EDE8F8;
-  --text-muted:     #9B94B8;
-  --text-faint:     #5A5278;
-  --accent-subtle:  rgba(124,92,191,0.18);
-  --shadow-sm:  0 2px 12px rgba(0,0,0,0.3);
-  --shadow:     0 4px 20px rgba(0,0,0,0.4);
-  --shadow-lg:  0 8px 40px rgba(0,0,0,0.5);
+  /* Dark mode overrides — these always win regardless of theme */
+  --bg:             #18152A !important;
+  --bg2:            #221E38 !important;
+  --bg3:            #2A2545 !important;
+  --bg-sidebar:     #221E38 !important;
+  --bg-gradient:    #18152A !important;
+  --border:         #352F55 !important;
+  --border-light:   #433A6A !important;
+  --text:           #EDE8F8 !important;
+  --text-muted:     #9B94B8 !important;
+  --text-faint:     #5A5278 !important;
+  --accent-subtle:  rgba(124,92,191,0.18) !important;
+  --shadow-sm:  0 2px 12px rgba(0,0,0,0.3) !important;
+  --shadow:     0 4px 20px rgba(0,0,0,0.4) !important;
+  --shadow-lg:  0 8px 40px rgba(0,0,0,0.5) !important;
 }
 
 /* ═══════════════════════════════════════════
@@ -148,8 +149,8 @@ html, body {
 }
 /* En-têtes */
 .data-table th {
-  background: var(--bg3);
-  color: var(--text-muted);
+  background: #3D3A4E;
+  color: #FFFFFF;
   font-family: var(--font);
   font-weight: 600;
   font-size: calc(var(--table-fs, 12px) - 0.5px);
@@ -157,11 +158,15 @@ html, body {
   letter-spacing: 0.06em;
   padding: 9px 14px;
   text-align: left;
-  border-bottom: 1.5px solid var(--border);
+  border-bottom: none;
   white-space: nowrap;
   position: sticky;
   top: 0;
   z-index: 10;
+}
+[data-theme="dark"] .data-table th {
+  background: #1A1730;
+  color: #C8C2E0;
 }
 /* Cellules */
 .data-table td {
@@ -181,7 +186,8 @@ html, body {
   position: sticky; left: 0; z-index: 3;
   background: var(--bg2);
 }
-.data-table thead .sticky-left { z-index: 12; background: var(--bg3) !important; }
+.data-table thead .sticky-left { z-index: 12; background: #3D3A4E !important; }
+[data-theme="dark"] .data-table thead .sticky-left { background: #1A1730 !important; }
 .data-table tbody tr .sticky-left { background: inherit; }
 .data-table tbody tr:hover .sticky-left { background: var(--bg3); }
 .data-table tbody tr { background: var(--bg2); }
@@ -571,11 +577,11 @@ th.cap-cell {
 /* Ligne d'entête — sticky verticalement */
 .utbl-head {
   display: flex;
-  background: var(--bg3);
+  background: #3D3A4E;
   position: sticky;
   top: 0;
   z-index: 6;
-  border-bottom: 1.5px solid var(--border);
+  border-bottom: none;
 }
 
 /* Cellule d'entête */
@@ -587,22 +593,24 @@ th.cap-cell {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: var(--text-muted);
+  color: #FFFFFF;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  border-right: 1px solid var(--border);
-  background: var(--bg3);
+  border-right: 1px solid rgba(255,255,255,0.10);
+  background: #3D3A4E;
 }
 .utbl-th:last-child { border-right: none; }
+[data-theme="dark"] .utbl-th { background: #1A1730; color: #C8C2E0; }
 
 /* Première cellule th — sticky horizontalement */
 .utbl-th.sticky {
   position: sticky;
   left: 0;
-  z-index: 9;  /* au-dessus des autres th */
-  background: var(--bg3);
+  z-index: 9;
+  background: #3D3A4E;
 }
+[data-theme="dark"] .utbl-th.sticky { background: #1A1730 !important; }
 /* Ombre droite sur colonne sticky */
 .utbl-th.sticky::after,
 .utbl-td.sticky::after {
@@ -705,3 +713,9 @@ th.cap-cell {
   transition: box-shadow 0.13s, color 0.13s;
 }
 .toolbar-select:hover, .toolbar-select:focus { color: var(--text); box-shadow: 0 2px 8px rgba(124,92,191,.15); }
+
+/* Dark mode table header */
+[data-theme="dark"] .data-table thead th { background: #1A1730 !important; color: #C8C2E0 !important; }
+[data-theme="dark"] .utbl-head { background: #1A1730 !important; }
+[data-theme="dark"] .utbl-th { background: #1A1730 !important; color: #C8C2E0 !important; }
+[data-theme="dark"] .data-table th.sticky-left { background: #1A1730 !important; }
