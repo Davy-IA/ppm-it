@@ -729,6 +729,16 @@ th.cap-cell,
   border-right: 1px solid rgba(255,255,255,0.10) !important;
 }
 
+/* TBODY sticky-left — must stay opaque with row bg, NOT anthracite */
+.data-table tbody td.sticky-left,
+.data-table tbody tr td.sticky-left {
+  background: var(--bg2) !important;
+  color: var(--text) !important;
+}
+.data-table tbody tr:hover td.sticky-left {
+  background: var(--accent-subtle) !important;
+}
+
 /* Dark mode overrides */
 [data-theme="dark"] .data-table th,
 [data-theme="dark"] .data-table thead th,
