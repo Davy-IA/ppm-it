@@ -21,7 +21,7 @@ export default function SpaceSelector({ spaces, onSelect, appName }: Props) {
     <div style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
       {/* BG decoration */}
       <div style={{ position: 'fixed', inset: 0, overflow: 'hidden', zIndex: 0, pointerEvents: 'none' }}>
-        <div style={{ position: 'absolute', top: '-20%', right: '-10%', width: 700, height: 700, borderRadius: '50%', background: 'radial-gradient(circle, rgba(99,102,241,0.10) 0%, transparent 70%)' }} />
+        <div style={{ position: 'absolute', top: '-20%', right: '-10%', width: 700, height: 700, borderRadius: '50%', background: 'radial-gradient(circle, rgba(124,92,191,0.10) 0%, transparent 70%)' }} />
       </div>
 
       <div style={{ width: '100%', maxWidth: 720, position: 'relative', zIndex: 1 }}>
@@ -31,7 +31,7 @@ export default function SpaceSelector({ spaces, onSelect, appName }: Props) {
             {logo ? (
               <img src={logo} alt={displayName} style={{ height: 44, maxWidth: 160, objectFit: 'contain' }} />
             ) : (
-              <div style={{ width: 44, height: 44, borderRadius: 12, background: 'var(--accent-gradient)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 800, fontSize: 20, boxShadow: '0 4px 12px rgba(99,102,241,0.35)', flexShrink: 0 }}>
+              <div style={{ width: 44, height: 44, borderRadius: 12, background: 'var(--accent-gradient)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 800, fontSize: 20, boxShadow: '0 4px 12px rgba(124,92,191,0.35)', flexShrink: 0 }}>
                 {displayName.charAt(0).toUpperCase()}
               </div>
             )}

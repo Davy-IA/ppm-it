@@ -8,7 +8,7 @@ import { v4 as uuid } from 'uuid';
 
 interface Props { data: AppData; updateData: (d: AppData) => void; initialProjectId?: string | null; onMounted?: () => void; }
 
-const PHASE_COLORS = ['#6366f1','#10b981','#f59e0b','#ef4444','#8b5cf6','#06b6d4','#f97316','#ec4899'];
+const PHASE_COLORS = ['#7C5CBF','#10b981','#f59e0b','#ef4444','#8b5cf6','#06b6d4','#f97316','#ec4899'];
 const DAY_PX = 26;
 
 function addDays(dateStr: string, days: number): string {
@@ -285,7 +285,7 @@ export default function GanttView({ data, updateData, initialProjectId, onMounte
             {showScaleMenu && (
               <>
                 <div style={{ position: 'fixed', inset: 0, zIndex: 49 }} onClick={() => setShowScaleMenu(false)} />
-                <div style={{ position: 'absolute', right: 0, top: 'calc(100% + 4px)', background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 10, boxShadow: '0 8px 24px rgba(99,102,241,0.15)', zIndex: 50, overflow: 'hidden', minWidth: 140 }}>
+                <div style={{ position: 'absolute', right: 0, top: 'calc(100% + 4px)', background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 10, boxShadow: '0 8px 24px rgba(124,92,191,0.15)', zIndex: 50, overflow: 'hidden', minWidth: 140 }}>
                   {(['week', 'month', 'semester', 'year'] as const).map(scale => (
                     <button key={scale} onClick={() => { setTimeScale(scale); setShowScaleMenu(false); }}
                       style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '9px 14px', border: 'none', background: timeScale === scale ? 'var(--accent-subtle)' : 'none', color: timeScale === scale ? 'var(--accent)' : 'var(--text)', cursor: 'pointer', fontSize: 13, fontWeight: timeScale === scale ? 700 : 400, fontFamily: 'inherit', textAlign: 'left' }}>
@@ -309,7 +309,7 @@ export default function GanttView({ data, updateData, initialProjectId, onMounte
             {showNewMenu && (
               <>
                 <div style={{ position: 'fixed', inset: 0, zIndex: 49 }} onClick={() => setShowNewMenu(false)} />
-                <div style={{ position: 'absolute', right: 0, top: 'calc(100% + 6px)', background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 10, boxShadow: '0 8px 24px rgba(99,102,241,0.15)', zIndex: 50, overflow: 'hidden', minWidth: 160, animation: 'dropIn 0.12s ease' }}>
+                <div style={{ position: 'absolute', right: 0, top: 'calc(100% + 6px)', background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 10, boxShadow: '0 8px 24px rgba(124,92,191,0.15)', zIndex: 50, overflow: 'hidden', minWidth: 160, animation: 'dropIn 0.12s ease' }}>
                   <button style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '10px 16px', border: 'none', background: 'none', cursor: 'pointer', fontSize: 13, color: 'var(--text)', fontFamily: 'inherit', textAlign: 'left' }}
                     onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg3)')}
                     onMouseLeave={e => (e.currentTarget.style.background = 'none')}
@@ -403,7 +403,7 @@ export default function GanttView({ data, updateData, initialProjectId, onMounte
                       }} style={{background:'none',border:'none',cursor:'pointer',fontSize:10,color:'var(--text-faint)',width:16,flexShrink:0}}>
                         {ph.collapsed ? '▶' : '▼'}
                       </button>
-                      <div style={{width:10,height:10,borderRadius:3,background:ph.color||'#6366f1',flexShrink:0}}/>
+                      <div style={{width:10,height:10,borderRadius:3,background:ph.color||'#7C5CBF',flexShrink:0}}/>
                       <span style={{fontWeight:700,fontSize:12,flex:1,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{ph.name}</span>
                       <div style={{display:'flex',gap:2,flexShrink:0}}>
                         <button className="btn-icon" style={{width:22,height:22,fontSize:11}} onClick={()=>{setAddSubPhase(ph);setIsNew(true);}} title="+ Sous-phase">＋</button>
@@ -469,7 +469,7 @@ export default function GanttView({ data, updateData, initialProjectId, onMounte
                       <div key={ph.id}>
                         {/* Phase row */}
                         <div style={{ position:'relative', height:40, borderBottom:'1px solid var(--border)' }}>
-                          <div style={{ position:'absolute', top:7, left:px, width:pw, height:26, borderRadius:6, background:ph.color||'#6366f1', cursor:'pointer', display:'flex', alignItems:'center', padding:'0 8px', zIndex:3, boxShadow:'0 2px 8px rgba(0,0,0,0.15)', transition:'opacity 0.15s' }}
+                          <div style={{ position:'absolute', top:7, left:px, width:pw, height:26, borderRadius:6, background:ph.color||'#7C5CBF', cursor:'pointer', display:'flex', alignItems:'center', padding:'0 8px', zIndex:3, boxShadow:'0 2px 8px rgba(0,0,0,0.15)', transition:'opacity 0.15s' }}
                             onClick={()=>{setEditPhase({...ph});setIsNew(false);}}
                             title={`${ph.name} — ${fmt(ph.startDate)} → ${fmt(addDays(ph.startDate,ph.duration))} (${ph.duration}j)`}>
                             {pw>60 && <span style={{fontSize:11,fontWeight:700,color:'#fff',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{ph.name}</span>}

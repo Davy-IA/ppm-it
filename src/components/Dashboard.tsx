@@ -78,7 +78,7 @@ export default function Dashboard({ data, setView, onSubNav }: Props) {
               <XAxis dataKey="month" tick={{ fill: 'var(--text-muted)', fontSize: 11 }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fill: 'var(--text-muted)', fontSize: 11 }} axisLine={false} tickLine={false} />
               <Tooltip contentStyle={{ background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 6, fontSize: 12 }} itemStyle={{ color: 'var(--text)' }} labelStyle={{ color: 'var(--text-muted)' }} />
-              <Bar dataKey="capacity" fill="rgba(99,102,241,0.2)" name={t('available_cap')} radius={[2,2,0,0]} />
+              <Bar dataKey="capacity" fill="rgba(124,92,191,0.2)" name={t('available_cap')} radius={[2,2,0,0]} />
               <Bar dataKey="allocated" fill="var(--accent)" name={t('allocated')} radius={[2,2,0,0]} />
             </BarChart>
           </ResponsiveContainer>

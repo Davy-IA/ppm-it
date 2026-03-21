@@ -63,7 +63,7 @@ export default function Sidebar({ view, setView, open, setOpen, saving, data, cu
       {/* Logo + org name */}
       <div style={{ padding: '14px 12px', borderBottom: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: 8 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <button onClick={() => setOpen(!open)} style={{ width: 34, height: 34, borderRadius: 8, border: 'none', cursor: 'pointer', background: settings.logo ? 'transparent' : 'var(--accent-gradient)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden', boxShadow: settings.logo ? 'none' : '0 2px 8px rgba(99,102,241,0.35)', padding: 0 }}>
+          <button onClick={() => setOpen(!open)} style={{ width: 34, height: 34, borderRadius: 8, border: 'none', cursor: 'pointer', background: settings.logo ? 'transparent' : 'var(--accent-gradient)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden', boxShadow: settings.logo ? 'none' : '0 2px 8px rgba(124,92,191,0.35)', padding: 0 }}>
             {settings.logo ? <img src={settings.logo} alt="logo" style={{ width: 34, height: 34, objectFit: 'contain', borderRadius: 8 }} /> : <span style={{ color: '#fff', fontWeight: 800, fontSize: 14 }}>P</span>}
           </button>
           {open && (

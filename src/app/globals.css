@@ -140,6 +140,7 @@ html, body {
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
+  border-radius: var(--radius);
   /* Même fonte, même taille que tout le reste */
   font-family: var(--font);
   font-size: var(--table-fs, 12px);
@@ -527,4 +528,24 @@ th.cap-cell {
 .nav-item.active {
   background:var(--accent-gradient); color:#fff;
   box-shadow:0 2px 10px rgba(124,92,191,.28);
+}
+
+/* ── Table inside card — rounded corners ── */
+.card-table {
+  padding: 0;
+  overflow: hidden; /* clips the table corners */
+  border-radius: var(--radius-lg) !important;
+}
+.card-table .data-table thead th:first-child { border-radius: var(--radius-lg) 0 0 0; }
+.card-table .data-table tbody tr:last-child td:first-child { border-radius: 0 0 0 var(--radius-lg); }
+.card-table .data-table tbody tr:last-child td:last-child  { border-radius: 0 0 var(--radius-lg) 0; }
+
+/* Portfolio list table card — rounded */
+.portfolio-list-card {
+  border-radius: var(--radius-lg) !important;
+  overflow: hidden;
+}
+.portfolio-list-card > div {
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+  overflow: auto;
 }

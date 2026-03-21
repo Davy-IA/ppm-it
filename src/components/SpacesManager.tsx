@@ -7,7 +7,7 @@ import { useAuth } from '@/lib/auth-context';
 interface Space { id: string; name: string; description: string; color: string; icon: string; active: boolean; }
 interface Props { spaces: Space[]; onRefresh: () => void; }
 
-const SPACE_COLORS = ['#6366f1','#10b981','#f59e0b','#ef4444','#8b5cf6','#06b6d4','#f97316','#ec4899'];
+const SPACE_COLORS = ['#7C5CBF','#10b981','#f59e0b','#ef4444','#8b5cf6','#06b6d4','#f97316','#ec4899'];
 const SPACE_ICONS = ['◈','◉','▦','◎','▣','🏪','🏭','💼','📦','🌐','🔧','💻'];
 
 export default function SpacesManager({ spaces, onRefresh }: Props) {

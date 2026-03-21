@@ -230,7 +230,7 @@ export default function CapacityView({ data }: Props) {
       </div>
 
       {/* Summary chart */}
-      <div className="card" style={{ marginBottom: 16, marginTop: 16 }}>
+      <div className="card card-table" style={{ marginBottom: 16, marginTop: 16 }}>
         <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 12, color: 'var(--text-muted)' }}>{t('summary_chart').replace('{year}', yearFilter)}</div>
         <ResponsiveContainer width="100%" height={180}>
           <BarChart data={chartData} barGap={3} barSize={18}>
@@ -244,7 +244,7 @@ export default function CapacityView({ data }: Props) {
             <Bar dataKey="capacity" {...{name: String(t('chart_capacity_avail'))}} fill="rgba(61,126,255,0.25)" radius={[2,2,0,0]} />
             <Bar dataKey="workload" {...{name: String(t('chart_workload_need'))}} radius={[2,2,0,0]}>
               {chartData.map((d, i) => (
-                <Cell key={i} fill={d.gap < 0 ? 'rgba(239,68,68,0.6)' : 'rgba(99,102,241,0.5)'} />
+                <Cell key={i} fill={d.gap < 0 ? 'rgba(239,68,68,0.6)' : 'rgba(124,92,191,0.5)'} />
               ))}
             </Bar>
             <Bar dataKey="allocated" {...{name: String(t('chart_allocated'))}} fill="rgba(16,185,129,0.75)" radius={[2,2,0,0]} />
@@ -252,7 +252,7 @@ export default function CapacityView({ data }: Props) {
         </ResponsiveContainer>
         <div style={{ display: 'flex', gap: 20, marginTop: 8, fontSize: 11, color: 'var(--text-faint)' }}>
           <span><span style={{ color: 'rgba(61,126,255,0.6)' }}>■</span> {t('chart_capacity_avail')}</span>
-          <span><span style={{ color: 'rgba(99,102,241,0.6)' }}>■</span> {t('chart_workload_need')}</span>
+          <span><span style={{ color: 'rgba(124,92,191,0.6)' }}>■</span> {t('chart_workload_need')}</span>
           <span><span style={{ color: 'rgba(16,185,129,0.85)' }}>■</span> {t('chart_allocated')}</span>
           <span><span style={{ color: 'rgba(239,68,68,0.7)' }}>■</span> {t('overload')}</span>
         </div>

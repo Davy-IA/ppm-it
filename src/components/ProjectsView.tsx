@@ -149,7 +149,7 @@ export default function ProjectsView({ data, updateData, setView, onNavigateToPl
               {showGanttScaleMenu && (
                 <>
                   <div style={{ position: 'fixed', inset: 0, zIndex: 49 }} onClick={() => setShowGanttScaleMenu(false)} />
-                  <div style={{ position: 'absolute', right: 0, top: 'calc(100% + 4px)', background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 10, boxShadow: '0 8px 24px rgba(99,102,241,0.15)', zIndex: 50, overflow: 'hidden', minWidth: 140 }}>
+                  <div style={{ position: 'absolute', right: 0, top: 'calc(100% + 4px)', background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 10, boxShadow: '0 8px 24px rgba(124,92,191,0.15)', zIndex: 50, overflow: 'hidden', minWidth: 140 }}>
                     {(['week', 'month', 'semester', 'year'] as const).map(scale => (
                       <button key={scale} onClick={() => { setGanttScale(scale); setShowGanttScaleMenu(false); }}
                         style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '9px 14px', border: 'none', background: ganttScale === scale ? 'var(--accent-subtle)' : 'none', color: ganttScale === scale ? 'var(--accent)' : 'var(--text)', cursor: 'pointer', fontSize: 13, fontWeight: ganttScale === scale ? 700 : 400, fontFamily: 'inherit', textAlign: 'left' as const }}>
@@ -215,8 +215,8 @@ export default function ProjectsView({ data, updateData, setView, onNavigateToPl
 
       {/* Table — div-based for reliable sticky left column */}
       {viewMode === 'list' && (
-        <div className="card" style={{ padding: 0, overflow: 'visible', marginTop: 16 }}>
-          <div style={{ overflow: 'auto', maxHeight: 'calc(100vh - 170px)' }}>
+        <div className="card" style={{ padding: 0, overflow: 'hidden', marginTop: 16, borderRadius: 'var(--radius-lg)' }}>
+          <div style={{ overflow: 'auto', maxHeight: 'calc(100vh - 190px)', position: 'relative' }}>
             <div style={{ minWidth: 1580 }}>
 
               {/* Header row */}

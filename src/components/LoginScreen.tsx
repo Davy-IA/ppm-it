@@ -52,7 +52,7 @@ export default function LoginScreen() {
     <div style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
       {/* Background decoration */}
       <div style={{ position: 'fixed', inset: 0, overflow: 'hidden', zIndex: 0, pointerEvents: 'none' }}>
-        <div style={{ position: 'absolute', top: '-20%', right: '-10%', width: 600, height: 600, borderRadius: '50%', background: 'radial-gradient(circle, rgba(99,102,241,0.12) 0%, transparent 70%)' }} />
+        <div style={{ position: 'absolute', top: '-20%', right: '-10%', width: 600, height: 600, borderRadius: '50%', background: 'radial-gradient(circle, rgba(124,92,191,0.12) 0%, transparent 70%)' }} />
         <div style={{ position: 'absolute', bottom: '-20%', left: '-10%', width: 500, height: 500, borderRadius: '50%', background: 'radial-gradient(circle, rgba(139,92,246,0.10) 0%, transparent 70%)' }} />
       </div>
 
@@ -73,7 +73,7 @@ export default function LoginScreen() {
               background: 'var(--accent-gradient)',
               margin: '0 auto 16px',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: '0 8px 24px rgba(99,102,241,0.35)',
+              boxShadow: '0 8px 24px rgba(124,92,191,0.35)',
               fontSize: 30, color: '#fff', fontWeight: 800,
             }}>
               {appName.charAt(0).toUpperCase()}

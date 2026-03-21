@@ -381,7 +381,7 @@ function ProfilePanel({ user, onClose, t, token, refreshUser, updateUser }: { us
   return (
     <>
       <div style={{ position: 'fixed', inset: 0, zIndex: 299 }} onClick={onClose} />
-      <div style={{ position: 'absolute', top: 'calc(100% + 6px)', right: 0, width: 300, background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 14, boxShadow: '0 8px 30px rgba(99,102,241,0.15)', zIndex: 300, overflow: 'hidden', animation: 'dropIn 0.15s ease' }}>
+      <div style={{ position: 'absolute', top: 'calc(100% + 6px)', right: 0, width: 300, background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 14, boxShadow: '0 8px 30px rgba(124,92,191,0.15)', zIndex: 300, overflow: 'hidden', animation: 'dropIn 0.15s ease' }}>
         <div style={{ padding: '14px 16px 12px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span style={{ fontWeight: 700, fontSize: 13 }}>{t('my_profile')}</span>
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 16 }}>✕</button>
