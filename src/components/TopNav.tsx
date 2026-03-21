@@ -135,8 +135,8 @@ export default function TopNav({ view, setView, saving, data, currentSpace, onCh
               ? ((settings as any).logoDark || settings.logo)
               : (settings.logo || (settings as any).logoDark);
             return activeLogo
-              ? <img src={activeLogo} alt="logo" style={{ height: 26, width: 26, objectFit: 'contain' }} />
-              : <span className="topnav-logo-letter">{(settings.appName || 'P')[0]}</span>;
+              ? <img src={activeLogo} alt="logo" style={{ height: 22, width: 22, objectFit: 'contain' }} />
+              : <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1" y="1" width="6" height="6" rx="1.5" fill="white" opacity=".9"/><rect x="9" y="1" width="6" height="6" rx="1.5" fill="white" opacity=".55"/><rect x="1" y="9" width="6" height="6" rx="1.5" fill="white" opacity=".55"/><rect x="9" y="9" width="6" height="6" rx="1.5" fill="white" opacity=".82"/></svg>;
           })()}
         </div>
         {/* Space selector dropdown */}
