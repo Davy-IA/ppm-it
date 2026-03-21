@@ -123,21 +123,16 @@ export default function TopNav({ view, setView, saving, data, currentSpace, onCh
     <header className="topnav">
       {/* Left: Logo + Space */}
       <div className="topnav-brand">
-        <div className="topnav-logo" onClick={onChangeSpace}
-          style={{ background: (() => {
-            const hasLogo = settings.logo || (settings as any).logoDark;
-            if (!hasLogo) return 'var(--accent-gradient)';
-            // White bg in light mode, dark bg in dark mode for PNG transparency
-            return theme === 'dark' ? 'rgba(30,35,50,0.95)' : 'rgba(255,255,255,0.95)';
-          })() }}>
+        <div className="topnav-logo" onClick={onChangeSpace}>
           {(() => {
             const activeLogo = theme === 'dark'
               ? ((settings as any).logoDark || settings.logo)
               : (settings.logo || (settings as any).logoDark);
             return activeLogo
-              ? <img src={activeLogo} alt="logo" style={{ height: 26, width: 26, objectFit: 'contain' }} />
-              : <span className="topnav-logo-letter">{(settings.appName || 'P')[0]}</span>;
+              ? <div className="topnav-logo-mark"><img src={activeLogo} alt="logo" style={{ height: 20, width: 20, objectFit: 'contain' }} /></div>
+              : <div className="topnav-logo-mark"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1" y="1" width="5" height="5" rx="1.2" fill="white" opacity=".9"/><rect x="8" y="1" width="5" height="5" rx="1.2" fill="white" opacity=".55"/><rect x="1" y="8" width="5" height="5" rx="1.2" fill="white" opacity=".55"/><rect x="8" y="8" width="5" height="5" rx="1.2" fill="white" opacity=".82"/></svg></div>;
           })()}
+          <span className="topnav-logo-text">{settings.appName || 'PPM·IT'}</span>
         </div>
         {/* Space selector dropdown */}
         <div style={{ position: 'relative' }}>
