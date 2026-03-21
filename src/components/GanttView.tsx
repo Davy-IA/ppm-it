@@ -376,7 +376,7 @@ export default function GanttView({ data, updateData, initialProjectId, onMounte
           <div style={{fontSize:13}}>{t('no_phases_cta')}</div>
         </div>
       ) : (
-        <div style={{ border:'1px solid var(--border)', borderRadius:'var(--radius)', background:'var(--bg2)', boxShadow:'var(--shadow-sm)', marginTop: 12 }}>
+        <div style={{ border:'1px solid var(--border)', borderRadius:'var(--radius-lg)', background:'var(--bg2)', boxShadow:'var(--shadow-sm)', marginTop: 12, overflow:'hidden' }}>
           <div style={{ overflow:'auto', maxHeight:'calc(100vh - 280px)' }}>
             <div style={{ minWidth: LEFT_W + chartW }}>
               {/* Sticky header row — same as Portfolio Gantt */}
