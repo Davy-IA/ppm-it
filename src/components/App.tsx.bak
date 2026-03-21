@@ -5,7 +5,7 @@ import { INITIAL_DATA } from '@/lib/data';
 import { useAuth } from '@/lib/auth-context';
 import LoginScreen from './LoginScreen';
 import GlobalPortfolio from './GlobalPortfolio';
-import Sidebar from './Sidebar';
+import TopNav from './TopNav';
 import DashboardHub from './DashboardHub';
 import ProjectsView from './ProjectsView';
 import StaffView from './StaffView';
@@ -107,24 +107,22 @@ export default function App() {
 
   return (
     <div className="app-shell">
-      <Sidebar
+      <TopNav
         view={view} setView={setView}
-        saving={saving}
-        currentSpace={currentSpace as any}
-        spaces={spaces as any}
+        saving={saving} data={data}
+        currentSpace={currentSpace}
         onChangeSpace={() => setCurrentSpace(null)}
+        spaces={spaces}
         onSelectSpace={(space) => setCurrentSpace(space as any)}
       />
-      <div className="app-content">
-        <div className="page-scroll">
-          {view === 'dashboard' && <DashboardHub data={data} setView={setView} />}
-          {view === 'projects' && <ProjectsView data={data} updateData={updateData} onNavigateToPlanning={(id) => { setPlanProjectId(id); setView('gantt'); }} />}
-          {view === 'gantt' && <GanttView data={data} updateData={updateData} initialProjectId={planProjectId} onMounted={() => setPlanProjectId(null)} />}
-          {view === 'staff' && <StaffView data={data} updateData={updateData} />}
-          {view === 'workload' && <WorkloadView data={data} updateData={updateData} />}
-          {view === 'settings' && <SettingsView data={data} updateData={updateData} spaces={spaces as any} onRefreshSpaces={fetchSpaces} />}
-        </div>
-      </div>
+      <main className="app-content">
+        {view === 'dashboard' && <DashboardHub data={data} setView={setView} />}
+        {view === 'projects' && <ProjectsView data={data} updateData={updateData} onNavigateToPlanning={(id) => { setPlanProjectId(id); setView('gantt'); }} />}
+        {view === 'gantt' && <GanttView data={data} updateData={updateData} initialProjectId={planProjectId} onMounted={() => setPlanProjectId(null)} />}
+        {view === 'staff' && <StaffView data={data} updateData={updateData} />}
+        {view === 'workload' && <WorkloadView data={data} updateData={updateData} />}
+        {view === 'settings' && <SettingsView data={data} updateData={updateData} spaces={spaces as any} onRefreshSpaces={fetchSpaces} />}
+      </main>
     </div>
   );
 }
