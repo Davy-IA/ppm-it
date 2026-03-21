@@ -587,13 +587,13 @@ function PortfolioGantt({ data, filtered, t, timeScale }: { data: AppData; filte
         <div style={{ overflowX: 'auto' }}>
           <div style={{ minWidth: LEFT_W + chartW }}>
             {/* Header row — sticky */}
-            <div style={{ display: 'flex', background: 'var(--bg3)', borderBottom: '2px solid var(--border)', position: 'sticky', top: 0, zIndex: 6 }}>
-              <div style={{ width: LEFT_W, minWidth: LEFT_W, flexShrink: 0, height: 36, display: 'flex', alignItems: 'center', padding: '0 14px', fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' as const, letterSpacing: '0.07em', position: 'sticky', left: 0, zIndex: 25, background: 'var(--bg3)', borderRight: '1px solid var(--border)' }}>
+            <div style={{ display: 'flex', background: '#3D3A4E', borderBottom: 'none', position: 'sticky', top: 0, zIndex: 6 }}>
+              <div style={{ width: LEFT_W, minWidth: LEFT_W, flexShrink: 0, height: 36, display: 'flex', alignItems: 'center', padding: '0 14px', fontSize: 11, fontWeight: 700, color: '#FFFFFF', textTransform: 'uppercase' as const, letterSpacing: '0.07em', position: 'sticky', left: 0, zIndex: 25, background: '#3D3A4E', borderRight: '1px solid rgba(255,255,255,0.10)' }}>
                 {t('project_name')}
               </div>
               <div style={{ width: chartW, flexShrink: 0, position: 'relative', height: 40 }}>
                 {columns.map((col, i) => (
-                  <div key={i} style={{ position: 'absolute', left: col.left, width: col.width, height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRight: '1px solid var(--border)', fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'capitalize' as const, overflow: 'hidden' }}>
+                  <div key={i} style={{ position: 'absolute', left: col.left, width: col.width, height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRight: '1px solid var(--border)', fontSize: 11, fontWeight: 700, color: '#FFFFFF', textTransform: 'capitalize' as const, overflow: 'hidden' }}>
                     {col.label}
                   </div>
                 ))}
