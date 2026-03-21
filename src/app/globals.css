@@ -644,8 +644,9 @@ th.cap-cell {
 .utbl-td.sticky {
   position: sticky;
   left: 0;
-  z-index: 3;
+  z-index: 10;          /* must be above other scrolling cells */
   background: var(--bg2);
+  isolation: isolate;   /* creates its own stacking context */
 }
 
 /* Cellule cliquable (édition inline) */
