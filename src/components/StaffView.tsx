@@ -125,7 +125,7 @@ export default function StaffView({ data, updateData }: Props) {
           <table className="data-table">
             <thead>
               <tr>
-                <th className="sticky-left" style={{ minWidth: 200 }}>{t('project_name').replace('Projet', 'Ressource') || 'Ressource'}</th>
+                <th className="sticky-left" style={{ background: '#3D3A4E', color: '#FFFFFF', minWidth: 200 }}>{t('project_name').replace('Projet', 'Ressource') || 'Ressource'}</th>
                 <th>{t('profile')}</th>
                 <th>{t('type')}</th>
                 <th>{t('entity')}</th>
