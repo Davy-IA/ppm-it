@@ -234,7 +234,7 @@ export default function ProjectsView({ data, updateData, setView, onNavigateToPl
                   ['start_date',       95 ],
                   ['go_live',          95 ],
                   ['hypercare_date',   95 ],
-                  ['',                 72 ],
+                  ['',                 44 ],
                 ] as [string, number][]).map(([k, w], i) => (
                   <div key={i} style={{
                     width: w, minWidth: w, flexShrink: 0,
@@ -352,8 +352,7 @@ export default function ProjectsView({ data, updateData, setView, onNavigateToPl
                     </div>
 
                     {/* ACTIONS */}
-                    <div style={{ width: 72, minWidth: 72, flexShrink: 0, padding: '10px 10px', display: 'flex', gap: 4, alignItems: 'center' }}>
-                      <button className="btn btn-ghost btn-sm" onClick={() => { setEditing({ ...p }); setIsNew(false); }}>{t('edit_btn')}</button>
+                    <div style={{ width: 44, minWidth: 44, flexShrink: 0, padding: '10px 8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       <button className="btn btn-danger btn-sm" onClick={() => setConfirmAction(() => remove(p.id))}><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 3.5h9M5 3.5V2.5h3v1M10.5 3.5l-.7 7H3.2l-.7-7" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg></button>
                     </div>
                   </div>
