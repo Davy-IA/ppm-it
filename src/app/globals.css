@@ -535,7 +535,7 @@ th.cap-cell {
 /* ── Table inside card — rounded corners ── */
 .card-table {
   padding: 0;
-  overflow: hidden; /* clips the table corners */
+  /* NO overflow:hidden here — it breaks position:sticky on child elements */
   border-radius: var(--radius-lg) !important;
 }
 .card-table .data-table thead th:first-child { border-radius: var(--radius-lg) 0 0 0; }
@@ -558,9 +558,8 @@ th.cap-cell {
    Utilisé par toutes les vues tabulaires
 ═══════════════════════════════════════════════════════════ */
 .utbl-wrap {
-  /* scroll container — c'est lui le référentiel pour position:sticky */
+  /* scroll container — NO border-radius here (breaks sticky in some browsers) */
   overflow: auto;
-  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
 }
 .utbl-inner {
   /* largeur minimale définie inline par chaque vue */
