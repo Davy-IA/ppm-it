@@ -122,40 +122,33 @@ export default function StaffView({ data, updateData }: Props) {
 
       <div className="card card-table" style={{ padding: 0, overflow: 'hidden', marginTop: 16 }}>
         <div className="utbl-wrap" style={{ maxHeight: 'calc(100vh - 180px)' }}>
-          <div style={{ minWidth: 800 + months.length * 52 }}>
-
-            {/* Header row */}
-            <div className="utbl-head">
-              <div className="utbl-th sticky" style={{ width: 220, minWidth: 220 }}>{t('field_resource') || 'Ressource'}</div>
-              <div className="utbl-th" style={{ width: 130, minWidth: 130 }}>{t('profile')}</div>
-              <div className="utbl-th" style={{ width: 100, minWidth: 100 }}>{t('type')}</div>
-              <div className="utbl-th" style={{ width: 90, minWidth: 90 }}>{t('entity')}</div>
-              {months.map(m => {
-                const label = formatMonth(m, locale, { month: 'short', year: '2-digit' });
-                return <div key={m} className="utbl-th" style={{ width: 60, minWidth: 60, textAlign: 'center' as const }}>{label}</div>;
-              })}
-              <div className="utbl-th" style={{ width: 90, minWidth: 90 }}></div>
-            </div>
-
-            {/* Data rows */}
-            {filtered.map((s, idx) => {
-              // Compute allocation per month for this staff
-              const allocated: Record<string, number> = {};
-              data.allocations.filter(a => a.staffId === s.id).forEach(a => {
-                Object.entries(a.monthly).forEach(([m, v]) => {
-                  allocated[m] = (allocated[m] ?? 0) + v;
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th className="sticky-left" style={{ minWidth: 200 }}>{t('project_name').replace('Projet', 'Ressource') || 'Ressource'}</th>
+                <th>{t('profile')}</th>
+                <th>{t('type')}</th>
+                <th>{t('entity')}</th>
+                {months.map(m => {
+                  const label = formatMonth(m, locale, { month: 'short', year: '2-digit' });
+                  return <th key={m} className="cap-cell">{label}</th>;
+                })}
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map(s => {
+                // Compute allocation per month for this staff
+                const allocated: Record<string, number> = {};
+                data.allocations.filter(a => a.staffId === s.id).forEach(a => {
+                  Object.entries(a.monthly).forEach(([m, v]) => {
+                    allocated[m] = (allocated[m] ?? 0) + v;
+                  });
                 });
-              });
-              const rowBg = idx % 2 === 0 ? 'var(--bg2)' : 'var(--bg3)';
 
-              return (
-                <div key={s.id} className="utbl-row" style={{ background: rowBg }}
-                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'var(--accent-subtle)'; const st = (e.currentTarget as HTMLElement).querySelector('.utbl-td.sticky') as HTMLElement; if (st) st.style.background = 'var(--accent-subtle)'; }}
-                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = rowBg; const st = (e.currentTarget as HTMLElement).querySelector('.utbl-td.sticky') as HTMLElement; if (st) st.style.background = rowBg; }}>
-
-                  {/* NAME — sticky */}
-                  <div className="utbl-td sticky editable" style={{ width: 220, minWidth: 220, fontWeight: 600, background: rowBg }}
-                    onClick={() => setInlineEdit({ id: s.id, field: 'name' })}>
+                return (
+                  <tr key={s.id}>
+                    <td className="sticky-left cell-edit" style={{ fontWeight: 500 }} onClick={() => setInlineEdit({ id: s.id, field: 'name' })}>
                       {inlineEdit?.id === s.id && inlineEdit.field === 'name'
                         ? <input className="cell-input" autoFocus defaultValue={s.name}
                             onBlur={e => { updateStaffField(s.id, 'name', e.target.value); setInlineEdit(null); }}
@@ -170,93 +163,85 @@ export default function StaffView({ data, updateData }: Props) {
                             </>;
                           })()
                       }
-                    </div>
-                  {/* PROFILE */}
-                  <div className="utbl-td editable" style={{ width: 130, minWidth: 130 }}
-                    onClick={() => setInlineEdit({ id: s.id, field: 'profile' })}>
-                    {inlineEdit?.id === s.id && inlineEdit.field === 'profile'
-                      ? <select className="cell-select" autoFocus defaultValue={s.profile}
-                          onChange={e => { updateStaffField(s.id, 'profile', e.target.value); setInlineEdit(null); }}
-                          onBlur={() => setInlineEdit(null)} onClick={e => e.stopPropagation()}>
-                          {spaceProfiles.map(p => <option key={p} value={p}>{p}</option>)}
-                        </select>
-                      : <span className="badge badge-blue">{s.profile}</span>
-                    }
-                  </div>
-                  {/* TYPE */}
-                  <div className="utbl-td editable" style={{ width: 100, minWidth: 100 }}
-                    onClick={() => setInlineEdit({ id: s.id, field: 'type' })}>
-                    {inlineEdit?.id === s.id && inlineEdit.field === 'type'
-                      ? <select className="cell-select" autoFocus defaultValue={s.type}
-                          onChange={e => { updateStaffField(s.id, 'type', e.target.value); setInlineEdit(null); }}
-                          onBlur={() => setInlineEdit(null)} onClick={e => e.stopPropagation()}>
-                          <option value="Internal">{t('internal')}</option>
-                          <option value="External">{t('contract_external')}</option>
-                        </select>
-                      : <span style={{color:'var(--text-muted)'}}>{s.type === 'Internal' ? t('internal') : t('external_label')}</span>
-                    }
-                  </div>
-                  {/* ENTITY */}
-                  <div className="utbl-td editable" style={{ width: 90, minWidth: 90 }}
-                    onClick={() => setInlineEdit({ id: s.id, field: 'entity' })}>
-                    {inlineEdit?.id === s.id && inlineEdit.field === 'entity'
-                      ? <select className="cell-select" autoFocus defaultValue={s.entity}
-                          onChange={e => { updateStaffField(s.id, 'entity', e.target.value); setInlineEdit(null); }}
-                          onBlur={() => setInlineEdit(null)} onClick={e => e.stopPropagation()}>
-                          {COUNTRIES.map(c => <option key={c} value={c}>{c}</option>)}
-                        </select>
-                      : s.entity
-                    }
-                  </div>
-                  {/* MONTH CELLS */}
-                  {months.map(m => {
-                    const cap = s.capacity[m] ?? 0;
-                    const alloc = allocated[m] ?? 0;
-                    let extra = '';
-                    if (cap === 0) extra = ' cap-zero';
-                    else if (alloc > cap) extra = ' cap-over';
-                    else if (alloc > 0) extra = ' cap-ok';
-                    return (
-                      <div key={m} className={'utbl-td editable' + extra}
-                        style={{ width: 60, minWidth: 60, textAlign: 'center' as const }}
-                        title={alloc > 0 ? `${alloc}j / ${cap}j` : `Cap: ${cap}j`}
-                        onClick={() => setInlineEdit({ id: s.id, field: 'cap_' + m })}>
-                        {inlineEdit?.id === s.id && inlineEdit.field === 'cap_' + m
-                          ? <input type="number" min={0} step={0.5} className="cell-input" autoFocus defaultValue={cap || ''}
-                              style={{ width: 48, textAlign: 'center' }}
-                              onBlur={e => { updateCapacity(s.id, m, e.target.value); setInlineEdit(null); }}
-                              onKeyDown={e => { if (e.key === 'Enter') { updateCapacity(s.id, m, (e.target as HTMLInputElement).value); setInlineEdit(null); } if (e.key === 'Escape') setInlineEdit(null); }}
-                              onClick={e => e.stopPropagation()} />
-                          : <>{cap > 0 ? cap : '—'}{alloc > 0 && (
-                            <div style={{ fontSize: 10, color: 'var(--text-faint)', marginTop: 1, fontWeight: 400 }}>
-                              {alloc}{t('days_allocated')}
-                            </div>
-                          )}</>
-                        }
+                    </td>
+                    <td className="cell-edit" onClick={() => setInlineEdit({ id: s.id, field: 'profile' })}>
+                      {inlineEdit?.id === s.id && inlineEdit.field === 'profile'
+                        ? <select className="cell-select" autoFocus defaultValue={s.profile}
+                            onChange={e => { updateStaffField(s.id, 'profile', e.target.value); setInlineEdit(null); }}
+                            onBlur={() => setInlineEdit(null)} onClick={e => e.stopPropagation()}>
+                            {spaceProfiles.map(p => <option key={p} value={p}>{p}</option>)}
+                          </select>
+                        : <span className="badge badge-blue">{s.profile}</span>
+                      }
+                    </td>
+                    <td className="cell-edit" style={{ fontSize: 12 }} onClick={() => setInlineEdit({ id: s.id, field: 'type' })}>
+                      {inlineEdit?.id === s.id && inlineEdit.field === 'type'
+                        ? <select className="cell-select" autoFocus defaultValue={s.type}
+                            onChange={e => { updateStaffField(s.id, 'type', e.target.value); setInlineEdit(null); }}
+                            onBlur={() => setInlineEdit(null)} onClick={e => e.stopPropagation()}>
+                            <option value="Internal">{t('internal')}</option>
+                            <option value="External">{t('contract_external')}</option>
+                          </select>
+                        : <span style={{color:'var(--text-muted)'}}>{s.type === 'Internal' ? t('internal') : t('external_label')}</span>
+                      }
+                    </td>
+                    <td className="cell-edit" style={{ color: 'var(--text-muted)' }} onClick={() => setInlineEdit({ id: s.id, field: 'entity' })}>
+                      {inlineEdit?.id === s.id && inlineEdit.field === 'entity'
+                        ? <select className="cell-select" autoFocus defaultValue={s.entity}
+                            onChange={e => { updateStaffField(s.id, 'entity', e.target.value); setInlineEdit(null); }}
+                            onBlur={() => setInlineEdit(null)} onClick={e => e.stopPropagation()}>
+                            {COUNTRIES.map(c => <option key={c} value={c}>{c}</option>)}
+                          </select>
+                        : s.entity
+                      }
+                    </td>
+                    {months.map(m => {
+                      const cap = s.capacity[m] ?? 0;
+                      const alloc = allocated[m] ?? 0;
+                      let cls = 'cap-cell';
+                      if (cap === 0) cls += ' cap-zero';
+                      else if (alloc > cap) cls += ' cap-over';
+                      else if (alloc > 0) cls += ' cap-ok';
+                      return (
+                        <td key={m} className={cls + ' cell-edit'} title={alloc > 0 ? `${String(t('capacity_cap_alloc')).replace('{cap}', String(cap)).replace('{alloc}', String(alloc))}` : `Cap: ${cap}j`}
+                          onClick={() => setInlineEdit({ id: s.id, field: 'cap_' + m })}>
+                          {inlineEdit?.id === s.id && inlineEdit.field === 'cap_' + m
+                            ? <input type="number" min={0} step={0.5} className="cell-input" autoFocus defaultValue={cap || ''}
+                                style={{ minWidth: 48, width: 52, textAlign: 'center' }}
+                                onBlur={e => { updateCapacity(s.id, m, e.target.value); setInlineEdit(null); }}
+                                onKeyDown={e => { if (e.key === 'Enter') { updateCapacity(s.id, m, (e.target as HTMLInputElement).value); setInlineEdit(null); } if (e.key === 'Escape') setInlineEdit(null); }}
+                                onClick={e => e.stopPropagation()} />
+                            : <>{cap > 0 ? cap : '—'}{alloc > 0 && (
+                              <div style={{ fontSize: 10, color: 'var(--text-faint)', marginTop: 1, fontWeight: 400 }}
+                                title={`${alloc} ${t('days_allocated')} / ${cap} (${Math.round(alloc/cap*100)}%)`}>
+                                {alloc}{t('days_allocated')}
+                              </div>
+                            )}</>
+                          }
+                        </td>
+                      );
+                    })}
+                    <td>
+                      <div style={{ display: 'flex', gap: 4 }}>
+                        <button className="btn-icon" title={t('link_to_user') as string}
+                          style={{ width: 26, height: 26, color: (s as any).userId ? 'var(--success)' : 'var(--text-faint)' }}
+                          onClick={() => { setEditing({ ...s }); setIsNew(false); }}>
+                          <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><circle cx="7.5" cy="5" r="3" stroke="currentColor" strokeWidth="1.3"/><path d="M2 13c0-3 2.5-5 5.5-5s5.5 2 5.5 5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg>
+                        </button>
+                        <button className="btn btn-ghost btn-sm" title={t('copy_resource') as string} onClick={() => {
+                          const copy = { ...s, id: '', name: s.name + ' (copy)' };
+                          setEditing(copy); setIsNew(true);
+                        }}>
+                          <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><rect x="1" y="4" width="7" height="8" rx="1.2" stroke="currentColor" strokeWidth="1.3"/><path d="M4 4V2.5A1.5 1.5 0 015.5 1H10a1.5 1.5 0 011.5 1.5V8A1.5 1.5 0 0110 9.5H8.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg>
+                        </button>
+                        <button className="btn btn-danger btn-sm" onClick={() => setConfirmAction(() => remove(s.id))}><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 3.5h9M5 3.5V2.5h3v1M10.5 3.5l-.7 7H3.2l-.7-7" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg></button>
                       </div>
-                    );
-                  })}
-                  {/* ACTIONS */}
-                  <div className="utbl-td" style={{ width: 90, minWidth: 90 }}>
-                    <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
-                      <button className="btn-icon" title={t('link_to_user') as string}
-                        style={{ width: 26, height: 26, color: (s as any).userId ? 'var(--success)' : 'var(--text-faint)' }}
-                        onClick={() => { setEditing({ ...s }); setIsNew(false); }}>
-                        <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><circle cx="7.5" cy="5" r="3" stroke="currentColor" strokeWidth="1.3"/><path d="M2 13c0-3 2.5-5 5.5-5s5.5 2 5.5 5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg>
-                      </button>
-                      <button className="btn btn-ghost btn-sm" title={t('copy_resource') as string} onClick={() => {
-                        const copy = { ...s, id: '', name: s.name + ' (copy)' };
-                        setEditing(copy); setIsNew(true);
-                      }}>
-                        <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><rect x="1" y="4" width="7" height="8" rx="1.2" stroke="currentColor" strokeWidth="1.3"/><path d="M4 4V2.5A1.5 1.5 0 015.5 1H10a1.5 1.5 0 011.5 1.5V8A1.5 1.5 0 0110 9.5H8.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg>
-                      </button>
-                      <button className="btn btn-danger btn-sm" onClick={() => setConfirmAction(() => remove(s.id))}><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 3.5h9M5 3.5V2.5h3v1M10.5 3.5l-.7 7H3.2l-.7-7" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg></button>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
       </div>
 
