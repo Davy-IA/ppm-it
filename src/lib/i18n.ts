@@ -523,6 +523,8 @@ export const translations = {
     list_name: 'Liste',
     list_count: 'Valeurs',
     list_preview: 'Aperçu',
+    settings_table_font_size: 'Taille de police des tableaux',
+    settings_table_font_size_desc: "Ajuste la taille du texte dans tous les tableaux de l'application.",
   },
   en: {
     nav_dashboard: 'Dashboard',
@@ -1037,6 +1039,8 @@ export const translations = {
     list_name: 'List',
     list_count: 'Values',
     list_preview: 'Preview',
+    settings_table_font_size: 'Table font size',
+    settings_table_font_size_desc: 'Adjusts the text size in all application tables.',
   },
   pt: {
     nav_dashboard: 'Painel',
@@ -1551,6 +1555,8 @@ export const translations = {
     list_name: 'Lista',
     list_count: 'Valores',
     list_preview: 'Pré-visualização',
+    settings_table_font_size: 'Tamanho da fonte das tabelas',
+    settings_table_font_size_desc: 'Ajusta o tamanho do texto em todas as tabelas.',
   },
   zh: {
     nav_dashboard: '仪表板',
@@ -2065,6 +2071,8 @@ export const translations = {
     list_name: '列表',
     list_count: '值',
     list_preview: '预览',
+    settings_table_font_size: '表格字体大小',
+    settings_table_font_size_desc: '调整应用程序中所有表格的文字大小。',
   },
 } as const;
 

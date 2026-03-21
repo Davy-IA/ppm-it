@@ -232,6 +232,23 @@ export default function SettingsView({ data, updateData, spaces, onRefreshSpaces
               })}
             </div>
           </div>
+
+          {/* Table font size */}
+          <div className="card" style={{ marginTop: 16 }}>
+            <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 4 }}>{t('settings_table_font_size')}</div>
+            <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 16 }}>{t('settings_table_font_size_desc')}</div>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+              {[{ size: 11, label: 'XS' }, { size: 12, label: 'S' }, { size: 13, label: 'M' }, { size: 14, label: 'L' }].map(({ size, label }) => {
+                const active = (settings.tableFontSize ?? 12) === size;
+                return (
+                  <button key={size} onClick={() => { updateSettings({ tableFontSize: size }); showSaved(); }}
+                    style={{ padding: '8px 18px', borderRadius: 8, border: `2px solid ${active ? 'var(--accent)' : 'var(--border)'}`, background: active ? 'var(--accent-subtle)' : 'var(--bg3)', color: active ? 'var(--accent)' : 'var(--text-muted)', fontWeight: active ? 700 : 500, fontSize: size, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.15s' }}>
+                    {label} <span style={{ fontSize: 10, opacity: 0.7 }}>({size}px)</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
         </div>
       )}
 

@@ -33,6 +33,9 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     // Apply color theme on mount
     applyColorTheme(settings.colorTheme ?? 'indigo');
+    // Apply table font size
+    const fs = settings.tableFontSize ?? 12;
+    document.documentElement.style.setProperty('--table-fs', `${fs}px`);
   }, []);
 
   const updateSettings = (partial: Partial<AppSettings>) => {
@@ -40,6 +43,9 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     setSettings(next);
     localStorage.setItem('ppm-settings', JSON.stringify(next));
     if (partial.colorTheme) applyColorTheme(partial.colorTheme);
+    if (partial.tableFontSize !== undefined) {
+      document.documentElement.style.setProperty('--table-fs', `${partial.tableFontSize}px`);
+    }
   };
 
   const tFn = (key: string, vars?: Record<string, string | number>): string =>

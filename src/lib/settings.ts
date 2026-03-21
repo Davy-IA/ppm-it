@@ -92,11 +92,13 @@ export interface AppSettings {
   sponsors: string[];
   milestoneTypes: string[];
   partnerTypes: string[];
+  tableFontSize: number; // 11, 12, 13 (default), 14
 }
 
 export const DEFAULT_SETTINGS: AppSettings = {
   locale: 'fr',
   colorTheme: 'indigo',
+  tableFontSize: 12,
   logo: null,
   logoDark: null,
   appName: 'PPM',
