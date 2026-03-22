@@ -110,7 +110,7 @@ html, body {
 .app-content {
   flex: 1;
   overflow: auto;
-  padding: 20px 28px;
+  padding: 12px 28px 20px;
 }
 
 /* ═══════════════════════════════════════════

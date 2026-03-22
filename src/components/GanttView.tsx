@@ -248,7 +248,7 @@ export default function GanttView({ data, updateData, initialProjectId, onMounte
             <option value="">{t('all_domains')}</option>
             {['APPLI','INFRA','INNOV','DATA'].map(d => <option key={d} value={d}>{d}</option>)}
           </select>
-          <select className="input" value={deptFilter} onChange={e => { setDeptFilter(e.target.value); setSelProj(''); }} style={{ maxWidth: 155 }}>
+          <select className="toolbar-select" value={deptFilter} onChange={e => { setDeptFilter(e.target.value); setSelProj(''); }} style={{ maxWidth: 155 }}>
             <option value="">{t('all_depts')}</option>
             {data.projects.map(p => p.leadDept).filter((v, i, a) => v && a.indexOf(v) === i).sort().map(d => (
               <option key={d} value={d}>{d}</option>
@@ -260,9 +260,9 @@ export default function GanttView({ data, updateData, initialProjectId, onMounte
               ✕ {t('clear_filters')}
             </button>
           )}
-          <div style={{ width: 1, height: 24, background: 'var(--border)', flexShrink: 0 }} />
+          
           {/* Project selector */}
-          <select className="input"
+          <select className="toolbar-select"
             value={selProjValid ? selProj : (filteredProjects[0]?.id ?? '')}
             onChange={e => setSelProj(e.target.value)}
             style={{ maxWidth: 300, fontWeight: 600 }}>
@@ -377,11 +377,11 @@ export default function GanttView({ data, updateData, initialProjectId, onMounte
         </div>
       ) : (
         <div className="card card-table" style={{ padding: 0, overflow: 'hidden', marginTop: 20 }}>
-          <div style={{ overflow:'auto', maxHeight:'calc(100vh - 155px)' }}>
+          <div style={{ overflow:'auto', maxHeight:'calc(100vh - 195px)' }}>
             <div style={{ minWidth: LEFT_W + chartW }}>
               {/* Sticky header row — same as Portfolio Gantt */}
               <div style={{ display:'flex', background:'#3D3A4E', borderBottom:'none', position:'sticky', top:0, zIndex:6 }}>
-                <div style={{ width:LEFT_W, minWidth:LEFT_W, flexShrink:0, borderRight:'1px solid rgba(255,255,255,0.10)', height:38, display:'flex', alignItems:'center', padding:'0 16px', position:'sticky', left:0, zIndex:25, background:'#3D3A4E' }}>
+                <div style={{ width:LEFT_W, minWidth:LEFT_W, flexShrink:0, borderRight:'1px solid rgba(255,255,255,0.10)', height:38, display:'flex', alignItems:'center', padding:'0 16px', position:'sticky', top:0, left:0, zIndex:25, background:'#3D3A4E' }}>
                   <span style={{ fontSize:11, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.07em', color:'#FFFFFF' }}>{t('structure')}</span>
                 </div>
                 <div style={{ width:chartW, flexShrink:0, position:'relative', height:38 }}>
