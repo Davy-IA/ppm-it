@@ -392,7 +392,7 @@ export default function GanttView({ data, updateData, initialProjectId, onMounte
               {/* Body row */}
               <div style={{ display:'flex' }}>
               {/* Labels - sticky left */}
-              <div style={{ width:LEFT_W, minWidth:LEFT_W, borderRight:'1px solid var(--border)', flexShrink:0, position:'sticky', left:0, zIndex:2, background:'var(--bg2)' }}>
+              <div style={{ width:LEFT_W, minWidth:LEFT_W, borderRight:'1px solid var(--border)', flexShrink:0, position:'sticky', left:0, zIndex:50, background:'var(--bg2)' }}>
                 {phases.map(ph => (
                   <div key={ph.id}>
                     <div style={{ height:40, borderBottom:'1px solid var(--border)', display:'flex', alignItems:'center', padding:'0 8px', gap:6, background:'var(--bg2)', isolation:'isolate' }}>
@@ -456,7 +456,6 @@ export default function GanttView({ data, updateData, initialProjectId, onMounte
                         style={{ position:'absolute', left: mx - 8, top: 0, zIndex: 3, cursor:'pointer', display:'flex', flexDirection:'column', alignItems:'center' }}>
                         <div style={{ width:0, height:0, borderLeft:'8px solid transparent', borderRight:'8px solid transparent', borderBottom:'12px solid var(--accent2)' }}/>
                         <div style={{ width:0, height:0, borderLeft:'8px solid transparent', borderRight:'8px solid transparent', borderTop:'12px solid var(--accent2)', marginTop:-1 }}/>
-                        <div style={{ fontSize:9, fontWeight:700, color:'var(--accent2)', whiteSpace:'nowrap', marginTop:2, maxWidth:80, overflow:'hidden', textOverflow:'ellipsis' }}>{m.name}</div>
                       </div>
                     );
                   })}
@@ -496,6 +495,18 @@ export default function GanttView({ data, updateData, initialProjectId, onMounte
               </div>{/* end body flex row */}
             </div>
           </div>
+          {/* Milestone legend below chart */}
+          {milestones.filter(m => !m.isAutoGoLive).length > 0 && (
+            <div style={{ padding:'8px 16px 10px', borderTop:'1px solid var(--border)', background:'var(--bg3)', display:'flex', flexWrap:'wrap', gap:'6px 16px', alignItems:'center' }}>
+              <span style={{ fontSize:10, fontWeight:700, color:'var(--text-faint)', textTransform:'uppercase', letterSpacing:'0.06em', marginRight:4 }}>Jalons :</span>
+              {milestones.filter(m => !m.isAutoGoLive).map(m => (
+                <span key={m.id} style={{ display:'inline-flex', alignItems:'center', gap:4, fontSize:11, color:'var(--accent2)', fontWeight:600, cursor:'pointer', whiteSpace:'nowrap' as const }}
+                  onClick={() => { setEditMilestone({...m}); setIsNewMilestone(false); }}>
+                  ◆ {m.name} — {m.date.slice(0,7)}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
