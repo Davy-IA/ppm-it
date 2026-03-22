@@ -273,7 +273,16 @@ export default function GanttView({ data, updateData, initialProjectId, onMounte
           </select>
           {project?.startDate && <span className="badge badge-blue" style={{height:28,display:'inline-flex',alignItems:'center'}}>{t('gantt_start')} : {fmt(project.startDate)}</span>}
           {goLive && <span className="badge badge-purple" style={{height:28,display:'inline-flex',alignItems:'center'}}>{t('go_live')} : {fmt(goLive)}</span>}
-
+          {phases.length > 0 && ganttEnd && endDeadline && overdue && (
+            <span style={{ display:'inline-flex', alignItems:'center', gap:6, height:28, fontSize:12, fontWeight:600, color:'var(--danger)', background:'var(--danger-subtle)', border:'1px solid var(--danger)', borderRadius:20, padding:'0 12px', whiteSpace:'nowrap' as const }}>
+              ⚠ {t('overdue_alert').replace('{end}', fmt(ganttEnd)).replace('{golive}', fmt(endDeadline))}
+            </span>
+          )}
+          {phases.length > 0 && ganttEnd && goLive && !overdue && (
+            <span style={{ display:'inline-flex', alignItems:'center', gap:6, height:28, fontSize:12, fontWeight:600, color:'var(--success)', background:'var(--success-subtle)', border:'1px solid var(--success)', borderRadius:20, padding:'0 12px', whiteSpace:'nowrap' as const }}>
+              {t('gantt_ok').replace('{end}', fmt(ganttEnd??'')).replace('{golive}', fmt(endDeadline??''))}
+            </span>
+          )}
         </div>
         {/* KPI row — second line with Scale+New on right */}
         {phases.length > 0 && range && (
@@ -287,18 +296,6 @@ export default function GanttView({ data, updateData, initialProjectId, onMounte
                 {k.label} : <span style={{ color: k.danger ? 'var(--danger)' : 'var(--text)', fontWeight: 700 }}>{k.value}</span>
               </span>
             ))}
-            <div style={{ marginLeft: 'auto' }}>
-              {overdue && ganttEnd && endDeadline && (
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 600, color: 'var(--danger)', background: 'var(--danger-subtle)', border: '1px solid var(--danger)', borderRadius: 20, padding: '3px 12px' }}>
-                  ⚠ {t('overdue_alert').replace('{end}', fmt(ganttEnd)).replace('{golive}', fmt(endDeadline))}
-                </span>
-              )}
-              {!overdue && ganttEnd && goLive && (
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 600, color: 'var(--success)', background: 'var(--success-subtle)', border: '1px solid var(--success)', borderRadius: 20, padding: '3px 12px' }}>
-                  {t('gantt_ok').replace('{end}', fmt(ganttEnd??'')).replace('{golive}', fmt(endDeadline??''))}
-                </span>
-              )}
-            </div>
             <div style={{ marginLeft: 'auto', display: 'flex', gap: 8, alignItems: 'center' }}>
               {/* Scale selector — moved to line 1 right */}
               <div style={{ position: 'relative' }}>
@@ -380,15 +377,15 @@ export default function GanttView({ data, updateData, initialProjectId, onMounte
       ) : (
         <div className="card card-table" style={{ padding: 0, overflow: 'hidden', marginTop: 20 }}>
           <div style={{ overflow:'auto', maxHeight:'calc(100vh - 195px)' }}>
-            <div style={{ minWidth: LEFT_W + chartW, position: 'relative' }}>
-              {/* Sticky header row — same as Portfolio Gantt */}
+            <div style={{ minWidth: LEFT_W + chartW }}>
+              {/* Sticky header row — exact copy of Portfolio Gantt */}
               <div style={{ display:'flex', background:'#3D3A4E', borderBottom:'none', position:'sticky', top:0, zIndex:6 }}>
-                <div style={{ width:LEFT_W, minWidth:LEFT_W, flexShrink:0, borderRight:'1px solid rgba(255,255,255,0.10)', height:38, display:'flex', alignItems:'center', padding:'0 16px', position:'sticky', top:0, left:0, zIndex:25, background:'#3D3A4E' }}>
-                  <span style={{ fontSize:11, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.07em', color:'#FFFFFF' }}>{t('structure')}</span>
+                <div style={{ width:LEFT_W, minWidth:LEFT_W, flexShrink:0, height:38, display:'flex', alignItems:'center', padding:'0 16px', fontSize:11, fontWeight:700, color:'#FFFFFF', textTransform:'uppercase' as const, letterSpacing:'0.07em', position:'sticky', left:0, zIndex:25, background:'#3D3A4E', borderRight:'1px solid rgba(255,255,255,0.10)' }}>
+                  {t('structure')}
                 </div>
                 <div style={{ width:chartW, flexShrink:0, position:'relative', height:38 }}>
                   {months.map((m,i) => (
-                    <div key={i} style={{ position:'absolute', left:m.left, width:m.width, height:'100%', display:'flex', alignItems:'center', justifyContent:'center', borderLeft:'1px solid var(--border)', fontSize:11, fontWeight:700, color:'#FFFFFF', textTransform:'capitalize' as const, overflow:'hidden' }}>{m.label}</div>
+                    <div key={i} style={{ position:'absolute', left:m.left, width:m.width, height:'100%', display:'flex', alignItems:'center', justifyContent:'center', borderRight:'1px solid rgba(255,255,255,0.10)', fontSize:11, fontWeight:700, color:'#FFFFFF', textTransform:'capitalize' as const, overflow:'hidden' }}>{m.label}</div>
                   ))}
                 </div>
               </div>
