@@ -233,7 +233,7 @@ export default function WorkloadView({ data, updateData }: Props) {
                   const hasDateRange = projStart && projEnd;
                   return (
                     <tr key={w.id}>
-                      <td className="sticky-left" style={{ fontWeight: 500, maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis' }}>{w.projectName}</td>
+                      <td className="sticky-left" style={{ fontWeight: 500, maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis' }}><span className="sticky-text" style={{overflow:'hidden',textOverflow:'ellipsis',display:'block',whiteSpace:'nowrap'}}>{w.projectName}</span></td>
                       <td><span className="badge badge-blue">{w.profile}</span></td>
                       {months.map(m => {
                         const need = w.monthly[m] ?? 0;
@@ -321,7 +321,7 @@ export default function WorkloadView({ data, updateData }: Props) {
                   const hasDateRange = projStart && projEnd;
                   return (
                     <tr key={a.id}>
-                      <td className="sticky-left" style={{ fontWeight: 500, maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis' }}>{a.projectName}</td>
+                      <td className="sticky-left" style={{ fontWeight: 500, maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis' }}><span className="sticky-text" style={{overflow:'hidden',textOverflow:'ellipsis',display:'block',whiteSpace:'nowrap'}}>{a.projectName}</span></td>
                       <td><span className="badge badge-blue">{a.profile}</span></td>
                       <td>
                         <span style={{ fontWeight: 500 }}>{a.staffName}</span>

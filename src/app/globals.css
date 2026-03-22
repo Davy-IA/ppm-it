@@ -188,13 +188,27 @@ html, body {
 }
 
 /* ── HOVER : même couleur partout, y compris col sticky ── */
-/* Hover — only non-sticky cells change, col1 stays opaque */
+/* Hover — couleur opaque identique sur toute la ligne */
+/* rgb(241,238,250) = rgba(124,92,191,0.12) calculé sur fond blanc */
 .data-table tbody tr:hover td:not(:first-child) {
-  background: var(--accent-subtle);
+  background: rgb(241, 238, 250);
 }
-/* col1 never changes on hover — prevents stacking context bug */
-.data-table tbody td:first-child {
-  background: var(--bg2) !important;
+/* Col1 : fond blanc fixe via ::before pour éviter le bug de stacking */
+.data-table tbody td:first-child::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: white;
+  z-index: 0;
+  pointer-events: none;
+}
+.data-table tbody tr:hover td:first-child::before {
+  background: rgb(241, 238, 250);
+}
+/* Texte au-dessus du ::before */
+.data-table tbody td:first-child .sticky-text {
+  position: relative;
+  z-index: 1;
 }
 
 /* ── DARK MODE ── */
