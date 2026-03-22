@@ -72,7 +72,7 @@ export default function WorkloadView({ data, updateData }: Props) {
         w.projectId === editingWorkload.projectId &&
         w.profile === editingWorkload.profile
       );
-      if (dup) { alert(`Une charge pour ce projet et ce profil existe déjà.`); return; }
+      if (dup) { alert(t('duplicate_workload_key' as any)); return; }
     }
     const workloads = isNew
       ? [...data.workloads, { ...editingWorkload, id: uuid() }]
@@ -95,7 +95,7 @@ export default function WorkloadView({ data, updateData }: Props) {
         a.profile === editingAlloc.profile &&
         a.staffId === editingAlloc.staffId
       );
-      if (dup) { alert(`Une affectation pour ce projet, ce profil et cette ressource existe déjà.`); return; }
+      if (dup) { alert(t('duplicate_alloc_key' as any)); return; }
     }
     const allocations = isNew
       ? [...data.allocations, { ...editingAlloc, id: uuid() }]

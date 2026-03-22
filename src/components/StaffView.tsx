@@ -74,7 +74,7 @@ export default function StaffView({ data, updateData }: Props) {
       s.id !== editing.id &&
       s.name.trim().toLowerCase() === editing.name.trim().toLowerCase()
     );
-    if (duplicate) { alert(t('duplicate_resource_name' as any) || `Une ressource "${editing.name}" existe déjà.`); return; }
+    if (duplicate) { alert(t('duplicate_resource_name' as any)); return; }
     const staff = isNew
       ? [...data.staff, { ...editing, id: uuid() }]
       : data.staff.map(s => s.id === editing.id ? editing : s);
