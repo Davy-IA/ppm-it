@@ -308,7 +308,7 @@ export default function GanttView({ data, updateData, initialProjectId, onMounte
                 {showScaleMenu && (
                   <>
                     <div style={{ position: 'fixed', inset: 0, zIndex: 49 }} onClick={() => setShowScaleMenu(false)} />
-                    <div style={{ position: 'absolute', right: 0, top: 'calc(100% + 4px)', background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 10, boxShadow: '0 8px 24px rgba(124,92,191,0.15)', zIndex: 50, overflow: 'hidden', minWidth: 140 }}>
+                    <div style={{ position: 'absolute', right: 0, top: 'calc(100% + 4px)', background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 10, boxShadow: '0 8px 24px rgba(124,92,191,0.15)', zIndex: 1100, overflow: 'hidden', minWidth: 140 }}>
                       {(['week', 'month', 'semester', 'year'] as const).map(scale => (
                             <button key={scale} onClick={() => { setTimeScale(scale); setShowScaleMenu(false); }}
                               style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '9px 14px', border: 'none', background: timeScale === scale ? 'var(--accent-subtle)' : 'none', color: timeScale === scale ? 'var(--accent)' : 'var(--text)', cursor: 'pointer', fontSize: 13, fontWeight: timeScale === scale ? 700 : 400, fontFamily: 'inherit', textAlign: 'left' }}>
@@ -332,7 +332,7 @@ export default function GanttView({ data, updateData, initialProjectId, onMounte
                 {showNewMenu && (
                   <>
                     <div style={{ position: 'fixed', inset: 0, zIndex: 49 }} onClick={() => setShowNewMenu(false)} />
-                    <div style={{ position: 'absolute', right: 0, top: 'calc(100% + 6px)', background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 10, boxShadow: '0 8px 24px rgba(124,92,191,0.15)', zIndex: 50, overflow: 'hidden', minWidth: 160, animation: 'dropIn 0.12s ease' }}>
+                    <div style={{ position: 'absolute', right: 0, top: 'calc(100% + 6px)', background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 10, boxShadow: '0 8px 24px rgba(124,92,191,0.15)', zIndex: 1100, overflow: 'hidden', minWidth: 160, animation: 'dropIn 0.12s ease' }}>
                       <button style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '10px 16px', border: 'none', background: 'none', cursor: 'pointer', fontSize: 13, color: 'var(--text)', fontFamily: 'inherit', textAlign: 'left' }}
                             onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg3)')}
                             onMouseLeave={e => (e.currentTarget.style.background = 'none')}
@@ -428,7 +428,7 @@ export default function GanttView({ data, updateData, initialProjectId, onMounte
               <div style={{ width:chartW, flexShrink:0, position:'relative' }}>
                 <div style={{ position:'relative', width:chartW }}>
                   {/* Grid lines */}
-                  {months.map((m,i) => <div key={i} style={{ position:'absolute', left:m.left, top:0, bottom:0, width:1, background:'var(--border)', zIndex:1 }}/>)}
+                  {months.map((m,i) => <div key={i} style={{ position:'absolute', left:m.left, top:0, bottom:0, width:1, background:'var(--border)', zIndex:0 }}/>)}
 
                   {/* Today */}
                   {todayX>=0 && todayX<=chartW && <div style={{ position:'absolute', left:todayX, top:0, bottom:0, width:2, background:'var(--accent)', opacity:0.7, zIndex:3 }}>
