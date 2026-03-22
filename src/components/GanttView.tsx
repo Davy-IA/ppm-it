@@ -476,17 +476,19 @@ export default function GanttView({ data, updateData, initialProjectId, onMounte
                     );
                   })}
 
-                  {/* Milestone diamonds ◆ — rendered LAST so they appear above bars */}
+                </div>
+                {/* Milestone OVERLAY — position:absolute over the entire chart, outside phase stacking contexts */}
+                <div style={{ position:'absolute', top:38, left:0, right:0, bottom:0, pointerEvents:'none', zIndex:20 }}>
                   {milestones.filter(m => !m.isAutoGoLive).map(m => {
                     const mx = daysBetween(displayMin, m.date) * DAY_PX_DYN;
                     if (mx < -20 || mx > chartW + 20) return null;
                     return (
                       <div key={m.id}
-                        onClick={() => { setEditMilestone({...m}); setIsNewMilestone(false); }}
-                        title={`${m.name} — ${fmt(m.date)}`}
-                        style={{ position:'absolute', left: mx - 8, top: 0, bottom: 0, zIndex: 10, cursor:'pointer', pointerEvents:'none', display:'flex', flexDirection:'column', alignItems:'center' }}>
-                        <div style={{ width:2, height:'100%', background:'var(--accent2)', opacity:0.5, position:'absolute', left:6 }}/>
-                        <div style={{ position:'relative', zIndex:11, pointerEvents:'all' }}>
+                        style={{ position:'absolute', left: mx - 1, top: 0, bottom: 0, width: 2, background:'var(--accent2)', opacity:0.8 }}>
+                        {/* Diamond at top — always on first row */}
+                        <div style={{ position:'absolute', top: 0, left: -7, pointerEvents:'all', cursor:'pointer' }}
+                          onClick={() => { setEditMilestone({...m}); setIsNewMilestone(false); }}
+                          title={`${m.name} — ${fmt(m.date)}`}>
                           <div style={{ width:0, height:0, borderLeft:'8px solid transparent', borderRight:'8px solid transparent', borderBottom:'12px solid var(--accent2)' }}/>
                           <div style={{ width:0, height:0, borderLeft:'8px solid transparent', borderRight:'8px solid transparent', borderTop:'12px solid var(--accent2)', marginTop:-1 }}/>
                         </div>
