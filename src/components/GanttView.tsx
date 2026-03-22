@@ -445,7 +445,7 @@ export default function GanttView({ data, updateData, initialProjectId, onMounte
                 </div>
                 <div style={{ width:chartW, flexShrink:0, position:'relative', height:38 }}>
                   {months.map((m,i) => (
-                    <div key={i} style={{ position:'absolute', left:m.left, width:m.width, height:'100%', display:'flex', alignItems:'center', justifyContent:'center', borderRight:'1px solid rgba(255,255,255,0.10)', fontSize:11, fontWeight:700, color:'#FFFFFF', textTransform:'capitalize' as const, overflow:'hidden' }}>{m.label}</div>
+                    <div key={i} style={{ position:'absolute', left:m.left, width:m.width, height:'100%', display:'flex', alignItems:'center', justifyContent:'center', borderRight:'1px solid rgba(255,255,255,0.10)', fontSize:11, fontWeight:700, color:'#FFFFFF', textTransform:'uppercase' as const, letterSpacing:'0.04em', overflow:'hidden' }}>{m.label}</div>
                   ))}
                 </div>
               </div>

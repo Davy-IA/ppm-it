@@ -546,7 +546,7 @@ function PortfolioGantt({ data, filtered, t, timeScale }: { data: AppData; filte
               </div>
               <div style={{ width: chartW, flexShrink: 0, position: 'relative', height: 38 }}>
                 {columns.map((col, i) => (
-                  <div key={i} style={{ position: 'absolute', left: col.left, width: col.width, height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRight: '1px solid var(--border)', fontSize: 11, fontWeight: 700, color: '#FFFFFF', textTransform: 'capitalize' as const, overflow: 'hidden' }}>
+                  <div key={i} style={{ position: 'absolute', left: col.left, width: col.width, height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRight: '1px solid var(--border)', fontSize: 11, fontWeight: 700, color: '#FFFFFF', textTransform: 'uppercase' as const, letterSpacing: '0.04em', overflow: 'hidden' }}>
                     {col.label}
                   </div>
                 ))}
