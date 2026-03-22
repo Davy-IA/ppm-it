@@ -376,19 +376,38 @@ export default function GanttView({ data, updateData, initialProjectId, onMounte
         </div>
       ) : (
         <div className="card card-table" style={{ padding: 0, overflow: 'hidden', marginTop: 20 }}>
-          {/* Milestone name row — always visible */}
+          {/* Milestone name row — always visible, same badge style as Today/GoLive */}
           <div style={{ background:'var(--bg2)', borderBottom:'1px solid rgba(124,92,191,0.15)', height:26, display:'flex', alignItems:'center', flexShrink:0 }}>
             <div style={{ width:LEFT_W, minWidth:LEFT_W, flexShrink:0, background:'var(--bg2)', borderRight:'1px solid var(--border)', height:26 }} />
             <div style={{ flex:1, position:'relative', height:'100%', overflow:'hidden' }}>
+              {/* Today badge */}
+              {todayX>=0 && todayX<=chartW && (
+                <div style={{ position:'absolute', left: todayX + 3, top:4 }}>
+                  <span style={{ background:'var(--accent)', color:'#fff', fontSize:9, fontWeight:700, padding:'2px 5px', borderRadius:4, whiteSpace:'nowrap' as const }}>{t('today')}</span>
+                </div>
+              )}
+              {/* Go-live badge */}
+              {goLiveX!=null && goLiveX>=0 && goLiveX<=chartW+200 && (
+                <div style={{ position:'absolute', left: goLiveX + 3, top:4 }}>
+                  <span style={{ background:overdue?'var(--danger)':'var(--success)', color:'#fff', fontSize:9, fontWeight:700, padding:'2px 5px', borderRadius:4, whiteSpace:'nowrap' as const }}>{t('go_live')}</span>
+                </div>
+              )}
+              {/* Hypercare badge */}
+              {hypercareX!=null && hypercareX>=0 && hypercareX<=chartW+200 && (
+                <div style={{ position:'absolute', left: hypercareX + 3, top:4 }}>
+                  <span style={{ background:'var(--purple)', color:'#fff', fontSize:9, fontWeight:700, padding:'2px 5px', borderRadius:4, whiteSpace:'nowrap' as const }}>{t('hypercare_date')}</span>
+                </div>
+              )}
+              {/* Manual milestone badges — same style */}
               {milestones.filter(m => !m.isAutoGoLive).map(m => {
-                  const mx = daysBetween(displayMin, m.date) * DAY_PX_DYN;
-                  if (mx < -20 || mx > chartW + 20) return null;
-                  return (
-                    <div key={m.id} style={{ position:'absolute', left: mx - 4, top:4, display:'flex', alignItems:'center', gap:3, cursor:'pointer' }}
-                      onClick={() => { setEditMilestone({...m}); setIsNewMilestone(false); }}>
-                      <span style={{ fontSize:10, fontWeight:600, color:'var(--accent2)', whiteSpace:'nowrap' as const }}>{m.name}</span>
-                    </div>
-                  );
+                const mx = daysBetween(displayMin, m.date) * DAY_PX_DYN;
+                if (mx < -20 || mx > chartW + 20) return null;
+                return (
+                  <div key={m.id} style={{ position:'absolute', left: mx + 3, top:4, cursor:'pointer' }}
+                    onClick={() => { setEditMilestone({...m}); setIsNewMilestone(false); }}>
+                    <span style={{ background:'var(--accent2)', color:'#fff', fontSize:9, fontWeight:700, padding:'2px 5px', borderRadius:4, whiteSpace:'nowrap' as const }}>{m.name}</span>
+                  </div>
+                );
               })}
             </div>
           </div>
@@ -484,19 +503,16 @@ export default function GanttView({ data, updateData, initialProjectId, onMounte
                   {/* Today line */}
                   {todayX>=0 && todayX<=chartW && (
                     <div style={{ position:'absolute', left:todayX, top:0, bottom:0, width:2, background:'var(--accent)', opacity:0.7 }}>
-                      <div style={{ position:'absolute', top:2, left:3, background:'var(--accent)', color:'#fff', fontSize:9, fontWeight:700, padding:'2px 5px', borderRadius:4, whiteSpace:'nowrap' }}>{t('today')}</div>
                     </div>
                   )}
                   {/* Go-live line */}
                   {goLiveX!=null && goLiveX>=0 && goLiveX<=chartW+200 && (
                     <div style={{ position:'absolute', left:goLiveX, top:0, bottom:0, width:2, background:overdue?'var(--danger)':'var(--success)', opacity:0.85 }}>
-                      <div style={{ position:'absolute', top:2, left:3, background:overdue?'var(--danger)':'var(--success)', color:'#fff', fontSize:9, fontWeight:700, padding:'2px 5px', borderRadius:4, whiteSpace:'nowrap' }}>{t('go_live')}</div>
                     </div>
                   )}
                   {/* Hypercare line */}
                   {hypercareX!=null && hypercareX>=0 && hypercareX<=chartW+200 && (
                     <div style={{ position:'absolute', left:hypercareX, top:0, bottom:0, width:2, borderLeft:'2px dashed var(--purple)', opacity:0.7 }}>
-                      <div style={{ position:'absolute', top:2, left:3, background:'var(--purple)', color:'#fff', fontSize:9, fontWeight:700, padding:'2px 5px', borderRadius:4, whiteSpace:'nowrap' }}>{t('hypercare_date')}</div>
                     </div>
                   )}
                   {/* Manual milestone lines */}
