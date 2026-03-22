@@ -114,7 +114,7 @@ export default function StaffView({ data, updateData }: Props) {
             <option value="2028">2028</option>
           </select>
           <div style={{ flex: 1 }} />
-          <button className="btn btn-primary" onClick={() => { setEditing({ id: '', ...EMPTY_STAFF }); setIsNew(true); }}>
+          <button className="toolbar-btn primary" onClick={() => { setEditing({ id: '', ...EMPTY_STAFF }); setIsNew(true); }}>
             {t('add_staff')}
           </button>
         </div>

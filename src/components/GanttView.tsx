@@ -349,7 +349,7 @@ export default function GanttView({ data, updateData, initialProjectId, onMounte
               <div style={{ position: 'relative' }}>
                 <button className="btn btn-primary" onClick={() => setShowNewMenu(m => !m)}
                   style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  + {t('new_btn')}
+                  {t('new_btn')}
                   <svg width="10" height="10" viewBox="0 0 10 10" fill="none" style={{ opacity: 0.8 }}>
                     <path d="M2 4l3 3 3-3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>

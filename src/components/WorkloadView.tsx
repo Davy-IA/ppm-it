@@ -142,14 +142,14 @@ export default function WorkloadView({ data, updateData }: Props) {
         )}
         <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
           {tab === 'workload' && (
-            <button className="btn btn-primary" onClick={() => {
+            <button className="toolbar-btn primary" onClick={() => {
               const proj = data.projects[0];
               setEditingWorkload({ id: '', projectId: proj?.id ?? '', projectName: proj?.name ?? '', profile: 'FUNC', monthly: {} });
               setIsNew(true);
             }}>{t('add_project_line')}</button>
           )}
           {tab === 'allocation' && (
-            <button className="btn btn-primary" onClick={() => {
+            <button className="toolbar-btn primary" onClick={() => {
               const proj = data.projects[0];
               const staff = data.staff[0];
               setEditingAlloc({ id: '', projectId: proj?.id ?? '', projectName: proj?.name ?? '', profile: 'FUNC', staffId: staff?.id ?? '', staffName: staff?.name ?? '', monthly: {} });
