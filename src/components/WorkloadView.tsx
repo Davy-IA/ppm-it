@@ -395,7 +395,7 @@ export default function WorkloadView({ data, updateData }: Props) {
                 <h2 style={{ fontSize: 16, fontWeight: 700 }}>{t('add_project_line')}</h2>
                 <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 3 }}>{t('add_project_line_hint')}</p>
               </div>
-              <button className="btn-icon" onClick={() => setEditingWorkload(null)}><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 3.5h9M5 3.5V2.5h3v1M10.5 3.5l-.7 7H3.2l-.7-7" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg></button>
+              <button className="btn-icon" onClick={() => setEditingWorkload(null)}><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 2l9 9M11 2l-9 9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg></button>
             </div>
             <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 14 }}>
               <div>
@@ -433,7 +433,7 @@ export default function WorkloadView({ data, updateData }: Props) {
                 <h2 style={{ fontSize: 16, fontWeight: 700 }}>{t('add_allocation_btn')}</h2>
                 <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 3 }}>{t('add_assignment_hint')}</p>
               </div>
-              <button className="btn-icon" onClick={() => setEditingAlloc(null)}><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 3.5h9M5 3.5V2.5h3v1M10.5 3.5l-.7 7H3.2l-.7-7" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg></button>
+              <button className="btn-icon" onClick={() => setEditingAlloc(null)}><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 2l9 9M11 2l-9 9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg></button>
             </div>
             <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 14 }}>
               <div>
