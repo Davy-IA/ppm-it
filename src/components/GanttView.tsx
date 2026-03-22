@@ -238,13 +238,13 @@ export default function GanttView({ data, updateData, initialProjectId, onMounte
       <div className="page-sticky-header">
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
           {/* Pre-filters */}
-          <select className="input" value={statusFilter} onChange={e => { setStatusFilter(e.target.value); setSelProj(''); }} style={{ maxWidth: 155 }}>
+          <select className="toolbar-select" value={statusFilter} onChange={e => { setStatusFilter(e.target.value); setSelProj(''); }} style={{ maxWidth: 155 }}>
             <option value="">{t('all_statuses')}</option>
             {['1-To arbitrate','2-Validated','3-In progress','4-Frozen','5-Completed','6-Aborted'].map(s => (
               <option key={s} value={s}>{s.replace(/^\d-/, '')}</option>
             ))}
           </select>
-          <select className="input" value={domainFilter} onChange={e => { setDomainFilter(e.target.value); setSelProj(''); }} style={{ maxWidth: 115 }}>
+          <select className="toolbar-select" value={domainFilter} onChange={e => { setDomainFilter(e.target.value); setSelProj(''); }} style={{ maxWidth: 115 }}>
             <option value="">{t('all_domains')}</option>
             {['APPLI','INFRA','INNOV','DATA'].map(d => <option key={d} value={d}>{d}</option>)}
           </select>
@@ -340,7 +340,7 @@ export default function GanttView({ data, updateData, initialProjectId, onMounte
         </div>
         {/* KPI row — second line of sticky header */}
         {phases.length > 0 && range && (
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', paddingTop: 8, borderTop: '1px solid var(--border)', marginTop: 8 }}>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', marginTop: 8 }}>
             {[
               { label: t('gantt_start'), value: fmt(range.start) },
               { label: t('gantt_end'), value: fmt(ganttEnd!), danger: !!overdue },
@@ -376,15 +376,15 @@ export default function GanttView({ data, updateData, initialProjectId, onMounte
           <div style={{fontSize:13}}>{t('no_phases_cta')}</div>
         </div>
       ) : (
-        <div style={{ border:'1px solid var(--border)', borderRadius:'var(--radius-lg)', background:'var(--bg2)', boxShadow:'var(--shadow-sm)', marginTop: 12, overflow:'hidden' }}>
-          <div style={{ overflow:'auto', maxHeight:'calc(100vh - 280px)' }}>
+        <div className="card card-table" style={{ padding: 0, overflow: 'hidden', marginTop: 20 }}>
+          <div style={{ overflow:'auto', maxHeight:'calc(100vh - 155px)' }}>
             <div style={{ minWidth: LEFT_W + chartW }}>
               {/* Sticky header row — same as Portfolio Gantt */}
               <div style={{ display:'flex', background:'#3D3A4E', borderBottom:'none', position:'sticky', top:0, zIndex:6 }}>
-                <div style={{ width:LEFT_W, minWidth:LEFT_W, flexShrink:0, borderRight:'rgba(255,255,255,0.10)', height:36, display:'flex', alignItems:'center', padding:'0 16px', position:'sticky', left:0, zIndex:25, background:'#3D3A4E' }}>
+                <div style={{ width:LEFT_W, minWidth:LEFT_W, flexShrink:0, borderRight:'1px solid rgba(255,255,255,0.10)', height:38, display:'flex', alignItems:'center', padding:'0 16px', position:'sticky', left:0, zIndex:25, background:'#3D3A4E' }}>
                   <span style={{ fontSize:11, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.07em', color:'#FFFFFF' }}>{t('structure')}</span>
                 </div>
-                <div style={{ width:chartW, flexShrink:0, position:'relative', height:36 }}>
+                <div style={{ width:chartW, flexShrink:0, position:'relative', height:38 }}>
                   {months.map((m,i) => (
                     <div key={i} style={{ position:'absolute', left:m.left, width:m.width, height:'100%', display:'flex', alignItems:'center', justifyContent:'center', borderLeft:'1px solid var(--border)', fontSize:11, fontWeight:700, color:'#FFFFFF', textTransform:'capitalize' as const, overflow:'hidden' }}>{m.label}</div>
                   ))}
