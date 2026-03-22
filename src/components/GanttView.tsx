@@ -392,7 +392,7 @@ export default function GanttView({ data, updateData, initialProjectId, onMounte
               {/* Body row */}
               <div style={{ display:'flex' }}>
               {/* Labels - sticky left */}
-              <div style={{ width:LEFT_W, minWidth:LEFT_W, borderRight:'1px solid var(--border)', flexShrink:0, position:'sticky', left:0, zIndex:50, background:'var(--bg2)' }}>
+              <div style={{ width:LEFT_W, minWidth:LEFT_W, borderRight:'1px solid var(--border)', flexShrink:0, position:'sticky', left:0, zIndex:300, background:'var(--bg2)' }}>
                 {phases.map(ph => (
                   <div key={ph.id}>
                     <div style={{ height:40, borderBottom:'1px solid var(--border)', display:'flex', alignItems:'center', padding:'0 8px', gap:6, background:'var(--bg2)', isolation:'isolate' }}>
