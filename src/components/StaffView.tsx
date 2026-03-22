@@ -103,12 +103,12 @@ export default function StaffView({ data, updateData }: Props) {
       <div className="page-sticky-header">
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           <input className="toolbar-select" placeholder={t('search')} value={search} onChange={e => setSearch(e.target.value)} />
-          <select className="input" value={typeFilter} onChange={e => setTypeFilter(e.target.value)} style={{ maxWidth: 150 }}>
+          <select className="toolbar-select" value={typeFilter} onChange={e => setTypeFilter(e.target.value)} style={{ maxWidth: 150 }}>
             <option value="">{t('all_types')}</option>
             <option value="Internal">{t('internal')}</option>
             <option value="External">{t('contract_external')}</option>
           </select>
-          <select className="input" value={yearFilter} onChange={e => setYearFilter(e.target.value)} style={{ maxWidth: 110 }}>
+          <select className="toolbar-select" value={yearFilter} onChange={e => setYearFilter(e.target.value)} style={{ maxWidth: 110 }}>
             <option value="2026">2026</option>
             <option value="2027">2027</option>
             <option value="2028">2028</option>

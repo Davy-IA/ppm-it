@@ -118,18 +118,18 @@ export default function WorkloadView({ data, updateData }: Props) {
           <option value="">{t('all_projects')}</option>
           {data.projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
         </select>
-        <select className="input" value={yearFilter} onChange={e => setYearFilter(e.target.value)} style={{ maxWidth: 100 }}>
+        <select className="toolbar-select" value={yearFilter} onChange={e => setYearFilter(e.target.value)} style={{ maxWidth: 100 }}>
           <option value="2026">2026</option>
           <option value="2027">2027</option>
           <option value="2028">2028</option>
         </select>
-        <div style={{ display: 'flex', background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 6, padding: 3, gap: 3 }}>
-          <button className={`btn btn-sm ${tab === 'workload' ? 'btn-primary' : 'btn-ghost'}`} onClick={() => setTab('workload')}>{t('planned_load')}</button>
-          <button className={`btn btn-sm ${tab === 'allocation' ? 'btn-primary' : 'btn-ghost'}`} onClick={() => setTab('allocation')}>{t('assignments')}</button>
+        <div style={{ display: 'flex', gap: 2 }}>
+          <button className={`toolbar-btn${tab === 'workload' ? ' primary' : ''}`} onClick={() => setTab('workload')}>{t('planned_load')}</button>
+          <button className={`toolbar-btn${tab === 'allocation' ? ' primary' : ''}`} onClick={() => setTab('allocation')}>{t('assignments')}</button>
         </div>
         {/* Advanced filters button */}
         <button onClick={() => setShowFilters(f => !f)}
-          style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 12px', borderRadius: 8, border: `1.5px solid ${activeFilters > 0 ? 'var(--accent)' : 'var(--border)'}`, background: activeFilters > 0 ? 'var(--accent-subtle)' : 'var(--bg2)', color: activeFilters > 0 ? 'var(--accent)' : 'var(--text-muted)', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.15s' }}>
+          className={`toolbar-btn${activeFilters > 0 ? ' active' : ''}`} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M1 3h11M3 6.5h7M5 10h3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
           {t('filters_btn')}
           {activeFilters > 0 && <span style={{ background: 'var(--accent)', color: '#fff', borderRadius: 10, padding: '1px 6px', fontSize: 10, fontWeight: 700 }}>{activeFilters}</span>}
