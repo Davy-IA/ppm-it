@@ -308,7 +308,7 @@ export default function GanttView({ data, updateData, initialProjectId, onMounte
                 {showScaleMenu && (
                   <>
                     <div style={{ position: 'fixed', inset: 0, zIndex: 49 }} onClick={() => setShowScaleMenu(false)} />
-                    <div style={{ position: 'fixed', top: 'auto', right: 'auto', background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 10, boxShadow: '0 8px 24px rgba(124,92,191,0.15)', zIndex: 9999, overflow: 'hidden', minWidth: 140 }}>
+                    <div style={{ position: 'absolute', right: 0, top: 'calc(100% + 4px)', background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 10, boxShadow: '0 8px 24px rgba(124,92,191,0.15)', zIndex: 9999, overflow: 'hidden', minWidth: 140 }}>
                       {(['week', 'month', 'semester', 'year'] as const).map(scale => (
                             <button key={scale} onClick={() => { setTimeScale(scale); setShowScaleMenu(false); }}
                               style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '9px 14px', border: 'none', background: timeScale === scale ? 'var(--accent-subtle)' : 'none', color: timeScale === scale ? 'var(--accent)' : 'var(--text)', cursor: 'pointer', fontSize: 13, fontWeight: timeScale === scale ? 700 : 400, fontFamily: 'inherit', textAlign: 'left' }}>
@@ -332,7 +332,7 @@ export default function GanttView({ data, updateData, initialProjectId, onMounte
                 {showNewMenu && (
                   <>
                     <div style={{ position: 'fixed', inset: 0, zIndex: 49 }} onClick={() => setShowNewMenu(false)} />
-                    <div style={{ position: 'fixed', top: 'auto', right: 'auto', background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 10, boxShadow: '0 8px 24px rgba(124,92,191,0.15)', zIndex: 9999, overflow: 'hidden', minWidth: 160, animation: 'dropIn 0.12s ease' }}>
+                    <div style={{ position: 'absolute', right: 0, top: 'calc(100% + 6px)', background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 10, boxShadow: '0 8px 24px rgba(124,92,191,0.15)', zIndex: 9999, overflow: 'hidden', minWidth: 160, animation: 'dropIn 0.12s ease' }}>
                       <button style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '10px 16px', border: 'none', background: 'none', cursor: 'pointer', fontSize: 13, color: 'var(--text)', fontFamily: 'inherit', textAlign: 'left' }}
                             onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg3)')}
                             onMouseLeave={e => (e.currentTarget.style.background = 'none')}
@@ -376,6 +376,25 @@ export default function GanttView({ data, updateData, initialProjectId, onMounte
         </div>
       ) : (
         <div className="card card-table" style={{ padding: 0, overflow: 'hidden', marginTop: 20 }}>
+          {/* Milestone name row — OUTSIDE scroll container, always visible */}
+          {milestones.filter(m => !m.isAutoGoLive).length > 0 && (
+            <div style={{ background:'var(--bg2)', borderBottom:'1px solid rgba(124,92,191,0.15)', height:26, display:'flex', alignItems:'center', flexShrink:0 }}>
+              <div style={{ width:LEFT_W, minWidth:LEFT_W, flexShrink:0, background:'var(--bg2)', borderRight:'1px solid var(--border)', height:26 }} />
+              <div style={{ flex:1, position:'relative', height:'100%', overflow:'hidden' }}>
+                {milestones.filter(m => !m.isAutoGoLive).map(m => {
+                  const mx = daysBetween(displayMin, m.date) * DAY_PX_DYN;
+                  if (mx < -20 || mx > chartW + 20) return null;
+                  return (
+                    <div key={m.id} style={{ position:'absolute', left: mx - 4, top:4, display:'flex', alignItems:'center', gap:3, cursor:'pointer' }}
+                      onClick={() => { setEditMilestone({...m}); setIsNewMilestone(false); }}>
+                      <span style={{ color:'var(--accent2)', fontSize:10 }}>◆</span>
+                      <span style={{ fontSize:10, fontWeight:600, color:'var(--accent2)', whiteSpace:'nowrap' as const }}>{m.name}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
           <div style={{ overflow:'auto', maxHeight:'calc(100vh - 195px)' }}>
             <div style={{ minWidth: LEFT_W + chartW }}>
               {/* Sticky header row — exact copy of Portfolio Gantt */}
@@ -389,26 +408,6 @@ export default function GanttView({ data, updateData, initialProjectId, onMounte
                   ))}
                 </div>
               </div>
-
-              {/* Milestone name row — sticky band below header */}
-              {milestones.filter(m => !m.isAutoGoLive).length > 0 && (
-                <div style={{ position:'sticky', top:38, zIndex:999, background:'var(--bg2)', borderBottom:'1px solid rgba(124,92,191,0.15)', height:26, display:'flex', alignItems:'center' }}>
-                  <div style={{ width:LEFT_W, minWidth:LEFT_W, flexShrink:0, position:'sticky', left:0, zIndex:1000, background:'var(--bg2)', borderRight:'1px solid var(--border)', height:26 }} />
-                  <div style={{ flex:1, position:'relative', height:'100%' }}>
-                    {milestones.filter(m => !m.isAutoGoLive).map(m => {
-                      const mx = daysBetween(displayMin, m.date) * DAY_PX_DYN;
-                      if (mx < -20 || mx > chartW + 20) return null;
-                      return (
-                        <div key={m.id} style={{ position:'absolute', left: mx - 4, top:3, display:'flex', alignItems:'center', gap:3, cursor:'pointer' }}
-                          onClick={() => { setEditMilestone({...m}); setIsNewMilestone(false); }}>
-                          <span style={{ color:'var(--accent2)', fontSize:10, lineHeight:1 }}>◆</span>
-                          <span style={{ fontSize:10, fontWeight:600, color:'var(--accent2)', whiteSpace:'nowrap' as const }}>{m.name}</span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
 
               {/* Body row */}
               <div style={{ display:'flex' }}>
