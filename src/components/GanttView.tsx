@@ -445,21 +445,6 @@ export default function GanttView({ data, updateData, initialProjectId, onMounte
                     <div style={{ position:'absolute', top:2, left:3, background:'var(--purple)', color:'#fff', fontSize:9, fontWeight:700, padding:'2px 5px', borderRadius:4, whiteSpace:'nowrap' }}>{t('hypercare_date')}</div>
                   </div>}
 
-                  {/* Milestone diamonds ◆ on phase bars */}
-                  {milestones.filter(m => !m.isAutoGoLive).map(m => {
-                    const mx = daysBetween(displayMin, m.date) * DAY_PX_DYN;
-                    if (mx < -20 || mx > chartW + 20) return null;
-                    return (
-                      <div key={m.id}
-                        onClick={() => { setEditMilestone({...m}); setIsNewMilestone(false); }}
-                        title={`${m.name} — ${fmt(m.date)}`}
-                        style={{ position:'absolute', left: mx - 8, top: 0, zIndex: 3, cursor:'pointer', display:'flex', flexDirection:'column', alignItems:'center' }}>
-                        <div style={{ width:0, height:0, borderLeft:'8px solid transparent', borderRight:'8px solid transparent', borderBottom:'12px solid var(--accent2)' }}/>
-                        <div style={{ width:0, height:0, borderLeft:'8px solid transparent', borderRight:'8px solid transparent', borderTop:'12px solid var(--accent2)', marginTop:-1 }}/>
-                      </div>
-                    );
-                  })}
-
                   {phases.map(ph => {
                     const px = daysBetween(displayMin, ph.startDate)*DAY_PX_DYN;
                     const pw = Math.max(ph.duration*DAY_PX_DYN, 16);
@@ -487,6 +472,24 @@ export default function GanttView({ data, updateData, initialProjectId, onMounte
                             </div>
                           );
                         })}
+                      </div>
+                    );
+                  })}
+
+                  {/* Milestone diamonds ◆ — rendered LAST so they appear above bars */}
+                  {milestones.filter(m => !m.isAutoGoLive).map(m => {
+                    const mx = daysBetween(displayMin, m.date) * DAY_PX_DYN;
+                    if (mx < -20 || mx > chartW + 20) return null;
+                    return (
+                      <div key={m.id}
+                        onClick={() => { setEditMilestone({...m}); setIsNewMilestone(false); }}
+                        title={`${m.name} — ${fmt(m.date)}`}
+                        style={{ position:'absolute', left: mx - 8, top: 0, bottom: 0, zIndex: 10, cursor:'pointer', pointerEvents:'none', display:'flex', flexDirection:'column', alignItems:'center' }}>
+                        <div style={{ width:2, height:'100%', background:'var(--accent2)', opacity:0.5, position:'absolute', left:6 }}/>
+                        <div style={{ position:'relative', zIndex:11, pointerEvents:'all' }}>
+                          <div style={{ width:0, height:0, borderLeft:'8px solid transparent', borderRight:'8px solid transparent', borderBottom:'12px solid var(--accent2)' }}/>
+                          <div style={{ width:0, height:0, borderLeft:'8px solid transparent', borderRight:'8px solid transparent', borderTop:'12px solid var(--accent2)', marginTop:-1 }}/>
+                        </div>
                       </div>
                     );
                   })}
