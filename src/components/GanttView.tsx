@@ -392,7 +392,7 @@ export default function GanttView({ data, updateData, initialProjectId, onMounte
               {/* Body row */}
               <div style={{ display:'flex' }}>
               {/* Labels - sticky left */}
-              <div style={{ width:LEFT_W, minWidth:LEFT_W, borderRight:'1px solid var(--border)', flexShrink:0, position:'sticky', left:0, zIndex:300, background:'var(--bg2)' }}>
+              <div style={{ width:LEFT_W, minWidth:LEFT_W, borderRight:'1px solid var(--border)', flexShrink:0, position:'sticky', left:0, zIndex:500, background:'var(--bg2)' }}>
                 {phases.map(ph => (
                   <div key={ph.id}>
                     <div style={{ height:40, borderBottom:'1px solid var(--border)', display:'flex', alignItems:'center', padding:'0 8px', gap:6, background:'var(--bg2)', isolation:'isolate' }}>
@@ -478,7 +478,7 @@ export default function GanttView({ data, updateData, initialProjectId, onMounte
 
                 </div>
                 {/* Milestone OVERLAY — position:absolute over the entire chart, outside phase stacking contexts */}
-                <div style={{ position:'absolute', top:38, left:0, right:0, bottom:0, pointerEvents:'none', zIndex:20 }}>
+                <div style={{ position:'absolute', top:38, left:0, right:0, bottom:0, pointerEvents:'none', zIndex:200 }}>
                   {milestones.filter(m => !m.isAutoGoLive).map(m => {
                     const mx = daysBetween(displayMin, m.date) * DAY_PX_DYN;
                     if (mx < -20 || mx > chartW + 20) return null;
