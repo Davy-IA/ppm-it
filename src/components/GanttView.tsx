@@ -379,8 +379,8 @@ export default function GanttView({ data, updateData, initialProjectId, onMounte
           <div style={{ overflow:'auto', maxHeight:'calc(100vh - 195px)' }}>
             <div style={{ minWidth: LEFT_W + chartW }}>
               {/* Sticky header row — exact copy of Portfolio Gantt */}
-              <div style={{ display:'flex', background:'#3D3A4E', borderBottom:'none', position:'sticky', top:0, zIndex:100 }}>
-                <div style={{ width:LEFT_W, minWidth:LEFT_W, flexShrink:0, height:38, display:'flex', alignItems:'center', padding:'0 16px', fontSize:11, fontWeight:700, color:'#FFFFFF', textTransform:'uppercase' as const, letterSpacing:'0.07em', position:'sticky', left:0, zIndex:101, background:'#3D3A4E', borderRight:'1px solid rgba(255,255,255,0.10)' }}>
+              <div style={{ display:'flex', background:'#3D3A4E', borderBottom:'none', position:'sticky', top:0, zIndex:1000 }}>
+                <div style={{ width:LEFT_W, minWidth:LEFT_W, flexShrink:0, height:38, display:'flex', alignItems:'center', padding:'0 16px', fontSize:11, fontWeight:700, color:'#FFFFFF', textTransform:'uppercase' as const, letterSpacing:'0.07em', position:'sticky', left:0, zIndex:1001, background:'#3D3A4E', borderRight:'1px solid rgba(255,255,255,0.10)' }}>
                   {t('structure')}
                 </div>
                 <div style={{ width:chartW, flexShrink:0, position:'relative', height:38 }}>
