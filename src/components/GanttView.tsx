@@ -376,12 +376,11 @@ export default function GanttView({ data, updateData, initialProjectId, onMounte
         </div>
       ) : (
         <div className="card card-table" style={{ padding: 0, overflow: 'hidden', marginTop: 20 }}>
-          {/* Milestone name row — OUTSIDE scroll container, always visible */}
-          {milestones.filter(m => !m.isAutoGoLive).length > 0 && (
-            <div style={{ background:'var(--bg2)', borderBottom:'1px solid rgba(124,92,191,0.15)', height:26, display:'flex', alignItems:'center', flexShrink:0 }}>
-              <div style={{ width:LEFT_W, minWidth:LEFT_W, flexShrink:0, background:'var(--bg2)', borderRight:'1px solid var(--border)', height:26 }} />
-              <div style={{ flex:1, position:'relative', height:'100%', overflow:'hidden' }}>
-                {milestones.filter(m => !m.isAutoGoLive).map(m => {
+          {/* Milestone name row — always visible */}
+          <div style={{ background:'var(--bg2)', borderBottom:'1px solid rgba(124,92,191,0.15)', height:26, display:'flex', alignItems:'center', flexShrink:0 }}>
+            <div style={{ width:LEFT_W, minWidth:LEFT_W, flexShrink:0, background:'var(--bg2)', borderRight:'1px solid var(--border)', height:26 }} />
+            <div style={{ flex:1, position:'relative', height:'100%', overflow:'hidden' }}>
+              {milestones.filter(m => !m.isAutoGoLive).map(m => {
                   const mx = daysBetween(displayMin, m.date) * DAY_PX_DYN;
                   if (mx < -20 || mx > chartW + 20) return null;
                   return (
@@ -391,10 +390,9 @@ export default function GanttView({ data, updateData, initialProjectId, onMounte
                       <span style={{ fontSize:10, fontWeight:600, color:'var(--accent2)', whiteSpace:'nowrap' as const }}>{m.name}</span>
                     </div>
                   );
-                })}
-              </div>
+              })}
             </div>
-          )}
+          </div>
           <div style={{ overflow:'auto', maxHeight:'calc(100vh - 195px)' }}>
             <div style={{ minWidth: LEFT_W + chartW }}>
               {/* Sticky header row — exact copy of Portfolio Gantt */}
