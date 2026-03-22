@@ -310,7 +310,7 @@ export default function ProjectsView({ data, updateData, setView, onNavigateToPl
                         : <span style={{color:'var(--text-muted)'}}>{(p as any).hypercare ? (p as any).hypercare.slice(0, 7) : '—'}</span>}
                     </td>
                     <td>
-                      <button className="btn btn-danger btn-sm" onClick={() => setConfirmAction(() => remove(p.id))}><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 3.5h9M5 3.5V2.5h3v1M10.5 3.5l-.7 7H3.2l-.7-7" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg></button>
+                      <button className="btn btn-icon" style={{ width:26, height:26, color:'var(--text-faint)' }} onClick={() => setConfirmAction(() => remove(p.id))} title="Supprimer"><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 3.5h9M5 3.5V2.5h3v1M10.5 3.5l-.7 7H3.2l-.7-7" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg></button>
                     </td>
                   </tr>
                 ))}
