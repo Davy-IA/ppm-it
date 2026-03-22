@@ -129,7 +129,7 @@ export default function WorkloadView({ data, updateData }: Props) {
       <div className="page-sticky-header">
       {/* Filters + tabs */}
       <div style={{ display: 'flex', gap: 10, marginBottom: showFilters ? 0 : 16, flexWrap: 'wrap', alignItems: 'center' }}>
-        <select className="input" value={projectFilter} onChange={e => setProjectFilter(e.target.value)} style={{ maxWidth: 280 }}>
+        <select className="toolbar-select" value={projectFilter} onChange={e => setProjectFilter(e.target.value)} style={{ maxWidth: 240 }}>
           <option value="">{t('all_projects')}</option>
           {data.projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
         </select>
@@ -225,7 +225,7 @@ export default function WorkloadView({ data, updateData }: Props) {
       {/* WORKLOAD TABLE */}
       {tab === 'workload' && (
         <div className="card card-table" style={{ padding: 0, overflow: 'hidden', marginTop: 16 }}>
-          <div className="utbl-wrap" style={{ maxHeight: 'calc(100vh - 142px)' }}>
+          <div className="utbl-wrap" style={{ maxHeight: 'calc(100vh - 168px)' }}>
             <table className="data-table">
               <thead>
                 <tr>
@@ -311,7 +311,7 @@ export default function WorkloadView({ data, updateData }: Props) {
       {/* ALLOCATION TABLE */}
       {tab === 'allocation' && (
         <div className="card card-table" style={{ padding: 0, overflow: 'hidden', marginTop: 16 }}>
-          <div className="utbl-wrap" style={{ maxHeight: 'calc(100vh - 142px)' }}>
+          <div className="utbl-wrap" style={{ maxHeight: 'calc(100vh - 168px)' }}>
             <table className="data-table">
               <thead>
                 <tr>
