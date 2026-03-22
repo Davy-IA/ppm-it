@@ -452,7 +452,7 @@ export default function GanttView({ data, updateData, initialProjectId, onMounte
                       <div key={ph.id}>
                         {/* Phase row */}
                         <div style={{ position:'relative', height:40, borderBottom:'1px solid var(--border)' }}>
-                          <div style={{ position:'absolute', top:7, left:px, width:pw, height:26, borderRadius:6, background:ph.color||'#7C5CBF', cursor:'pointer', display:'flex', alignItems:'center', padding:'0 8px', zIndex:4, boxShadow:'0 2px 8px rgba(0,0,0,0.15)', transition:'opacity 0.15s' }}
+                          <div style={{ position:'absolute', top:7, left:px, width:pw, height:26, borderRadius:6, background:ph.color||'#7C5CBF', cursor:'pointer', display:'flex', alignItems:'center', padding:'0 8px', boxShadow:'0 2px 8px rgba(0,0,0,0.15)', transition:'opacity 0.15s' }}
                             onClick={()=>{setEditPhase({...ph});setIsNew(false);}}
                             title={`${ph.name} — ${fmt(ph.startDate)} → ${fmt(addDays(ph.startDate,ph.duration))} (${ph.duration}j)`}>
                             {pw>60 && <span style={{fontSize:11,fontWeight:700,color:'#fff',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{ph.name}</span>}
@@ -464,7 +464,7 @@ export default function GanttView({ data, updateData, initialProjectId, onMounte
                           const sw = Math.max(sub.duration*DAY_PX_DYN, 10);
                           return (
                             <div key={sub.id} style={{ position:'relative', height:34, borderBottom:'1px solid var(--border)', background:'var(--bg3)' }}>
-                              <div style={{ position:'absolute', top:6, left:sx, width:sw, height:22, borderRadius:5, background:ph.color||'#10b981', opacity:0.72, cursor:'pointer', display:'flex', alignItems:'center', padding:'0 6px', zIndex:4, transition:'opacity 0.15s' }}
+                              <div style={{ position:'absolute', top:6, left:sx, width:sw, height:22, borderRadius:5, background:ph.color||'#10b981', opacity:0.72, cursor:'pointer', display:'flex', alignItems:'center', padding:'0 6px', transition:'opacity 0.15s' }}
                                 onClick={()=>{setEditSub({sub:{...sub},phase:ph});setIsNew(false);}}
                                 title={`${sub.name} — ${fmt(sub.startDate)} → ${fmt(addDays(sub.startDate,sub.duration))} (${sub.duration}j)`}>
                                 {sw>44 && <span style={{fontSize:10,fontWeight:600,color:'#fff',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{sub.name}</span>}
