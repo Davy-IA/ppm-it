@@ -146,7 +146,7 @@ html, body {
 .data-table thead th {
   position: sticky;
   top: 0;
-  z-index: 3;
+  z-index: 30;
   background: #3D3A4E;
   color: white;
   font-family: var(--font);
@@ -161,13 +161,14 @@ html, body {
   border-right: 1px solid rgba(255,255,255,0.1);
 }
 
-/* ── COIN HAUT-GAUCHE : sticky top + left, z-index max ── */
-.data-table thead th:first-child {
-  position: sticky;
-  top: 0;
-  left: 0;
-  z-index: 4;
-}
+/* ── Z-INDEX HIERARCHY ──
+   thead th          = z:30  (header row, above all body)
+   thead th:first    = z:40  (header col1 corner, above all)
+   thead th.sticky-* = z:35  (sticky header cols, above body)
+   tbody td          = z:auto
+   tbody td:first    = z:20  (sticky body col1, above other body cells)
+   tbody td.sticky-* = z:15  (other sticky body cols)
+*/
 
 /* ── CELLULES NORMALES ── */
 .data-table tbody td {
@@ -179,39 +180,55 @@ html, body {
 }
 .data-table tbody tr:last-child td { border-bottom: none; }
 
-/* ── PREMIÈRE COLONNE : sticky vers la gauche ── */
-.data-table tbody td:first-child,
-.data-table thead th.sticky-left {
+/* ── COIN HAUT-GAUCHE : sticky top + left, z-index max ── */
+.data-table thead th:first-child {
+  position: sticky;
+  top: 0;
+  left: 0;
+  z-index: 40;
+}
+
+/* ── PREMIÈRE COLONNE BODY : sticky left ── */
+.data-table tbody td:first-child {
   position: sticky;
   left: 0;
-  z-index: 2;
+  z-index: 20;
   font-weight: 600;
 }
 
-/* 2nd sticky column — offset = width of col1 (220px) */
-.data-table thead th.sticky-left-2,
+/* ── COLONNES STICKY HEADER (sticky-left = col1 header via class) ── */
+.data-table thead th.sticky-left {
+  position: sticky;
+  left: 0;
+  z-index: 40;
+}
+
+/* ── 2ème colonne sticky ── */
+.data-table thead th.sticky-left-2 {
+  position: sticky;
+  left: 220px;
+  z-index: 35;
+  background: #3D3A4E;
+}
 .data-table tbody td.sticky-left-2 {
   position: sticky;
   left: 220px;
-  z-index: 2;
+  z-index: 15;
   background: var(--bg2);
 }
-.data-table thead th.sticky-left-2 {
-  background: #3D3A4E;
-  z-index: 3;
-}
 
-/* 3rd sticky column — offset = col1 (220px) + col2 (80px) */
-.data-table thead th.sticky-left-3,
+/* ── 3ème colonne sticky ── */
+.data-table thead th.sticky-left-3 {
+  position: sticky;
+  left: 300px;
+  z-index: 35;
+  background: #3D3A4E;
+}
 .data-table tbody td.sticky-left-3 {
   position: sticky;
   left: 300px;
-  z-index: 2;
+  z-index: 15;
   background: var(--bg2);
-}
-.data-table thead th.sticky-left-3 {
-  background: #3D3A4E;
-  z-index: 3;
 }
 
 /* Hover on sticky-left-2 and sticky-left-3 */
