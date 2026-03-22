@@ -535,9 +535,9 @@ function PortfolioGantt({ data, filtered, t, timeScale }: { data: AppData; filte
   };
 
   return (
-    <div style={{ marginTop: 16 }}>
-      <div className="card" style={{ padding: 0, overflow: 'visible' }}>
-        <div style={{ overflowX: 'auto' }}>
+    <div style={{ marginTop: 20 }}>
+      <div className="card card-table" style={{ padding: 0, overflow: 'hidden' }}>
+        <div style={{ overflow: 'auto', maxHeight: 'calc(100vh - 155px)' }}>
           <div style={{ minWidth: LEFT_W + chartW }}>
             {/* Header row — sticky */}
             <div style={{ display: 'flex', background: '#3D3A4E', borderBottom: 'none', position: 'sticky', top: 0, zIndex: 6 }}>
