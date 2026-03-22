@@ -292,7 +292,8 @@ export default function TopNav({ view, setView, saving, data, currentSpace, onCh
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M5 7h7M9 5l2 2-2 2" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/><path d="M7 2H3a1 1 0 00-1 1v8a1 1 0 001 1h4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg>
                 <span>{t('logout')}</span>
               </button>
-            </div>
+              </div>
+            </>
           )}
         </div>
 
