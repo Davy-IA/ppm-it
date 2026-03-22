@@ -210,7 +210,7 @@ export default function WorkloadView({ data, updateData }: Props) {
       {/* WORKLOAD TABLE */}
       {tab === 'workload' && (
         <div className="card card-table" style={{ padding: 0, overflow: 'hidden', marginTop: 16 }}>
-          <div className="utbl-wrap" style={{ maxHeight: 'calc(100vh - 180px)' }}>
+          <div className="utbl-wrap" style={{ maxHeight: 'calc(100vh - 142px)' }}>
             <table className="data-table">
               <thead>
                 <tr>
@@ -296,7 +296,7 @@ export default function WorkloadView({ data, updateData }: Props) {
       {/* ALLOCATION TABLE */}
       {tab === 'allocation' && (
         <div className="card card-table" style={{ padding: 0, overflow: 'hidden', marginTop: 16 }}>
-          <div className="utbl-wrap" style={{ maxHeight: 'calc(100vh - 180px)' }}>
+          <div className="utbl-wrap" style={{ maxHeight: 'calc(100vh - 142px)' }}>
             <table className="data-table">
               <thead>
                 <tr>
