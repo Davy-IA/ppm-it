@@ -272,7 +272,7 @@ export default function GanttView({ data, updateData, initialProjectId, onMounte
             }
           </select>
           {project?.startDate && <span className="badge badge-blue" style={{height:28,display:'inline-flex',alignItems:'center'}}>{t('gantt_start')} : {fmt(project.startDate)}</span>}
-          {goLive && <span className="badge badge-purple" style={{height:28,display:'inline-flex',alignItems:'center'}}>{t('go_live')} : {fmt(goLive)}</span>}
+          {(hypercare || goLive) && <span className="badge badge-purple" style={{height:28,display:'inline-flex',alignItems:'center'}}>{t('gantt_end_label')} : {fmt(hypercare ?? goLive ?? '')}</span>}
           {phases.length > 0 && ganttEnd && endDeadline && overdue && (
             <span style={{ display:'inline-flex', alignItems:'center', gap:6, height:28, fontSize:12, fontWeight:600, color:'var(--danger)', background:'var(--danger-subtle)', border:'1px solid var(--danger)', borderRadius:20, padding:'0 12px', whiteSpace:'nowrap' as const }}>
               ⚠ {t('overdue_alert').replace('{end}', fmt(ganttEnd)).replace('{golive}', fmt(endDeadline))}
@@ -389,6 +389,27 @@ export default function GanttView({ data, updateData, initialProjectId, onMounte
                   ))}
                 </div>
               </div>
+
+              {/* Milestone name row — sticky band below header */}
+              {milestones.filter(m => !m.isAutoGoLive).length > 0 && (
+                <div style={{ position:'sticky', top:38, zIndex:999, background:'var(--bg2)', borderBottom:'1px solid var(--border)', height:22, display:'flex', alignItems:'center' }}>
+                  <div style={{ width:LEFT_W, minWidth:LEFT_W, flexShrink:0, position:'sticky', left:0, zIndex:1000, background:'var(--bg2)', borderRight:'1px solid var(--border)', height:'100%' }} />
+                  <div style={{ flex:1, position:'relative', height:'100%' }}>
+                    {milestones.filter(m => !m.isAutoGoLive).map(m => {
+                      const mx = daysBetween(displayMin, m.date) * DAY_PX_DYN;
+                      if (mx < -20 || mx > chartW + 20) return null;
+                      return (
+                        <div key={m.id} style={{ position:'absolute', left: mx - 4, top:3, display:'flex', alignItems:'center', gap:3, cursor:'pointer' }}
+                          onClick={() => { setEditMilestone({...m}); setIsNewMilestone(false); }}>
+                          <span style={{ color:'var(--accent2)', fontSize:10, lineHeight:1 }}>◆</span>
+                          <span style={{ fontSize:10, fontWeight:600, color:'var(--accent2)', whiteSpace:'nowrap' as const }}>{m.name}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
               {/* Body row */}
               <div style={{ display:'flex' }}>
               {/* Labels - sticky left */}
@@ -478,7 +499,7 @@ export default function GanttView({ data, updateData, initialProjectId, onMounte
 
                 </div>
                 {/* Milestone OVERLAY — position:absolute over the entire chart, outside phase stacking contexts */}
-                <div style={{ position:'absolute', top:38, left:0, right:0, bottom:0, pointerEvents:'none', zIndex:200 }}>
+                <div style={{ position:'absolute', top:60, left:0, right:0, bottom:0, pointerEvents:'none', zIndex:200 }}>
                   {milestones.filter(m => !m.isAutoGoLive).map(m => {
                     const mx = daysBetween(displayMin, m.date) * DAY_PX_DYN;
                     if (mx < -20 || mx > chartW + 20) return null;
