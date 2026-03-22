@@ -67,6 +67,13 @@ export default function WorkloadView({ data, updateData }: Props) {
   // --- Workload CRUD ---
   const saveWorkload = () => {
     if (!editingWorkload) return;
+    if (isNew) {
+      const dup = data.workloads.find(w =>
+        w.projectId === editingWorkload.projectId &&
+        w.profile === editingWorkload.profile
+      );
+      if (dup) { alert(`Une charge pour ce projet et ce profil existe déjà.`); return; }
+    }
     const workloads = isNew
       ? [...data.workloads, { ...editingWorkload, id: uuid() }]
       : data.workloads.map(w => w.id === editingWorkload.id ? editingWorkload : w);
@@ -82,6 +89,14 @@ export default function WorkloadView({ data, updateData }: Props) {
   // --- Allocation CRUD ---
   const saveAlloc = () => {
     if (!editingAlloc) return;
+    if (isNew) {
+      const dup = data.allocations.find(a =>
+        a.projectId === editingAlloc.projectId &&
+        a.profile === editingAlloc.profile &&
+        a.staffId === editingAlloc.staffId
+      );
+      if (dup) { alert(`Une affectation pour ce projet, ce profil et cette ressource existe déjà.`); return; }
+    }
     const allocations = isNew
       ? [...data.allocations, { ...editingAlloc, id: uuid() }]
       : data.allocations.map(a => a.id === editingAlloc.id ? editingAlloc : a);
@@ -215,7 +230,7 @@ export default function WorkloadView({ data, updateData }: Props) {
               <thead>
                 <tr>
                   <th className="sticky-left" style={{ minWidth: 220 }}>{t('project_name')}</th>
-                  <th>{t('profile')}</th>
+                  <th className="sticky-left-2">{t('profile')}</th>
                   {months.map(m => <th key={m} className="cap-cell">{monthLabel(m)}</th>)}
                   <th>{t('total')}</th>
                   <th></th>
@@ -234,7 +249,7 @@ export default function WorkloadView({ data, updateData }: Props) {
                   return (
                     <tr key={w.id}>
                       <td className="sticky-left" style={{ fontWeight: 500, maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis' }}><span className="sticky-text" style={{overflow:'hidden',textOverflow:'ellipsis',display:'block',whiteSpace:'nowrap'}}>{w.projectName}</span></td>
-                      <td><span className="badge badge-blue">{w.profile}</span></td>
+                      <td className="sticky-left-2"><span className="badge badge-blue">{w.profile}</span></td>
                       {months.map(m => {
                         const need = w.monthly[m] ?? 0;
                         const covered = data.allocations
@@ -301,8 +316,8 @@ export default function WorkloadView({ data, updateData }: Props) {
               <thead>
                 <tr>
                   <th className="sticky-left" style={{ minWidth: 220 }}>{t('project_name')}</th>
-                  <th>{t('profile')}</th>
-                  <th style={{ minWidth: 160 }}>{t('resource_col')}</th>
+                  <th className="sticky-left-2">{t('profile')}</th>
+                  <th className="sticky-left-3" style={{ minWidth: 140 }}>{t('resource_col')}</th>
                   {months.map(m => <th key={m} className="cap-cell">{monthLabel(m)}</th>)}
                   <th>{t('total')}</th>
                   <th></th>
@@ -322,8 +337,8 @@ export default function WorkloadView({ data, updateData }: Props) {
                   return (
                     <tr key={a.id}>
                       <td className="sticky-left" style={{ fontWeight: 500, maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis' }}><span className="sticky-text" style={{overflow:'hidden',textOverflow:'ellipsis',display:'block',whiteSpace:'nowrap'}}>{a.projectName}</span></td>
-                      <td><span className="badge badge-blue">{a.profile}</span></td>
-                      <td>
+                      <td className="sticky-left-2"><span className="badge badge-blue">{a.profile}</span></td>
+                      <td className="sticky-left-3">
                         <span style={{ fontWeight: 500 }}>{a.staffName}</span>
                         {staff?.type === 'External' && <span className="badge badge-yellow" style={{ marginLeft: 6, fontSize: 10 }}>{t('col_ext')}</span>}
                       </td>
