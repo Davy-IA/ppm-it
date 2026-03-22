@@ -447,21 +447,6 @@ export default function GanttView({ data, updateData, initialProjectId, onMounte
                   {/* Grid lines */}
                   {months.map((m,i) => <div key={i} style={{ position:'absolute', left:m.left, top:0, bottom:0, width:1, background:'var(--border)', zIndex:0 }}/>)}
 
-                  {/* Today */}
-                  {todayX>=0 && todayX<=chartW && <div style={{ position:'absolute', left:todayX, top:0, bottom:0, width:2, background:'var(--accent)', opacity:0.7, zIndex:3 }}>
-                    <div style={{ position:'absolute', top:2, left:3, background:'var(--accent)', color:'#fff', fontSize:9, fontWeight:700, padding:'2px 5px', borderRadius:4, whiteSpace:'nowrap' }}>{t('today')}</div>
-                  </div>}
-
-                  {/* Go-live */}
-                  {goLiveX!=null && goLiveX>=0 && goLiveX<=chartW+200 && <div style={{ position:'absolute', left:goLiveX, top:0, bottom:0, width:2, background:overdue?'var(--danger)':'var(--success)', opacity:0.85, zIndex:3 }}>
-                    <div style={{ position:'absolute', top:2, left:3, background:overdue?'var(--danger)':'var(--success)', color:'#fff', fontSize:9, fontWeight:700, padding:'2px 5px', borderRadius:4, whiteSpace:'nowrap' }}>{t('go_live')}</div>
-                  </div>}
-
-                  {/* Hypercare end line */}
-                  {hypercareX!=null && hypercareX>=0 && hypercareX<=chartW+200 && <div style={{ position:'absolute', left:hypercareX, top:0, bottom:0, width:2, borderLeft:'2px dashed var(--purple)', opacity:0.7, zIndex:3 }}>
-                    <div style={{ position:'absolute', top:2, left:3, background:'var(--purple)', color:'#fff', fontSize:9, fontWeight:700, padding:'2px 5px', borderRadius:4, whiteSpace:'nowrap' }}>{t('hypercare_date')}</div>
-                  </div>}
-
                   {phases.map(ph => {
                     const px = daysBetween(displayMin, ph.startDate)*DAY_PX_DYN;
                     const pw = Math.max(ph.duration*DAY_PX_DYN, 16);
@@ -495,7 +480,26 @@ export default function GanttView({ data, updateData, initialProjectId, onMounte
 
                 </div>
                 {/* Milestone OVERLAY — position:absolute over the entire chart, outside phase stacking contexts */}
-                <div style={{ position:'absolute', top:64, left:0, right:0, bottom:0, pointerEvents:'none', zIndex:200 }}>
+                <div style={{ position:'absolute', top:0, left:0, right:0, bottom:0, pointerEvents:'none', zIndex:200 }}>
+                  {/* Today line */}
+                  {todayX>=0 && todayX<=chartW && (
+                    <div style={{ position:'absolute', left:todayX, top:0, bottom:0, width:2, background:'var(--accent)', opacity:0.7 }}>
+                      <div style={{ position:'absolute', top:2, left:3, background:'var(--accent)', color:'#fff', fontSize:9, fontWeight:700, padding:'2px 5px', borderRadius:4, whiteSpace:'nowrap' }}>{t('today')}</div>
+                    </div>
+                  )}
+                  {/* Go-live line */}
+                  {goLiveX!=null && goLiveX>=0 && goLiveX<=chartW+200 && (
+                    <div style={{ position:'absolute', left:goLiveX, top:0, bottom:0, width:2, background:overdue?'var(--danger)':'var(--success)', opacity:0.85 }}>
+                      <div style={{ position:'absolute', top:2, left:3, background:overdue?'var(--danger)':'var(--success)', color:'#fff', fontSize:9, fontWeight:700, padding:'2px 5px', borderRadius:4, whiteSpace:'nowrap' }}>{t('go_live')}</div>
+                    </div>
+                  )}
+                  {/* Hypercare line */}
+                  {hypercareX!=null && hypercareX>=0 && hypercareX<=chartW+200 && (
+                    <div style={{ position:'absolute', left:hypercareX, top:0, bottom:0, width:2, borderLeft:'2px dashed var(--purple)', opacity:0.7 }}>
+                      <div style={{ position:'absolute', top:2, left:3, background:'var(--purple)', color:'#fff', fontSize:9, fontWeight:700, padding:'2px 5px', borderRadius:4, whiteSpace:'nowrap' }}>{t('hypercare_date')}</div>
+                    </div>
+                  )}
+                  {/* Manual milestone lines */}
                   {milestones.filter(m => !m.isAutoGoLive).map(m => {
                     const mx = daysBetween(displayMin, m.date) * DAY_PX_DYN;
                     if (mx < -20 || mx > chartW + 20) return null;
