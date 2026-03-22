@@ -392,8 +392,8 @@ export default function GanttView({ data, updateData, initialProjectId, onMounte
 
               {/* Milestone name row — sticky band below header */}
               {milestones.filter(m => !m.isAutoGoLive).length > 0 && (
-                <div style={{ position:'sticky', top:38, zIndex:999, background:'var(--bg2)', borderBottom:'1px solid rgba(124,92,191,0.15)', height:26, display:'flex', alignItems:'center', position:'sticky', top:38, zIndex:999 }}>
-                  <div style={{ width:LEFT_W, minWidth:LEFT_W, flexShrink:0, position:'sticky', left:0, zIndex:1000, background:'var(--bg2)', borderRight:'1px solid var(--border)', height:26, flexShrink:0 }} />
+                <div style={{ position:'sticky', top:38, zIndex:999, background:'var(--bg2)', borderBottom:'1px solid rgba(124,92,191,0.15)', height:26, display:'flex', alignItems:'center' }}>
+                  <div style={{ width:LEFT_W, minWidth:LEFT_W, flexShrink:0, position:'sticky', left:0, zIndex:1000, background:'var(--bg2)', borderRight:'1px solid var(--border)', height:26 }} />
                   <div style={{ flex:1, position:'relative', height:'100%' }}>
                     {milestones.filter(m => !m.isAutoGoLive).map(m => {
                       const mx = daysBetween(displayMin, m.date) * DAY_PX_DYN;
