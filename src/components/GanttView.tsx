@@ -379,8 +379,8 @@ export default function GanttView({ data, updateData, initialProjectId, onMounte
           <div style={{ overflow:'auto', maxHeight:'calc(100vh - 195px)' }}>
             <div style={{ minWidth: LEFT_W + chartW }}>
               {/* Sticky header row — exact copy of Portfolio Gantt */}
-              <div style={{ display:'flex', background:'#3D3A4E', borderBottom:'none', position:'sticky', top:0, zIndex:6 }}>
-                <div style={{ width:LEFT_W, minWidth:LEFT_W, flexShrink:0, height:38, display:'flex', alignItems:'center', padding:'0 16px', fontSize:11, fontWeight:700, color:'#FFFFFF', textTransform:'uppercase' as const, letterSpacing:'0.07em', position:'sticky', left:0, zIndex:7, background:'#3D3A4E', borderRight:'1px solid rgba(255,255,255,0.10)' }}>
+              <div style={{ display:'flex', background:'#3D3A4E', borderBottom:'none', position:'sticky', top:0, zIndex:100 }}>
+                <div style={{ width:LEFT_W, minWidth:LEFT_W, flexShrink:0, height:38, display:'flex', alignItems:'center', padding:'0 16px', fontSize:11, fontWeight:700, color:'#FFFFFF', textTransform:'uppercase' as const, letterSpacing:'0.07em', position:'sticky', left:0, zIndex:101, background:'#3D3A4E', borderRight:'1px solid rgba(255,255,255,0.10)' }}>
                   {t('structure')}
                 </div>
                 <div style={{ width:chartW, flexShrink:0, position:'relative', height:38 }}>
@@ -392,7 +392,7 @@ export default function GanttView({ data, updateData, initialProjectId, onMounte
               {/* Body row */}
               <div style={{ display:'flex' }}>
               {/* Labels - sticky left */}
-              <div style={{ width:LEFT_W, minWidth:LEFT_W, borderRight:'1px solid var(--border)', flexShrink:0, position:'sticky', left:0, zIndex:1, background:'var(--bg2)' }}>
+              <div style={{ width:LEFT_W, minWidth:LEFT_W, borderRight:'1px solid var(--border)', flexShrink:0, position:'sticky', left:0, zIndex:2, background:'var(--bg2)' }}>
                 {phases.map(ph => (
                   <div key={ph.id}>
                     <div style={{ height:40, borderBottom:'1px solid var(--border)', display:'flex', alignItems:'center', padding:'0 8px', gap:6, background:'var(--bg2)', isolation:'isolate' }}>
@@ -431,17 +431,17 @@ export default function GanttView({ data, updateData, initialProjectId, onMounte
                   {months.map((m,i) => <div key={i} style={{ position:'absolute', left:m.left, top:0, bottom:0, width:1, background:'var(--border)', zIndex:1 }}/>)}
 
                   {/* Today */}
-                  {todayX>=0 && todayX<=chartW && <div style={{ position:'absolute', left:todayX, top:0, bottom:0, width:2, background:'var(--accent)', opacity:0.7, zIndex:2 }}>
+                  {todayX>=0 && todayX<=chartW && <div style={{ position:'absolute', left:todayX, top:0, bottom:0, width:2, background:'var(--accent)', opacity:0.7, zIndex:3 }}>
                     <div style={{ position:'absolute', top:2, left:3, background:'var(--accent)', color:'#fff', fontSize:9, fontWeight:700, padding:'2px 5px', borderRadius:4, whiteSpace:'nowrap' }}>{t('today')}</div>
                   </div>}
 
                   {/* Go-live */}
-                  {goLiveX!=null && goLiveX>=0 && goLiveX<=chartW+200 && <div style={{ position:'absolute', left:goLiveX, top:0, bottom:0, width:2, background:overdue?'var(--danger)':'var(--success)', opacity:0.85, zIndex:2 }}>
+                  {goLiveX!=null && goLiveX>=0 && goLiveX<=chartW+200 && <div style={{ position:'absolute', left:goLiveX, top:0, bottom:0, width:2, background:overdue?'var(--danger)':'var(--success)', opacity:0.85, zIndex:3 }}>
                     <div style={{ position:'absolute', top:2, left:3, background:overdue?'var(--danger)':'var(--success)', color:'#fff', fontSize:9, fontWeight:700, padding:'2px 5px', borderRadius:4, whiteSpace:'nowrap' }}>{t('go_live')}</div>
                   </div>}
 
                   {/* Hypercare end line */}
-                  {hypercareX!=null && hypercareX>=0 && hypercareX<=chartW+200 && <div style={{ position:'absolute', left:hypercareX, top:0, bottom:0, width:2, borderLeft:'2px dashed var(--purple)', opacity:0.7, zIndex:2 }}>
+                  {hypercareX!=null && hypercareX>=0 && hypercareX<=chartW+200 && <div style={{ position:'absolute', left:hypercareX, top:0, bottom:0, width:2, borderLeft:'2px dashed var(--purple)', opacity:0.7, zIndex:3 }}>
                     <div style={{ position:'absolute', top:2, left:3, background:'var(--purple)', color:'#fff', fontSize:9, fontWeight:700, padding:'2px 5px', borderRadius:4, whiteSpace:'nowrap' }}>{t('hypercare_date')}</div>
                   </div>}
 
@@ -453,7 +453,7 @@ export default function GanttView({ data, updateData, initialProjectId, onMounte
                       <div key={m.id}
                         onClick={() => { setEditMilestone({...m}); setIsNewMilestone(false); }}
                         title={`${m.name} — ${fmt(m.date)}`}
-                        style={{ position:'absolute', left: mx - 8, top: 0, zIndex: 2, cursor:'pointer', display:'flex', flexDirection:'column', alignItems:'center' }}>
+                        style={{ position:'absolute', left: mx - 8, top: 0, zIndex: 3, cursor:'pointer', display:'flex', flexDirection:'column', alignItems:'center' }}>
                         <div style={{ width:0, height:0, borderLeft:'8px solid transparent', borderRight:'8px solid transparent', borderBottom:'12px solid var(--accent2)' }}/>
                         <div style={{ width:0, height:0, borderLeft:'8px solid transparent', borderRight:'8px solid transparent', borderTop:'12px solid var(--accent2)', marginTop:-1 }}/>
                         <div style={{ fontSize:9, fontWeight:700, color:'var(--accent2)', whiteSpace:'nowrap', marginTop:2, maxWidth:80, overflow:'hidden', textOverflow:'ellipsis' }}>{m.name}</div>
@@ -468,7 +468,7 @@ export default function GanttView({ data, updateData, initialProjectId, onMounte
                       <div key={ph.id}>
                         {/* Phase row */}
                         <div style={{ position:'relative', height:40, borderBottom:'1px solid var(--border)' }}>
-                          <div style={{ position:'absolute', top:7, left:px, width:pw, height:26, borderRadius:6, background:ph.color||'#7C5CBF', cursor:'pointer', display:'flex', alignItems:'center', padding:'0 8px', zIndex:3, boxShadow:'0 2px 8px rgba(0,0,0,0.15)', transition:'opacity 0.15s' }}
+                          <div style={{ position:'absolute', top:7, left:px, width:pw, height:26, borderRadius:6, background:ph.color||'#7C5CBF', cursor:'pointer', display:'flex', alignItems:'center', padding:'0 8px', zIndex:4, boxShadow:'0 2px 8px rgba(0,0,0,0.15)', transition:'opacity 0.15s' }}
                             onClick={()=>{setEditPhase({...ph});setIsNew(false);}}
                             title={`${ph.name} — ${fmt(ph.startDate)} → ${fmt(addDays(ph.startDate,ph.duration))} (${ph.duration}j)`}>
                             {pw>60 && <span style={{fontSize:11,fontWeight:700,color:'#fff',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{ph.name}</span>}
@@ -480,7 +480,7 @@ export default function GanttView({ data, updateData, initialProjectId, onMounte
                           const sw = Math.max(sub.duration*DAY_PX_DYN, 10);
                           return (
                             <div key={sub.id} style={{ position:'relative', height:34, borderBottom:'1px solid var(--border)', background:'var(--bg3)' }}>
-                              <div style={{ position:'absolute', top:6, left:sx, width:sw, height:22, borderRadius:5, background:ph.color||'#10b981', opacity:0.72, cursor:'pointer', display:'flex', alignItems:'center', padding:'0 6px', zIndex:3, transition:'opacity 0.15s' }}
+                              <div style={{ position:'absolute', top:6, left:sx, width:sw, height:22, borderRadius:5, background:ph.color||'#10b981', opacity:0.72, cursor:'pointer', display:'flex', alignItems:'center', padding:'0 6px', zIndex:4, transition:'opacity 0.15s' }}
                                 onClick={()=>{setEditSub({sub:{...sub},phase:ph});setIsNew(false);}}
                                 title={`${sub.name} — ${fmt(sub.startDate)} → ${fmt(addDays(sub.startDate,sub.duration))} (${sub.duration}j)`}>
                                 {sw>44 && <span style={{fontSize:10,fontWeight:600,color:'#fff',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{sub.name}</span>}
