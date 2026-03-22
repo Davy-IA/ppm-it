@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useSettings } from '@/lib/context';
 import ConfirmDialog from './ConfirmDialog';
 import { formatMonth, formatDate, formatDateTime } from '@/lib/locale-utils';
@@ -63,6 +63,8 @@ function getRange(phases: GanttPhase[], extra?: string | null) {
 
 export default function GanttView({ data, updateData, initialProjectId, onMounted }: Props) {
   const { settings, t } = useSettings();
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const nameRowRef = useRef<HTMLDivElement>(null);
   const locale = settings.locale ?? 'fr';
   const fmt = (d: string) => formatDate(d, locale);
   const [selProj, setSelProj] = useState(initialProjectId ?? data.projects[0]?.id ?? '');
@@ -127,6 +129,18 @@ export default function GanttView({ data, updateData, initialProjectId, onMounte
   };
 
   const savePhases = (next: GanttPhase[]) => {
+    // Auto-extend phase duration if any subphase overflows
+    next = next.map(p => {
+      const phaseEnd = addDays(p.startDate, p.duration);
+      const subEnd = p.subphases.length
+        ? p.subphases.map(s => addDays(s.startDate, s.duration)).reduce((a,b) => a>b?a:b)
+        : phaseEnd;
+      if (subEnd > phaseEnd) {
+        const extra = Math.ceil((new Date(subEnd).getTime() - new Date(phaseEnd).getTime()) / 86400000);
+        return { ...p, duration: p.duration + extra };
+      }
+      return p;
+    });
     const others = data.ganttPhases.filter(p => p.projectId !== selProj);
     updateData({ ...data, ganttPhases: [...others, ...propagateDeps(next)] });
   };
@@ -153,27 +167,38 @@ export default function GanttView({ data, updateData, initialProjectId, onMounte
   const anchorYear = anchorD.getFullYear();
   const anchorMon  = anchorD.getMonth(); // 0-11
 
+  // Compute real end date from all phases + subphases
+  const allEndDates = phases.flatMap(p => [
+    addDays(p.startDate, p.duration),
+    ...p.subphases.map(s => addDays(s.startDate, s.duration))
+  ]);
+  const realMaxDate = allEndDates.length ? allEndDates.reduce((a,b) => a>b?a:b) : addDays(minDate, 90);
+  // Add padding based on scale
+  const paddedMaxDate = timeScale === 'week' ? addDays(realMaxDate, 14)
+    : timeScale === 'month' ? addDays(realMaxDate, 30)
+    : timeScale === 'semester' ? addDays(realMaxDate, 60)
+    : addDays(realMaxDate, 90);
+
   let displayMin: string;
   let displayMax: string;
   if (timeScale === 'week') {
-    // Monday of anchor week → +12 weeks
     const d = new Date(anchorDate);
     const dow = d.getDay(); d.setDate(d.getDate() - (dow === 0 ? 6 : dow - 1));
     displayMin = d.toISOString().slice(0,10);
-    displayMax = addDays(displayMin, 12 * 7 - 1);
+    displayMax = paddedMaxDate > addDays(displayMin, 12*7-1) ? paddedMaxDate : addDays(displayMin, 12*7-1);
   } else if (timeScale === 'month') {
-    // 1st of anchor month → +6 months
     displayMin = `${anchorYear}-${String(anchorMon + 1).padStart(2,'0')}-01`;
-    displayMax = new Date(anchorYear, anchorMon + 6, 0).toISOString().slice(0,10);
+    const minMax = new Date(anchorYear, anchorMon + 6, 0).toISOString().slice(0,10);
+    displayMax = paddedMaxDate > minMax ? paddedMaxDate : minMax;
   } else if (timeScale === 'semester') {
-    // 1st of anchor semester (Jan or Jul) → +3 semesters (18 months)
     const semStart = anchorMon < 6 ? 0 : 6;
     displayMin = `${anchorYear}-${String(semStart + 1).padStart(2,'0')}-01`;
-    displayMax = new Date(anchorYear + 1, semStart + 12, 0).toISOString().slice(0,10);
+    const minMax = new Date(anchorYear + 1, semStart + 12, 0).toISOString().slice(0,10);
+    displayMax = paddedMaxDate > minMax ? paddedMaxDate : minMax;
   } else {
-    // Jan 1 of anchor year → 3 full years
     displayMin = `${anchorYear}-01-01`;
-    displayMax = `${anchorYear + 2}-12-31`;
+    const minMax = `${anchorYear + 2}-12-31`;
+    displayMax = paddedMaxDate > minMax ? paddedMaxDate : minMax;
   }
   const totalDays = Math.max(daysBetween(displayMin, displayMax) + 1, 7);
   const chartW = totalDays * DAY_PX_DYN;
@@ -379,7 +404,7 @@ export default function GanttView({ data, updateData, initialProjectId, onMounte
           {/* Milestone name row — always visible, same badge style as Today/GoLive */}
           <div style={{ background:'var(--bg2)', borderBottom:'1px solid rgba(124,92,191,0.15)', height:26, display:'flex', alignItems:'center', flexShrink:0 }}>
             <div style={{ width:LEFT_W, minWidth:LEFT_W, flexShrink:0, background:'var(--bg2)', borderRight:'1px solid var(--border)', height:26 }} />
-            <div style={{ flex:1, position:'relative', height:'100%', overflow:'hidden' }}>
+            <div ref={nameRowRef} style={{ flex:1, position:'relative', height:'100%', overflow:'hidden' }}>
               {/* Today badge */}
               {todayX>=0 && todayX<=chartW && (
                 <div style={{ position:'absolute', left: todayX + 3, top:4 }}>
@@ -411,7 +436,7 @@ export default function GanttView({ data, updateData, initialProjectId, onMounte
               })}
             </div>
           </div>
-          <div style={{ overflow:'auto', maxHeight:'calc(100vh - 221px)' }}>
+          <div ref={scrollRef} style={{ overflow:'auto', maxHeight:'calc(100vh - 221px)' }} onScroll={e => { if (nameRowRef.current) nameRowRef.current.scrollLeft = (e.target as HTMLDivElement).scrollLeft; }}>
             <div style={{ minWidth: LEFT_W + chartW }}>
               {/* Sticky header row — exact copy of Portfolio Gantt */}
               <div style={{ display:'flex', background:'#3D3A4E', borderBottom:'none', position:'sticky', top:0, zIndex:1000 }}>
