@@ -175,7 +175,7 @@ html, body {
   border-bottom: 1px solid var(--border);
   color: var(--text);
   white-space: nowrap;
-  /* PAS de position, PAS de z-index ici */
+  background: var(--bg2);
 }
 .data-table tbody tr:last-child td { border-bottom: none; }
 
