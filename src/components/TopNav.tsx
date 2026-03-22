@@ -154,8 +154,8 @@ export default function TopNav({ view, setView, saving, data, currentSpace, onCh
 
           {showSpaces && (
             <>
-              <div style={{ position: 'fixed', inset: 0, zIndex: 199 }} onClick={() => setShowSpaces(false)} />
-              <div className="topnav-dropdown" style={{ minWidth: 220, left: 0, right: 'auto', zIndex: 200 }}>
+              <div style={{ position: 'fixed', inset: 0, zIndex: 3999 }} onClick={() => setShowSpaces(false)} />
+              <div className="topnav-dropdown" style={{ minWidth: 220, left: 0, right: 'auto', zIndex: 4000 }}>
                 <div style={{ padding: '10px 14px 6px', fontSize: 10, fontWeight: 700, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
                   {t('spaces_label')}
                 </div>
@@ -243,7 +243,9 @@ export default function TopNav({ view, setView, saving, data, currentSpace, onCh
             <span style={{ fontSize: 14 }}>{currentLocale?.flag}</span>
           </button>
           {showLang && (
-            <div className="topnav-dropdown" onClick={() => setShowLang(false)}>
+            <>
+              <div style={{ position: 'fixed', inset: 0, zIndex: 3999 }} onClick={() => setShowLang(false)} />
+              <div className="topnav-dropdown" style={{ zIndex: 4000 }} onClick={() => setShowLang(false)}>
               {LOCALES.map(loc => (
                 <button key={loc.code} className={`topnav-dropdown-item ${settings.locale === loc.code ? 'active' : ''}`}
                   onClick={() => { updateSettings({ locale: loc.code }); setShowLang(false); }}>
@@ -252,7 +254,8 @@ export default function TopNav({ view, setView, saving, data, currentSpace, onCh
                   {settings.locale === loc.code && <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style={{ marginLeft: 'auto' }}><path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>}
                 </button>
               ))}
-            </div>
+              </div>
+            </>
           )}
         </div>
 
@@ -266,7 +269,9 @@ export default function TopNav({ view, setView, saving, data, currentSpace, onCh
             }
           </button>
           {showUser && !showProfile && (
-            <div className="topnav-dropdown" onClick={e => e.stopPropagation()}>
+            <>
+              <div style={{ position: 'fixed', inset: 0, zIndex: 3999 }} onClick={() => setShowUser(false)} />
+              <div className="topnav-dropdown" style={{ zIndex: 4000 }} onClick={e => e.stopPropagation()}>
               <div className="topnav-dropdown-header" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 <div className="topnav-avatar" style={{ width: 36, height: 36, fontSize: 12, flexShrink: 0, overflow: 'hidden', padding: 0 }}>
                   {(user as any)?.avatar
@@ -380,8 +385,8 @@ function ProfilePanel({ user, onClose, t, token, refreshUser, updateUser }: { us
 
   return (
     <>
-      <div style={{ position: 'fixed', inset: 0, zIndex: 299 }} onClick={onClose} />
-      <div style={{ position: 'absolute', top: 'calc(100% + 6px)', right: 0, width: 300, background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 14, boxShadow: '0 8px 30px rgba(124,92,191,0.15)', zIndex: 300, overflow: 'hidden', animation: 'dropIn 0.15s ease' }}>
+      <div style={{ position: 'fixed', inset: 0, zIndex: 3999 }} onClick={onClose} />
+      <div style={{ position: 'absolute', top: 'calc(100% + 6px)', right: 0, width: 300, background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 14, boxShadow: '0 8px 30px rgba(124,92,191,0.15)', zIndex: 4000, overflow: 'hidden', animation: 'dropIn 0.15s ease' }}>
         <div style={{ padding: '14px 16px 12px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span style={{ fontWeight: 700, fontSize: 13 }}>{t('my_profile')}</span>
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 16 }}>✕</button>

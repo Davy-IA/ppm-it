@@ -492,7 +492,7 @@ th.cap-cell {
   -webkit-backdrop-filter: blur(20px);
   border-bottom: 1px solid var(--border);
   display: flex; align-items: center; gap: 8px; padding: 0 16px;
-  z-index: 100; flex-shrink: 0;
+  z-index: 3000; flex-shrink: 0;
   box-shadow: 0 1px 0 rgba(124,92,191,0.08), 0 2px 14px rgba(124,92,191,0.05);
   font-family: var(--font);
 }
@@ -582,7 +582,7 @@ th.cap-cell {
 .topnav-dropdown {
   position:absolute; top:calc(100% + 6px); right:0; min-width:180px;
   background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius);
-  box-shadow:var(--shadow-lg); overflow:hidden; z-index:200;
+  box-shadow:var(--shadow-lg); overflow:hidden; z-index:4000;
   animation:dropIn .15s ease; font-family:var(--font);
 }
 .topnav-dropdown-header { padding:12px 14px 10px; border-bottom:1px solid var(--border); }
