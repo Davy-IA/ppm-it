@@ -49,7 +49,7 @@ export default function PartnersManager({ data, updateData }: Props) {
           {partners.length} {t('partners_count')}
         </div>
         <button className="btn btn-primary" onClick={() => { setEditing({ id: '', ...EMPTY }); setIsNew(true); }}>
-          + {t('new_partner')}
+          {t('new_partner')}
         </button>
       </div>
 
