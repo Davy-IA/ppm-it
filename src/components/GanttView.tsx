@@ -271,76 +271,13 @@ export default function GanttView({ data, updateData, initialProjectId, onMounte
               : filteredProjects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)
             }
           </select>
-          {project?.startDate && <span className="badge badge-blue">{t('gantt_start')} : {fmt(project.startDate)}</span>}
-          {goLive && <span className="badge badge-purple">{t('go_live')} : {fmt(goLive)}</span>}
-          <div style={{ flex: 1 }} />
-          {/* Scale selector */}
-          <div style={{ position: 'relative' }}>
-            <button onClick={() => setShowScaleMenu(m => !m)}
-              className="toolbar-btn">
-              <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M1 6h10M1 3h10M1 9h6" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg>
-              {timeScale === 'week' ? t('scale_week') : timeScale === 'month' ? t('scale_month') : timeScale === 'semester' ? t('scale_semester') : t('scale_year')}
-              <svg width="8" height="8" viewBox="0 0 8 8" fill="none"><path d="M1 3l3 3 3-3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg>
-            </button>
-            {showScaleMenu && (
-              <>
-                <div style={{ position: 'fixed', inset: 0, zIndex: 49 }} onClick={() => setShowScaleMenu(false)} />
-                <div style={{ position: 'absolute', right: 0, top: 'calc(100% + 4px)', background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 10, boxShadow: '0 8px 24px rgba(124,92,191,0.15)', zIndex: 50, overflow: 'hidden', minWidth: 140 }}>
-                  {(['week', 'month', 'semester', 'year'] as const).map(scale => (
-                    <button key={scale} onClick={() => { setTimeScale(scale); setShowScaleMenu(false); }}
-                      style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '9px 14px', border: 'none', background: timeScale === scale ? 'var(--accent-subtle)' : 'none', color: timeScale === scale ? 'var(--accent)' : 'var(--text)', cursor: 'pointer', fontSize: 13, fontWeight: timeScale === scale ? 700 : 400, fontFamily: 'inherit', textAlign: 'left' }}>
-                      {timeScale === scale && <span style={{ color: 'var(--accent)', fontSize: 10 }}>✓</span>}
-                      {scale === 'week' ? t('scale_week') : scale === 'month' ? t('scale_month') : scale === 'semester' ? t('scale_semester') : t('scale_year')}
-                    </button>
-                  ))}
-                </div>
-              </>
-            )}
-          </div>
-          {/* + New dropdown */}
-          <div style={{ position: 'relative' }}>
-            <button className="btn btn-primary" onClick={() => setShowNewMenu(m => !m)}
-              style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              + {t('new_btn')}
-              <svg width="10" height="10" viewBox="0 0 10 10" fill="none" style={{ opacity: 0.8 }}>
-                <path d="M2 4l3 3 3-3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </button>
-            {showNewMenu && (
-              <>
-                <div style={{ position: 'fixed', inset: 0, zIndex: 49 }} onClick={() => setShowNewMenu(false)} />
-                <div style={{ position: 'absolute', right: 0, top: 'calc(100% + 6px)', background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 10, boxShadow: '0 8px 24px rgba(124,92,191,0.15)', zIndex: 50, overflow: 'hidden', minWidth: 160, animation: 'dropIn 0.12s ease' }}>
-                  <button style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '10px 16px', border: 'none', background: 'none', cursor: 'pointer', fontSize: 13, color: 'var(--text)', fontFamily: 'inherit', textAlign: 'left' }}
-                    onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg3)')}
-                    onMouseLeave={e => (e.currentTarget.style.background = 'none')}
-                    onClick={() => {
-                      setShowNewMenu(false);
-                      setEditPhase({ id: uuid(), projectId: selProj, name: '', startDate: new Date().toISOString().slice(0,10), duration: 30, color: PHASE_COLORS[phases.length % PHASE_COLORS.length], dependsOn: null, subphases: [] } as unknown as GanttPhase);
-                      setIsNew(true);
-                    }}>
-                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1" y="4" width="8" height="3" rx="1.5" fill="var(--accent)"/><rect x="4" y="8" width="9" height="3" rx="1.5" fill="var(--accent)" opacity="0.5"/></svg>
-                    <span><strong>{t('new_phase')}</strong><div style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 1 }}>{t('phase_hint')}</div></span>
-                  </button>
-                  <div style={{ height: 1, background: 'var(--border)', margin: '0 10px' }} />
-                  <button style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '10px 16px', border: 'none', background: 'none', cursor: 'pointer', fontSize: 13, color: 'var(--text)', fontFamily: 'inherit', textAlign: 'left' }}
-                    onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg3)')}
-                    onMouseLeave={e => (e.currentTarget.style.background = 'none')}
-                    onClick={() => {
-                      setShowNewMenu(false);
-                      setEditMilestone({ id: uuid(), projectId: selProj, name: '', date: project?.goLive ?? new Date().toISOString().slice(0,10), type: (settings.milestoneTypes as any)?.[1] ?? 'Kick-off', isAutoGoLive: false });
-                      setIsNewMilestone(true);
-                    }}>
-                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1L13 7L7 13L1 7L7 1Z" fill="var(--accent2)"/></svg>
-                    <span><strong>{t('new_milestone')}</strong><div style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 1 }}>{t('milestone_hint')}</div></span>
-                  </button>
-                </div>
-              </>
-            )}
-          </div>
+          {project?.startDate && <span className="badge badge-blue" style={{height:28,display:'inline-flex',alignItems:'center'}}>{t('gantt_start')} : {fmt(project.startDate)}</span>}
+          {goLive && <span className="badge badge-purple" style={{height:28,display:'inline-flex',alignItems:'center'}}>{t('go_live')} : {fmt(goLive)}</span>}
+
         </div>
-        {/* KPI row — second line of sticky header */}
+        {/* KPI row — second line with Scale+New on right */}
         {phases.length > 0 && range && (
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', marginTop: 8 }}>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', marginTop: 6 }}>
             {[
               { label: t('gantt_start'), value: fmt(range.start) },
               { label: t('gantt_end'), value: fmt(ganttEnd!), danger: !!overdue },
@@ -362,6 +299,71 @@ export default function GanttView({ data, updateData, initialProjectId, onMounte
                 </span>
               )}
             </div>
+            <div style={{ marginLeft: 'auto', display: 'flex', gap: 8, alignItems: 'center' }}>
+              {/* Scale selector — moved to line 1 right */}
+              <div style={{ position: 'relative' }}>
+                <button onClick={() => setShowScaleMenu(m => !m)}
+                  className="toolbar-btn">
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M1 6h10M1 3h10M1 9h6" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg>
+                  {timeScale === 'week' ? t('scale_week') : timeScale === 'month' ? t('scale_month') : timeScale === 'semester' ? t('scale_semester') : t('scale_year')}
+                  <svg width="8" height="8" viewBox="0 0 8 8" fill="none"><path d="M1 3l3 3 3-3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg>
+                </button>
+                {showScaleMenu && (
+                  <>
+                    <div style={{ position: 'fixed', inset: 0, zIndex: 49 }} onClick={() => setShowScaleMenu(false)} />
+                    <div style={{ position: 'absolute', right: 0, top: 'calc(100% + 4px)', background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 10, boxShadow: '0 8px 24px rgba(124,92,191,0.15)', zIndex: 50, overflow: 'hidden', minWidth: 140 }}>
+                      {(['week', 'month', 'semester', 'year'] as const).map(scale => (
+                            <button key={scale} onClick={() => { setTimeScale(scale); setShowScaleMenu(false); }}
+                              style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '9px 14px', border: 'none', background: timeScale === scale ? 'var(--accent-subtle)' : 'none', color: timeScale === scale ? 'var(--accent)' : 'var(--text)', cursor: 'pointer', fontSize: 13, fontWeight: timeScale === scale ? 700 : 400, fontFamily: 'inherit', textAlign: 'left' }}>
+                              {timeScale === scale && <span style={{ color: 'var(--accent)', fontSize: 10 }}>✓</span>}
+                              {scale === 'week' ? t('scale_week') : scale === 'month' ? t('scale_month') : scale === 'semester' ? t('scale_semester') : t('scale_year')}
+                            </button>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
+              {/* + New dropdown */}
+              <div style={{ position: 'relative' }}>
+                <button className="btn btn-primary" onClick={() => setShowNewMenu(m => !m)}
+                  style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  + {t('new_btn')}
+                  <svg width="10" height="10" viewBox="0 0 10 10" fill="none" style={{ opacity: 0.8 }}>
+                    <path d="M2 4l3 3 3-3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </button>
+                {showNewMenu && (
+                  <>
+                    <div style={{ position: 'fixed', inset: 0, zIndex: 49 }} onClick={() => setShowNewMenu(false)} />
+                    <div style={{ position: 'absolute', right: 0, top: 'calc(100% + 6px)', background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 10, boxShadow: '0 8px 24px rgba(124,92,191,0.15)', zIndex: 50, overflow: 'hidden', minWidth: 160, animation: 'dropIn 0.12s ease' }}>
+                      <button style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '10px 16px', border: 'none', background: 'none', cursor: 'pointer', fontSize: 13, color: 'var(--text)', fontFamily: 'inherit', textAlign: 'left' }}
+                            onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg3)')}
+                            onMouseLeave={e => (e.currentTarget.style.background = 'none')}
+                            onClick={() => {
+                              setShowNewMenu(false);
+                              setEditPhase({ id: uuid(), projectId: selProj, name: '', startDate: new Date().toISOString().slice(0,10), duration: 30, color: PHASE_COLORS[phases.length % PHASE_COLORS.length], dependsOn: null, subphases: [] } as unknown as GanttPhase);
+                              setIsNew(true);
+                            }}>
+                            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1" y="4" width="8" height="3" rx="1.5" fill="var(--accent)"/><rect x="4" y="8" width="9" height="3" rx="1.5" fill="var(--accent)" opacity="0.5"/></svg>
+                            <span><strong>{t('new_phase')}</strong><div style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 1 }}>{t('phase_hint')}</div></span>
+                      </button>
+                      <div style={{ height: 1, background: 'var(--border)', margin: '0 10px' }} />
+                      <button style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '10px 16px', border: 'none', background: 'none', cursor: 'pointer', fontSize: 13, color: 'var(--text)', fontFamily: 'inherit', textAlign: 'left' }}
+                            onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg3)')}
+                            onMouseLeave={e => (e.currentTarget.style.background = 'none')}
+                            onClick={() => {
+                              setShowNewMenu(false);
+                              setEditMilestone({ id: uuid(), projectId: selProj, name: '', date: project?.goLive ?? new Date().toISOString().slice(0,10), type: (settings.milestoneTypes as any)?.[1] ?? 'Kick-off', isAutoGoLive: false });
+                              setIsNewMilestone(true);
+                            }}>
+                            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1L13 7L7 13L1 7L7 1Z" fill="var(--accent2)"/></svg>
+                            <span><strong>{t('new_milestone')}</strong><div style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 1 }}>{t('milestone_hint')}</div></span>
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
           </div>
         )}
       </div>
@@ -378,7 +380,7 @@ export default function GanttView({ data, updateData, initialProjectId, onMounte
       ) : (
         <div className="card card-table" style={{ padding: 0, overflow: 'hidden', marginTop: 20 }}>
           <div style={{ overflow:'auto', maxHeight:'calc(100vh - 195px)' }}>
-            <div style={{ minWidth: LEFT_W + chartW }}>
+            <div style={{ minWidth: LEFT_W + chartW, position: 'relative' }}>
               {/* Sticky header row — same as Portfolio Gantt */}
               <div style={{ display:'flex', background:'#3D3A4E', borderBottom:'none', position:'sticky', top:0, zIndex:6 }}>
                 <div style={{ width:LEFT_W, minWidth:LEFT_W, flexShrink:0, borderRight:'1px solid rgba(255,255,255,0.10)', height:38, display:'flex', alignItems:'center', padding:'0 16px', position:'sticky', top:0, left:0, zIndex:25, background:'#3D3A4E' }}>
