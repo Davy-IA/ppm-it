@@ -263,11 +263,44 @@ html, body {
 
 /* ── DARK MODE ── */
 [data-theme="dark"] .data-table thead th {
-  background: #1A1730;
-  color: #C8C2E0;
+  background: #2D2A42;
+  color: #E8E2F8;
 }
+[data-theme="dark"] .data-table thead th.sticky-left,
+[data-theme="dark"] .data-table thead th.sticky-left-2,
+[data-theme="dark"] .data-table thead th.sticky-left-3,
+[data-theme="dark"] .data-table thead th:first-child {
+  background: #2D2A42;
+}
+
+/* Col1 body: ::before must use dark bg, not white */
 [data-theme="dark"] .data-table tbody td:first-child {
   background: var(--bg2);
+}
+[data-theme="dark"] .data-table tbody td:first-child::before {
+  background: var(--bg2) !important;
+}
+[data-theme="dark"] .data-table tbody tr:hover td:first-child::before {
+  background: var(--accent-subtle) !important;
+}
+[data-theme="dark"] .data-table tbody tr:hover td:not(:first-child) {
+  background: var(--accent-subtle);
+}
+
+/* Sticky-left-2/3 dark */
+[data-theme="dark"] .data-table tbody td.sticky-left-2,
+[data-theme="dark"] .data-table tbody td.sticky-left-3 {
+  background: var(--bg2);
+}
+[data-theme="dark"] .data-table tbody tr:hover td.sticky-left-2,
+[data-theme="dark"] .data-table tbody tr:hover td.sticky-left-3 {
+  background: var(--accent-subtle);
+}
+
+/* cap-cell dark */
+[data-theme="dark"] th.cap-cell {
+  background: #2D2A42 !important;
+  color: #E8E2F8 !important;
 }
 
 /* ── SCROLL CONTAINER ── */
