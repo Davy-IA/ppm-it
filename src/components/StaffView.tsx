@@ -234,7 +234,7 @@ export default function StaffView({ data, updateData }: Props) {
                         }}>
                           <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><rect x="1" y="4" width="7" height="8" rx="1.2" stroke="currentColor" strokeWidth="1.3"/><path d="M4 4V2.5A1.5 1.5 0 015.5 1H10a1.5 1.5 0 011.5 1.5V8A1.5 1.5 0 0110 9.5H8.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg>
                         </button>
-                        <button className="btn btn-danger btn-sm" onClick={() => setConfirmAction(() => remove(s.id))}><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 3.5h9M5 3.5V2.5h3v1M10.5 3.5l-.7 7H3.2l-.7-7" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg></button>
+                        <button className="btn btn-danger btn-sm" onClick={() => setConfirmAction(() => remove(s.id))}><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 2l9 9M11 2l-9 9" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg></button>
                       </div>
                     </td>
                   </tr>
@@ -251,7 +251,7 @@ export default function StaffView({ data, updateData }: Props) {
           <div className="modal" style={{ maxWidth: 520 }} onClick={e => e.stopPropagation()}>
             <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <h2 style={{ fontSize: 16, fontWeight: 700 }}>{isNew ? t('new_staff') : editing.name}</h2>
-              <button className="btn btn-ghost btn-sm" onClick={() => setEditing(null)}><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 3.5h9M5 3.5V2.5h3v1M10.5 3.5l-.7 7H3.2l-.7-7" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg></button>
+              <button className="btn btn-ghost btn-sm" onClick={() => setEditing(null)}><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 2l9 9M11 2l-9 9" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg></button>
             </div>
             <div style={{ padding: 24 }}>
               {/* Info fields */}

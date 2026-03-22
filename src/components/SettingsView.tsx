@@ -72,7 +72,6 @@ export default function SettingsView({ data, updateData, spaces, onRefreshSpaces
     { key: 'countries',     labelKey: 'settings_countries' },
     { key: 'requestTypes',  labelKey: 'settings_request_types' },
     { key: 'sponsors',      labelKey: 'settings_sponsors' },
-    { key: 'milestoneTypes',labelKey: 'settings_milestones' },
     { key: 'partnerTypes',  labelKey: 'settings_partner_types' },
   ];
 

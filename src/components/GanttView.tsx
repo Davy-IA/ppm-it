@@ -566,7 +566,7 @@ export default function GanttView({ data, updateData, initialProjectId, onMounte
           <div className="modal" style={{maxWidth:520}} onClick={e=>e.stopPropagation()}>
             <div style={{padding:'20px 24px',borderBottom:'1px solid var(--border)',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
               <span style={{fontWeight:700,fontSize:15}}>{isNew?t('new_phase_title'):t('edit_phase_title')}</span>
-              <button className="btn-icon" onClick={()=>{setEditPhase(null);setIsNew(false);}}><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 3.5h9M5 3.5V2.5h3v1M10.5 3.5l-.7 7H3.2l-.7-7" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg></button>
+              <button className="btn-icon" onClick={()=>{setEditPhase(null);setIsNew(false);}}><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 2l9 9M11 2l-9 9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg></button>
             </div>
             <div style={{padding:24,display:'flex',flexDirection:'column',gap:16}}>
               <div>
@@ -622,7 +622,7 @@ export default function GanttView({ data, updateData, initialProjectId, onMounte
                   <span style={{fontWeight:700,fontSize:15}}>{isNew ? t('new_subphase') : t('edit_subphase')}</span>
                   <div style={{fontSize:12,color:'var(--text-muted)',marginTop:2}}>Phase : {parentPhase.name}</div>
                 </div>
-                <button className="btn-icon" onClick={()=>{setEditSub(null);setAddSubPhase(null);}}><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 3.5h9M5 3.5V2.5h3v1M10.5 3.5l-.7 7H3.2l-.7-7" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg></button>
+                <button className="btn-icon" onClick={()=>{setEditSub(null);setAddSubPhase(null);}}><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 2l9 9M11 2l-9 9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg></button>
               </div>
               <SubForm
                 initial={subForm}
@@ -646,20 +646,12 @@ export default function GanttView({ data, updateData, initialProjectId, onMounte
           <div className="modal" style={{ maxWidth: 420 }} onClick={e => e.stopPropagation()}>
             <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ fontWeight: 700, fontSize: 15 }}>◆ {isNewMilestone ? t('new_milestone') : t('edit_milestone')}</span>
-              <button className="btn-icon" onClick={() => setConfirmAction(() => { setEditMilestone(null); setIsNewMilestone(false); })}><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 3.5h9M5 3.5V2.5h3v1M10.5 3.5l-.7 7H3.2l-.7-7" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg></button>
+              <button className="btn-icon" onClick={() => { setEditMilestone(null); setIsNewMilestone(false); }}><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 2l9 9M11 2l-9 9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg></button>
             </div>
             <div style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div>
                 <label style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 600, display: 'block', marginBottom: 6 }}>{t('field_name_required')}</label>
                 <input className="input" value={editMilestone.name} onChange={e => setEditMilestone({ ...editMilestone, name: e.target.value })} placeholder={String(t('milestone_name'))} />
-              </div>
-              <div>
-                <label style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 600, display: 'block', marginBottom: 6 }}>{t('milestone_type')}</label>
-                <select className="input" value={editMilestone.type} onChange={e => setEditMilestone({ ...editMilestone, type: e.target.value })}>
-                  {((settings.milestoneTypes as any) ?? ['Kick-off', 'UAT', 'Go-Live']).filter((mt: string) => mt !== 'Go-Live').map((mt: string) => (
-                    <option key={mt} value={mt}>{mt}</option>
-                  ))}
-                </select>
               </div>
               <div>
                 <label style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 600, display: 'block', marginBottom: 6 }}>{t('milestone_date')}</label>
