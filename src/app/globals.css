@@ -163,8 +163,9 @@ html, body {
   z-index: 2;
   background: var(--bg2);
 }
+.data-table tbody tr:hover td,
 .data-table tbody tr:hover td:first-child {
-  background: var(--accent-subtle);
+  background: var(--accent-subtle) !important;
 }
 
 /* Header row sticky */
