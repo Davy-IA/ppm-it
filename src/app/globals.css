@@ -722,34 +722,4 @@ th.cap-cell {
 .toolbar-select:hover, .toolbar-select:focus { color: var(--text); box-shadow: 0 2px 8px rgba(124,92,191,.15); }
 
 
-/* ═══════════════════════════════════════════════════════════
-   ALL TABLE HEADERS — anthracite #3D3A4E + white text
-   Single source of truth — covers every case.
-   !important ensures inline styles & specificity wars are won.
-═══════════════════════════════════════════════════════════ */
-.data-table th,
-.data-table thead th,
-.data-table thead tr th,
-th.cap-cell,
-.utbl-head,
-.utbl-th,
-.utbl-th.sticky {
-  background: #3D3A4E !important;
-  color: #FFFFFF !important;
-  border-bottom: none !important;
-  border-right: 1px solid rgba(255,255,255,0.10) !important;
-}
 
-
-
-/* Dark mode overrides */
-[data-theme="dark"] .data-table th,
-[data-theme="dark"] .data-table thead th,
-[data-theme="dark"] .data-table thead tr th,
-[data-theme="dark"] th.cap-cell,
-[data-theme="dark"] .utbl-head,
-[data-theme="dark"] .utbl-th,
-[data-theme="dark"] .utbl-th.sticky {
-  background: #1A1730 !important;
-  color: #C8C2E0 !important;
-}
