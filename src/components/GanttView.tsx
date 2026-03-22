@@ -308,7 +308,7 @@ export default function GanttView({ data, updateData, initialProjectId, onMounte
                 {showScaleMenu && (
                   <>
                     <div style={{ position: 'fixed', inset: 0, zIndex: 49 }} onClick={() => setShowScaleMenu(false)} />
-                    <div style={{ position: 'absolute', right: 0, top: 'calc(100% + 4px)', background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 10, boxShadow: '0 8px 24px rgba(124,92,191,0.15)', zIndex: 1200, overflow: 'hidden', minWidth: 140 }}>
+                    <div style={{ position: 'fixed', top: 'auto', right: 'auto', background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 10, boxShadow: '0 8px 24px rgba(124,92,191,0.15)', zIndex: 9999, overflow: 'hidden', minWidth: 140 }}>
                       {(['week', 'month', 'semester', 'year'] as const).map(scale => (
                             <button key={scale} onClick={() => { setTimeScale(scale); setShowScaleMenu(false); }}
                               style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '9px 14px', border: 'none', background: timeScale === scale ? 'var(--accent-subtle)' : 'none', color: timeScale === scale ? 'var(--accent)' : 'var(--text)', cursor: 'pointer', fontSize: 13, fontWeight: timeScale === scale ? 700 : 400, fontFamily: 'inherit', textAlign: 'left' }}>
@@ -332,7 +332,7 @@ export default function GanttView({ data, updateData, initialProjectId, onMounte
                 {showNewMenu && (
                   <>
                     <div style={{ position: 'fixed', inset: 0, zIndex: 49 }} onClick={() => setShowNewMenu(false)} />
-                    <div style={{ position: 'absolute', right: 0, top: 'calc(100% + 6px)', background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 10, boxShadow: '0 8px 24px rgba(124,92,191,0.15)', zIndex: 1200, overflow: 'hidden', minWidth: 160, animation: 'dropIn 0.12s ease' }}>
+                    <div style={{ position: 'fixed', top: 'auto', right: 'auto', background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 10, boxShadow: '0 8px 24px rgba(124,92,191,0.15)', zIndex: 9999, overflow: 'hidden', minWidth: 160, animation: 'dropIn 0.12s ease' }}>
                       <button style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '10px 16px', border: 'none', background: 'none', cursor: 'pointer', fontSize: 13, color: 'var(--text)', fontFamily: 'inherit', textAlign: 'left' }}
                             onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg3)')}
                             onMouseLeave={e => (e.currentTarget.style.background = 'none')}
@@ -392,8 +392,8 @@ export default function GanttView({ data, updateData, initialProjectId, onMounte
 
               {/* Milestone name row — sticky band below header */}
               {milestones.filter(m => !m.isAutoGoLive).length > 0 && (
-                <div style={{ position:'sticky', top:38, zIndex:999, background:'var(--bg2)', borderBottom:'1px solid var(--border)', height:26, display:'flex', alignItems:'center' }}>
-                  <div style={{ width:LEFT_W, minWidth:LEFT_W, flexShrink:0, position:'sticky', left:0, zIndex:1000, background:'var(--bg2)', borderRight:'1px solid var(--border)', height:'100%' }} />
+                <div style={{ position:'sticky', top:38, zIndex:999, background:'var(--bg2)', borderBottom:'1px solid rgba(124,92,191,0.15)', height:26, display:'flex', alignItems:'center', position:'sticky', top:38, zIndex:999 }}>
+                  <div style={{ width:LEFT_W, minWidth:LEFT_W, flexShrink:0, position:'sticky', left:0, zIndex:1000, background:'var(--bg2)', borderRight:'1px solid var(--border)', height:26, flexShrink:0 }} />
                   <div style={{ flex:1, position:'relative', height:'100%' }}>
                     {milestones.filter(m => !m.isAutoGoLive).map(m => {
                       const mx = daysBetween(displayMin, m.date) * DAY_PX_DYN;
@@ -432,7 +432,7 @@ export default function GanttView({ data, updateData, initialProjectId, onMounte
                       </div>
                     </div>
                     {!ph.collapsed && ph.subphases.map(sub => (
-                      <div key={sub.id} style={{ height:34, borderBottom:'1px solid var(--border)', background:'transparent', display:'flex', alignItems:'center', padding:'0 8px 0 30px', gap:6, isolation:'isolate' }}>
+                      <div key={sub.id} style={{ height:34, borderBottom:'1px solid var(--border)', background:'rgba(124,92,191,0.03)', display:'flex', alignItems:'center', padding:'0 8px 0 30px', gap:6, isolation:'isolate' }}>
                         <div style={{width:7,height:7,borderRadius:2,background:ph.color||'#10b981',opacity:0.6,flexShrink:0}}/>
                         <span style={{fontSize:12,flex:1,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',color:'var(--text-muted)'}}>{sub.name}</span>
                         <div style={{display:'flex',gap:2,flexShrink:0}}>
@@ -484,7 +484,7 @@ export default function GanttView({ data, updateData, initialProjectId, onMounte
                           const sx = daysBetween(displayMin, sub.startDate)*DAY_PX_DYN;
                           const sw = Math.max(sub.duration*DAY_PX_DYN, 10);
                           return (
-                            <div key={sub.id} style={{ position:'relative', height:34, borderBottom:'1px solid var(--border)', background:'transparent' }}>
+                            <div key={sub.id} style={{ position:'relative', height:34, borderBottom:'1px solid var(--border)', background:'rgba(124,92,191,0.03)' }}>
                               <div style={{ position:'absolute', top:6, left:sx, width:sw, height:22, borderRadius:5, background:ph.color||'#10b981', opacity:0.72, cursor:'pointer', display:'flex', alignItems:'center', padding:'0 6px', transition:'opacity 0.15s' }}
                                 onClick={()=>{setEditSub({sub:{...sub},phase:ph});setIsNew(false);}}
                                 title={`${sub.name} — ${fmt(sub.startDate)} → ${fmt(addDays(sub.startDate,sub.duration))} (${sub.duration}j)`}>
