@@ -176,6 +176,8 @@ html, body {
   color: var(--text);
   white-space: nowrap;
   background: var(--bg2);
+  position: relative;
+  z-index: 1;
 }
 .data-table tbody tr:last-child td { border-bottom: none; }
 
