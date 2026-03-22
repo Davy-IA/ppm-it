@@ -195,7 +195,8 @@ html, body {
   background: var(--accent-subtle);
 }
 .data-table tbody tr:hover td:first-child {
-  background: var(--accent-subtle);
+  background: var(--accent-subtle) !important;
+  z-index: 3 !important;
 }
 
 /* ── DARK MODE ── */
