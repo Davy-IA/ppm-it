@@ -115,12 +115,12 @@ export default function ProjectsView({ data, updateData, setView, onNavigateToPl
     <div className="animate-in">
       <div className="page-sticky-header">
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-          <input className="input" placeholder={t('search')} value={search} onChange={e => setSearch(e.target.value)} style={{ maxWidth: 220 }} />
-          <select className="input" value={statusFilter} onChange={e => setStatusFilter(e.target.value)} style={{ maxWidth: 155 }}>
+          <input className="toolbar-select" placeholder={t('search')} value={search} onChange={e => setSearch(e.target.value)} style={{ maxWidth: 220 }} />
+          <select className="toolbar-select" value={statusFilter} onChange={e => setStatusFilter(e.target.value)} style={{ maxWidth: 155 }}>
             <option value="">{t('all_statuses')}</option>
             {spaceStatuses.map(s => <option key={s} value={s}>{s.replace(/^\d-/, '')}</option>)}
           </select>
-          <select className="input" value={domainFilter} onChange={e => setDomainFilter(e.target.value)} style={{ maxWidth: 120 }}>
+          <select className="toolbar-select" value={domainFilter} onChange={e => setDomainFilter(e.target.value)} style={{ maxWidth: 120 }}>
             <option value="">{t('all_domains')}</option>
             {spaceDomains.map(d => <option key={d} value={d}>{d}</option>)}
           </select>
@@ -162,7 +162,7 @@ export default function ProjectsView({ data, updateData, setView, onNavigateToPl
               )}
             </div>
           )}
-          <div style={{ display: 'flex', border: '1px solid var(--border)', borderRadius: 8, overflow: 'hidden' }}>
+          <div style={{ display: 'flex', gap: 2 }}>
             <button onClick={() => setViewMode('list')} className={`toolbar-btn${viewMode === 'list' ? ' primary' : ''}`}>
               <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><rect x="1" y="1" width="11" height="2" rx="1" fill="currentColor"/><rect x="1" y="5" width="11" height="2" rx="1" fill="currentColor"/><rect x="1" y="9" width="11" height="2" rx="1" fill="currentColor"/></svg>
               {t('view_list')}
@@ -215,8 +215,8 @@ export default function ProjectsView({ data, updateData, setView, onNavigateToPl
 
       {/* Table — same structure as Workload (proven working) */}
       {viewMode === 'list' && (
-        <div className="card card-table" style={{ padding: 0, overflow: 'hidden', marginTop: 16 }}>
-          <div className="utbl-wrap" style={{ maxHeight: 'calc(100vh - 190px)' }}>
+        <div className="card card-table" style={{ padding: 0, overflow: 'hidden', marginTop: 20 }}>
+          <div className="utbl-wrap" style={{ maxHeight: 'calc(100vh - 155px)' }}>
             <table className="data-table">
               <thead>
                 <tr>
