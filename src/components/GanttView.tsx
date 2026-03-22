@@ -404,7 +404,7 @@ export default function GanttView({ data, updateData, initialProjectId, onMounte
           {/* Milestone name row — always visible, same badge style as Today/GoLive */}
           <div style={{ background:'var(--bg2)', borderBottom:'1px solid rgba(124,92,191,0.15)', height:26, display:'flex', alignItems:'center', flexShrink:0 }}>
             <div style={{ width:LEFT_W, minWidth:LEFT_W, flexShrink:0, background:'var(--bg2)', borderRight:'1px solid var(--border)', height:26 }} />
-            <div ref={nameRowRef} style={{ flex:1, position:'relative', height:'100%', overflow:'hidden' }}>
+            <div style={{ flex:1, position:'relative', height:'100%', overflow:'hidden'}}><div ref={nameRowRef} style={{ position:'absolute', top:0, left:0, right:0, bottom:0 }}>
               {/* Today badge */}
               {todayX>=0 && todayX<=chartW && (
                 <div style={{ position:'absolute', left: todayX + 3, top:4 }}>
@@ -434,9 +434,9 @@ export default function GanttView({ data, updateData, initialProjectId, onMounte
                   </div>
                 );
               })}
-            </div>
+            </div></div>
           </div>
-          <div ref={scrollRef} style={{ overflow:'auto', maxHeight:'calc(100vh - 221px)' }} onScroll={e => { if (nameRowRef.current) nameRowRef.current.scrollLeft = (e.target as HTMLDivElement).scrollLeft; }}>
+          <div ref={scrollRef} style={{ overflow:'auto', maxHeight:'calc(100vh - 221px)' }} onScroll={e => { if (nameRowRef.current) nameRowRef.current.style.transform = `translateX(-${(e.target as HTMLDivElement).scrollLeft}px)`; }}>
             <div style={{ minWidth: LEFT_W + chartW }}>
               {/* Sticky header row — exact copy of Portfolio Gantt */}
               <div style={{ display:'flex', background:'#3D3A4E', borderBottom:'none', position:'sticky', top:0, zIndex:1000 }}>
