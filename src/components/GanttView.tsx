@@ -517,7 +517,23 @@ export default function GanttView({ data, updateData, initialProjectId, onMounte
               </div>
               </div>{/* end body flex row */}
             </div>
-          </div> placeholder="Ex: Cadrage & Discovery"/>
+          </div>
+
+        </div>
+      )}
+
+      {/* Phase Modal */}
+      {editPhase && (
+        <div className="modal-overlay" onClick={()=>{setEditPhase(null);setIsNew(false);}}>
+          <div className="modal" style={{maxWidth:520}} onClick={e=>e.stopPropagation()}>
+            <div style={{padding:'20px 24px',borderBottom:'1px solid var(--border)',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+              <span style={{fontWeight:700,fontSize:15}}>{isNew?t('new_phase_title'):t('edit_phase_title')}</span>
+              <button className="btn-icon" onClick={()=>{setEditPhase(null);setIsNew(false);}}><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 3.5h9M5 3.5V2.5h3v1M10.5 3.5l-.7 7H3.2l-.7-7" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg></button>
+            </div>
+            <div style={{padding:24,display:'flex',flexDirection:'column',gap:16}}>
+              <div>
+                <label style={{fontSize:12,color:'var(--text-muted)',fontWeight:600,display:'block',marginBottom:6}}>{t('field_phase_name')}</label>
+                <input className="input" value={editPhase.name} onChange={e=>setEditPhase({...editPhase,name:e.target.value})} placeholder="Ex: Cadrage & Discovery"/>
               </div>
               <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:14}}>
                 <div>
