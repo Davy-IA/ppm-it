@@ -386,14 +386,13 @@ export default function GanttView({ data, updateData, initialProjectId, onMounte
                   return (
                     <div key={m.id} style={{ position:'absolute', left: mx - 4, top:4, display:'flex', alignItems:'center', gap:3, cursor:'pointer' }}
                       onClick={() => { setEditMilestone({...m}); setIsNewMilestone(false); }}>
-                      <span style={{ color:'var(--accent2)', fontSize:10 }}>◆</span>
                       <span style={{ fontSize:10, fontWeight:600, color:'var(--accent2)', whiteSpace:'nowrap' as const }}>{m.name}</span>
                     </div>
                   );
               })}
             </div>
           </div>
-          <div style={{ overflow:'auto', maxHeight:'calc(100vh - 195px)' }}>
+          <div style={{ overflow:'auto', maxHeight:'calc(100vh - 221px)' }}>
             <div style={{ minWidth: LEFT_W + chartW }}>
               {/* Sticky header row — exact copy of Portfolio Gantt */}
               <div style={{ display:'flex', background:'#3D3A4E', borderBottom:'none', position:'sticky', top:0, zIndex:1000 }}>
@@ -502,15 +501,9 @@ export default function GanttView({ data, updateData, initialProjectId, onMounte
                     if (mx < -20 || mx > chartW + 20) return null;
                     return (
                       <div key={m.id}
-                        style={{ position:'absolute', left: mx - 1, top: 0, bottom: 0, width: 2, background:'var(--accent2)', opacity:0.8 }}>
-                        {/* Diamond at top — always on first row */}
-                        <div style={{ position:'absolute', top: 0, left: -7, pointerEvents:'all', cursor:'pointer' }}
-                          onClick={() => { setEditMilestone({...m}); setIsNewMilestone(false); }}
-                          title={`${m.name} — ${fmt(m.date)}`}>
-                          <div style={{ width:0, height:0, borderLeft:'8px solid transparent', borderRight:'8px solid transparent', borderBottom:'12px solid var(--accent2)' }}/>
-                          <div style={{ width:0, height:0, borderLeft:'8px solid transparent', borderRight:'8px solid transparent', borderTop:'12px solid var(--accent2)', marginTop:-1 }}/>
-                        </div>
-                      </div>
+                        style={{ position:'absolute', left: mx - 1, top: 0, bottom: 0, width: 2, background:'var(--accent2)', opacity:0.8, cursor:'pointer', pointerEvents:'all' }}
+                        onClick={() => { setEditMilestone({...m}); setIsNewMilestone(false); }}
+                        title={`${m.name} — ${fmt(m.date)}`} />
                     );
                   })}
                 </div>
