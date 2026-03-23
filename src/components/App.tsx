@@ -118,7 +118,7 @@ export default function App() {
       />
       <main className="app-content">
         {view === 'dashboard' && <DashboardHub data={data} setView={setView} />}
-        {view === 'projects' && <ProjectsView data={data} updateData={updateData} onNavigateToPlanning={(id, openNew) => { setPlanProjectId(id); setPlanOpenNew(openNew ?? false); setView('gantt'); }} />}
+        {view === 'projects' && <ProjectsView data={data} updateData={updateData} onNavigateToPlanning={(id, openNew) => { setPlanOpenNew(openNew === true); setPlanProjectId(id); setView('gantt'); }} />}
         {view === 'gantt' && <GanttView data={data} updateData={updateData} initialProjectId={planProjectId} openNewPhase={planOpenNew} onMounted={() => { setPlanProjectId(null); setPlanOpenNew(false); }} />}
         {view === 'staff' && <StaffView data={data} updateData={updateData} />}
         {view === 'workload' && <WorkloadView data={data} updateData={updateData} />}
