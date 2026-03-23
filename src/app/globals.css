@@ -332,9 +332,8 @@ th.cap-cell {
   text-transform: uppercase;
   letter-spacing: 0.04em;
   padding: 9px 4px;
-  text-align: center;
+  text-align: center !important;
 }
-[data-theme="dark"] th.cap-cell { background: #1A1730 !important; color: #C8C2E0 !important; }
 
 /* Capacity coloring — only color, no bold */
 .cap-ok   { background: var(--success-subtle); color: var(--success); }
