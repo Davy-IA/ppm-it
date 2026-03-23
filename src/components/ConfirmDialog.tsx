@@ -17,7 +17,7 @@ export default function ConfirmDialog({ onConfirm, onCancel }: Props) {
         background: 'var(--bg2)', border: '1px solid var(--border)',
         borderRadius: 14, boxShadow: '0 12px 40px rgba(0,0,0,0.25)',
         zIndex: 9999, padding: '28px 32px', minWidth: 280, textAlign: 'center',
-        animation: 'fadeIn 0.15s ease',
+        animation: 'fadeOnly 0.15s ease',
       }}>
         <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', marginBottom: 22 }}>
           {t('confirm_delete')}
