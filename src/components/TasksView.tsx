@@ -246,9 +246,25 @@ export default function TasksView({ data, updateData }: Props) {
   const { user } = useAuth();
   const [tab, setTab] = useState<TabView>('by_project');
 
-  // Filters
-  const [projectFilter, setProjectFilter] = useState<string[]>([]);
-  const [mySelfOnly, setMySelfOnly] = useState(false);
+  // Filters — by_project: single project required; by_resource: resource + multi-project
+  const allProjects = data.projects;
+  const firstProjectId = allProjects[0]?.id ?? '';
+
+  // Vue "par projet" — single mandatory project selector (like GanttView)
+  const [selectedProject, setSelectedProject] = useState<string>(firstProjectId);
+
+  // Vue "par ressource" — resource selector + multi-project checkboxes
+  const [resourceFilter, setResourceFilter] = useState<string>(''); // staffId, default = currentStaff
+  const [resourceProjects, setResourceProjects] = useState<string[]>([]); // empty = all
+
+  // Shared status filter (multi-select checkboxes) — shown in both views
+  const [statusFilters, setStatusFilters] = useState<TaskStatus[]>([]);
+  const toggleStatus = (s: TaskStatus) =>
+    setStatusFilters(prev => prev.includes(s) ? prev.filter(x => x !== s) : [...prev, s]);
+
+  // Dropdowns open state
+  const [showStatusDrop, setShowStatusDrop] = useState(false);
+  const [showProjDrop, setShowProjDrop] = useState(false);
 
   // Task CRUD state
   const [tasks, setTasks] = useState<Task[]>((data as any).tasks ?? []);
@@ -285,13 +301,30 @@ export default function TasksView({ data, updateData }: Props) {
     [data.staff, user]
   );
 
-  // Filter tasks
+  // Init resource filter to current user on first render
+  const effectiveResource = resourceFilter || currentStaff?.id || (data.staff[0]?.id ?? '');
+
+  // Tasks filtered for "par projet" view
+  const projectTasks = useMemo(() => {
+    let ts = tasks.filter(t => t.projectId === selectedProject);
+    if (statusFilters.length > 0) ts = ts.filter(t => statusFilters.includes(t.status));
+    return ts;
+  }, [tasks, selectedProject, statusFilters]);
+
+  // Tasks filtered for "par ressource" view
+  const resourceTasks = useMemo(() => {
+    let ts = tasks.filter(t => t.ownerId === effectiveResource || t.subtasks.some(s => s.ownerId === effectiveResource));
+    if (resourceProjects.length > 0) ts = ts.filter(t => resourceProjects.includes(t.projectId));
+    if (statusFilters.length > 0) ts = ts.filter(t => statusFilters.includes(t.status));
+    return ts;
+  }, [tasks, effectiveResource, resourceProjects, statusFilters]);
+
+  // Tasks for milestone view — no project/resource filter, only status
   const filteredTasks = useMemo(() => {
     let ts = tasks;
-    if (projectFilter.length > 0) ts = ts.filter(t => projectFilter.includes(t.projectId));
-    if (mySelfOnly && currentStaff) ts = ts.filter(t => t.ownerId === currentStaff.id || t.subtasks.some(s => s.ownerId === currentStaff.id));
+    if (statusFilters.length > 0) ts = ts.filter(t => statusFilters.includes(t.status));
     return ts;
-  }, [tasks, projectFilter, mySelfOnly, currentStaff]);
+  }, [tasks, statusFilters]);
 
   // ── RENDER HELPERS ──────────────────────────────────────────────────────
 
@@ -478,44 +511,42 @@ export default function TasksView({ data, updateData }: Props) {
 
   // ── VIEW: BY PROJECT ───────────────────────────────────────────────────
   const renderByProject = () => {
-    // Group tasks by project → phase → subphase
-    const tasksByProject = data.projects.reduce<Record<string, Task[]>>((acc, p) => {
-      acc[p.id] = filteredTasks.filter(t => t.projectId === p.id);
-      return acc;
-    }, {});
+    if (!selectedProject) {
+      return (
+        <div className="card" style={{ textAlign: 'center', padding: 60, color: 'var(--text-faint)', marginTop: 20 }}>
+          <div style={{ fontSize: 32, marginBottom: 10 }}>📋</div>
+          <p style={{ color: 'var(--text-muted)', fontFamily: 'var(--font)', fontSize: 13 }}>{t('select_project')}</p>
+        </div>
+      );
+    }
 
-    const allPhases = data.ganttPhases;
+    const phasesForProject = data.ganttPhases.filter(p => p.projectId === selectedProject);
 
     return (
       <div className="card card-table" style={{ borderRadius: 'var(--radius-lg)', overflow: 'hidden' }}>
         <div className="utbl-wrap" style={{ maxHeight: 'calc(100vh - 168px)' }}>
           <div className="utbl-inner">
             {renderTableHead()}
-            {filteredTasks.length === 0 ? renderEmpty() : data.projects.filter(proj => (tasksByProject[proj.id] ?? []).length > 0).map(proj => {
-              const projTasks = tasksByProject[proj.id] ?? [];
-              const phasesForProject = allPhases.filter(p => p.projectId === proj.id);
+            {projectTasks.length === 0 ? renderEmpty() : phasesForProject.map(phase => {
+              const phaseTasks = projectTasks.filter(t => t.phaseId === phase.id && !t.subphaseId);
+              const spGroups = phase.subphases.map(sp => ({
+                sp,
+                tasks: projectTasks.filter(t => t.phaseId === phase.id && t.subphaseId === sp.id),
+              })).filter(g => g.tasks.length > 0);
 
-              return phasesForProject.map(phase => {
-                const phaseTasks = projTasks.filter(t => t.phaseId === phase.id && !t.subphaseId);
-                const spGroups = phase.subphases.map(sp => ({
-                  sp,
-                  tasks: projTasks.filter(t => t.phaseId === phase.id && t.subphaseId === sp.id),
-                })).filter(g => g.tasks.length > 0);
-
-                if (phaseTasks.length === 0 && spGroups.length === 0) return null;
-                return (
-                  <div key={phase.id}>
-                    {renderPhaseRow(phase)}
-                    {phaseTasks.map(task => renderTaskRow(task))}
-                    {spGroups.map(({ sp, tasks: spTasks }) => (
-                      <div key={sp.id}>
-                        {renderSubphaseRow(sp)}
-                        {spTasks.map(task => renderTaskRow(task))}
-                      </div>
-                    ))}
-                  </div>
-                );
-              });
+              if (phaseTasks.length === 0 && spGroups.length === 0) return null;
+              return (
+                <div key={phase.id}>
+                  {renderPhaseRow(phase)}
+                  {phaseTasks.map(task => renderTaskRow(task))}
+                  {spGroups.map(({ sp, tasks: spTasks }) => (
+                    <div key={sp.id}>
+                      {renderSubphaseRow(sp)}
+                      {spTasks.map(task => renderTaskRow(task))}
+                    </div>
+                  ))}
+                </div>
+              );
             })}
           </div>
         </div>
@@ -525,22 +556,16 @@ export default function TasksView({ data, updateData }: Props) {
 
   // ── VIEW: BY RESOURCE ──────────────────────────────────────────────────
   const renderByResource = () => {
-    const staffList = data.staff.filter(s => {
-      if (mySelfOnly && currentStaff) return s.id === currentStaff.id;
-      return filteredTasks.some(t => t.ownerId === s.id || t.subtasks.some(st => st.ownerId === s.id));
-    });
-
-    const sortedStaff = currentStaff
-      ? [currentStaff, ...staffList.filter(s => s.id !== currentStaff.id)]
-      : staffList;
+    const activeStaff = data.staff.find(s => s.id === effectiveResource);
+    const sortedStaff = activeStaff ? [activeStaff] : [];
 
     return (
       <div className="card card-table" style={{ borderRadius: 'var(--radius-lg)', overflow: 'hidden' }}>
         <div className="utbl-wrap" style={{ maxHeight: 'calc(100vh - 168px)' }}>
           <div className="utbl-inner">
             {renderTableHead(true)}
-            {filteredTasks.length === 0 ? renderEmpty() : sortedStaff.map(staff => {
-              const staffTasks = filteredTasks.filter(t => t.ownerId === staff.id);
+            {resourceTasks.length === 0 ? renderEmpty() : sortedStaff.map(staff => {
+              const staffTasks = resourceTasks.filter(t => t.ownerId === staff.id);
               if (staffTasks.length === 0) return null;
 
               // Group by project → phase
@@ -659,11 +684,86 @@ export default function TasksView({ data, updateData }: Props) {
   };
 
   // ── MAIN RENDER ────────────────────────────────────────────────────────
-  const allProjects = data.projects;
+  const STATUS_LIST: TaskStatus[] = ['todo', 'in_progress', 'done', 'blocked'];
+
+  // Status multi-select dropdown — shared across views
+  const StatusDropdown = () => (
+    <div style={{ position: 'relative' }}>
+      <button
+        className={`toolbar-btn${statusFilters.length > 0 ? ' active' : ''}`}
+        onClick={() => { setShowStatusDrop(v => !v); setShowProjDrop(false); }}
+        style={{ display: 'flex', alignItems: 'center', gap: 6 }}
+      >
+        <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M1 3h11M3 6.5h7M5 10h3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+        {t('status')}
+        {statusFilters.length > 0 && <span style={{ background: 'var(--accent)', color: '#fff', borderRadius: 10, padding: '1px 6px', fontSize: 10, fontWeight: 700 }}>{statusFilters.length}</span>}
+      </button>
+      {showStatusDrop && (
+        <>
+          <div style={{ position: 'fixed', inset: 0, zIndex: 3999 }} onClick={() => setShowStatusDrop(false)} />
+          <div style={{ position: 'absolute', top: 'calc(100% + 4px)', left: 0, background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 10, boxShadow: 'var(--shadow)', zIndex: 4000, minWidth: 160, overflow: 'hidden', animation: 'dropIn .15s ease' }}>
+            {STATUS_LIST.map(s => (
+              <label key={s} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 14px', cursor: 'pointer', fontSize: 12, fontFamily: 'var(--font)', color: 'var(--text)' }}
+                onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--bg3)'}
+                onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'none'}>
+                <input type="checkbox" checked={statusFilters.includes(s)} onChange={() => toggleStatus(s)}
+                  style={{ accentColor: 'var(--accent)', width: 14, height: 14, cursor: 'pointer', flexShrink: 0 }} />
+                {t(`task_status_${s}`)}
+              </label>
+            ))}
+            {statusFilters.length > 0 && (
+              <button onClick={() => setStatusFilters([])}
+                style={{ width: '100%', padding: '7px 14px', borderTop: '1px solid var(--border)', fontSize: 11, color: 'var(--danger)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 600, textAlign: 'left' as const }}>
+                ✕ {t('clear_filters')}
+              </button>
+            )}
+          </div>
+        </>
+      )}
+    </div>
+  );
+
+  // Multi-project checkbox dropdown — for resource view
+  const ProjDropdown = () => (
+    <div style={{ position: 'relative' }}>
+      <button
+        className={`toolbar-btn${resourceProjects.length > 0 ? ' active' : ''}`}
+        onClick={() => { setShowProjDrop(v => !v); setShowStatusDrop(false); }}
+        style={{ display: 'flex', alignItems: 'center', gap: 6 }}
+      >
+        {t('task_project')}
+        {resourceProjects.length > 0 && <span style={{ background: 'var(--accent)', color: '#fff', borderRadius: 10, padding: '1px 6px', fontSize: 10, fontWeight: 700 }}>{resourceProjects.length}</span>}
+      </button>
+      {showProjDrop && (
+        <>
+          <div style={{ position: 'fixed', inset: 0, zIndex: 3999 }} onClick={() => setShowProjDrop(false)} />
+          <div style={{ position: 'absolute', top: 'calc(100% + 4px)', left: 0, background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 10, boxShadow: 'var(--shadow)', zIndex: 4000, minWidth: 220, maxHeight: 280, overflowY: 'auto', animation: 'dropIn .15s ease' }}>
+            {data.projects.map(p => (
+              <label key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 14px', cursor: 'pointer', fontSize: 12, fontFamily: 'var(--font)', color: 'var(--text)' }}
+                onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--bg3)'}
+                onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'none'}>
+                <input type="checkbox"
+                  checked={resourceProjects.includes(p.id)}
+                  onChange={() => setResourceProjects(prev => prev.includes(p.id) ? prev.filter(x => x !== p.id) : [...prev, p.id])}
+                  style={{ accentColor: 'var(--accent)', width: 14, height: 14, cursor: 'pointer', flexShrink: 0 }} />
+                {p.name}
+              </label>
+            ))}
+            {resourceProjects.length > 0 && (
+              <button onClick={() => setResourceProjects([])}
+                style={{ width: '100%', padding: '7px 14px', borderTop: '1px solid var(--border)', fontSize: 11, color: 'var(--danger)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 600, textAlign: 'left' as const }}>
+                ✕ {t('clear_filters')}
+              </button>
+            )}
+          </div>
+        </>
+      )}
+    </div>
+  );
 
   return (
     <div className="animate-in">
-      {/* Sticky toolbar — same pattern as WorkloadView */}
+      {/* Sticky toolbar */}
       <div className="page-sticky-header">
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', marginBottom: 16 }}>
 
@@ -680,50 +780,53 @@ export default function TasksView({ data, updateData }: Props) {
             </button>
           </div>
 
-          {/* Separator */}
           <div style={{ width: 1, height: 20, background: 'var(--border)', margin: '0 2px' }} />
 
-          {/* Project filter */}
-          <select className="toolbar-select" style={{ maxWidth: 220 }}
-            value={projectFilter.length === 1 ? projectFilter[0] : ''}
-            onChange={e => {
-              const val = e.target.value;
-              setProjectFilter(val ? [val] : []);
-            }}>
-            <option value="">— {t('all_projects')} —</option>
-            {allProjects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-          </select>
-
-          {/* Me filter */}
-          {currentStaff && (
-            <button
-              className={`toolbar-btn${mySelfOnly ? ' active' : ''}`}
-              onClick={() => setMySelfOnly(v => !v)}
-              style={{ display: 'flex', alignItems: 'center', gap: 6 }}
-            >
-              <Avatar staff={currentStaff} size={16} />
-              {t('task_filter_me')}
-            </button>
+          {/* Vue projet : mandatory single project selector */}
+          {tab === 'by_project' && (
+            <select className="toolbar-select" style={{ maxWidth: 260, fontWeight: 600 }}
+              value={selectedProject}
+              onChange={e => setSelectedProject(e.target.value)}>
+              {data.projects.length === 0
+                ? <option value="">{t('no_project')}</option>
+                : data.projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)
+              }
+            </select>
           )}
 
-          {/* Clear filters */}
-          {(projectFilter.length > 0 || mySelfOnly) && (
+          {/* Vue ressource : resource selector */}
+          {tab === 'by_resource' && (
+            <>
+              <select className="toolbar-select" style={{ maxWidth: 220, fontWeight: 600 }}
+                value={effectiveResource}
+                onChange={e => setResourceFilter(e.target.value)}>
+                {data.staff.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+              </select>
+              <ProjDropdown />
+            </>
+          )}
+
+          {/* Status filter — both views */}
+          {(tab === 'by_project' || tab === 'by_resource') && <StatusDropdown />}
+
+          {/* Clear all */}
+          {statusFilters.length > 0 && tab !== 'milestones' && (
             <button style={{ fontSize: 11, color: 'var(--danger)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 600 }}
-              onClick={() => { setProjectFilter([]); setMySelfOnly(false); }}>
+              onClick={() => { setStatusFilters([]); setResourceProjects([]); }}>
               ✕ {t('clear_filters')}
             </button>
           )}
 
-          {/* Spacer + Add button */}
           <div style={{ marginLeft: 'auto' }}>
             <button className="toolbar-btn primary" onClick={() => {
+              const projId = tab === 'by_project' ? selectedProject : (resourceProjects[0] ?? data.projects[0]?.id ?? '');
               setEditingTask({
                 id: uuid(),
-                projectId: allProjects[0]?.id ?? '',
-                phaseId: data.ganttPhases[0]?.id ?? '',
+                projectId: projId,
+                phaseId: data.ganttPhases.find(p => p.projectId === projId)?.id ?? data.ganttPhases[0]?.id ?? '',
                 subphaseId: null,
                 title: '',
-                ownerId: currentStaff?.id ?? null,
+                ownerId: tab === 'by_resource' ? effectiveResource : (currentStaff?.id ?? null),
                 status: 'todo',
                 deadline: null,
                 isMilestone: false,
