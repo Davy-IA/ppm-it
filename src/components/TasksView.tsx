@@ -265,6 +265,8 @@ export default function TasksView({ data, updateData }: Props) {
   // Dropdowns open state
   const [showStatusDrop, setShowStatusDrop] = useState(false);
   const [showProjDrop, setShowProjDrop] = useState(false);
+  // Milestone view project filter
+  const [milestoneProject, setMilestoneProject] = useState<string>('');
 
   // Task CRUD state
   const [tasks, setTasks] = useState<Task[]>((data as any).tasks ?? []);
@@ -306,6 +308,7 @@ export default function TasksView({ data, updateData }: Props) {
 
   // Tasks filtered for "par projet" view
   const projectTasks = useMemo(() => {
+    if ((statusFilters as any)[0] === '__none__') return [];
     let ts = tasks.filter(t => t.projectId === selectedProject);
     if (statusFilters.length > 0) ts = ts.filter(t => statusFilters.includes(t.status));
     return ts;
@@ -313,18 +316,19 @@ export default function TasksView({ data, updateData }: Props) {
 
   // Tasks filtered for "par ressource" view
   const resourceTasks = useMemo(() => {
+    if (resourceProjects[0] === '__none__' || (statusFilters as any)[0] === '__none__') return [];
     let ts = tasks.filter(t => t.ownerId === effectiveResource || t.subtasks.some(s => s.ownerId === effectiveResource));
     if (resourceProjects.length > 0) ts = ts.filter(t => resourceProjects.includes(t.projectId));
     if (statusFilters.length > 0) ts = ts.filter(t => statusFilters.includes(t.status));
     return ts;
   }, [tasks, effectiveResource, resourceProjects, statusFilters]);
 
-  // Tasks for milestone view — no project/resource filter, only status
+  // Tasks for milestone view
   const filteredTasks = useMemo(() => {
     let ts = tasks;
-    if (statusFilters.length > 0) ts = ts.filter(t => statusFilters.includes(t.status));
+    if (milestoneProject) ts = ts.filter(t => t.projectId === milestoneProject);
     return ts;
-  }, [tasks, statusFilters]);
+  }, [tasks, milestoneProject]);
 
   // ── RENDER HELPERS ──────────────────────────────────────────────────────
 
@@ -369,7 +373,7 @@ export default function TasksView({ data, updateData }: Props) {
           {extraCols}
 
           {/* Owner */}
-          <div className="utbl-td" style={{ width: COL.owner, flexShrink: 0, display: 'flex', alignItems: 'center' }}>
+          <div className="utbl-td" style={{ width: COL.owner, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             {owner ? (
               <div style={{ position: 'relative', display: 'inline-flex' }} title={owner.name}>
                 <Avatar staff={owner} size={22} />
@@ -378,12 +382,12 @@ export default function TasksView({ data, updateData }: Props) {
           </div>
 
           {/* Status */}
-          <div className="utbl-td" style={{ width: COL.status, flexShrink: 0 }}>
+          <div className="utbl-td" style={{ width: COL.status, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <StatusBadge status={task.status} t={t} />
           </div>
 
           {/* Deadline */}
-          <div className="utbl-td" style={{ width: COL.deadline, flexShrink: 0, color: isOverdue ? 'var(--danger)' : 'var(--text)', fontWeight: isOverdue ? 600 : 400, fontSize: 12 }}>
+          <div className="utbl-td" style={{ width: COL.deadline, flexShrink: 0, textAlign: 'center' as const, color: isOverdue ? 'var(--danger)' : 'var(--text)', fontWeight: isOverdue ? 600 : 400, fontSize: 12 }}>
             {task.deadline ? new Date(task.deadline).toLocaleDateString('fr-FR') : '—'}
           </div>
 
@@ -415,7 +419,7 @@ export default function TasksView({ data, updateData }: Props) {
               <div className="utbl-td" style={{ flex: '0 0 10%' }}>
                 {subOwner ? <Avatar staff={subOwner} size={20} /> : <span style={{ color: 'var(--text-faint)', fontSize: 11 }}>—</span>}
               </div>
-              <div className="utbl-td" style={{ width: COL.status, flexShrink: 0 }}>
+              <div className="utbl-td" style={{ width: COL.status, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <StatusBadge status={sub.status} t={t} />
               </div>
               <div className="utbl-td" style={{ flex: '0 0 12%' }}>—</div>
@@ -434,9 +438,9 @@ export default function TasksView({ data, updateData }: Props) {
   const renderTableHead = () => (
     <div className="utbl-head">
       <div className="utbl-th" style={{ flex: 1, minWidth: 0 }}>{t('task_title_col')}</div>
-      <div className="utbl-th" style={{ width: COL.owner, flexShrink: 0 }}>{t('task_owner_col')}</div>
-      <div className="utbl-th" style={{ width: COL.status, flexShrink: 0 }}>{t('status')}</div>
-      <div className="utbl-th" style={{ width: COL.deadline, flexShrink: 0 }}>{t('task_deadline')}</div>
+      <div className="utbl-th" style={{ width: COL.owner, flexShrink: 0, textAlign: 'center' as const }}>{t('task_owner_col')}</div>
+      <div className="utbl-th" style={{ width: COL.status, flexShrink: 0, textAlign: 'center' as const }}>{t('status')}</div>
+      <div className="utbl-th" style={{ width: COL.deadline, flexShrink: 0, textAlign: 'center' as const }}>{t('task_deadline')}</div>
       <div className="utbl-th" style={{ width: COL.milestone, flexShrink: 0, textAlign: 'center' }}>{t('task_milestone_col')}</div>
       <div className="utbl-th" style={{ width: COL.actions, flexShrink: 0 }} />
     </div>
@@ -660,7 +664,11 @@ export default function TasksView({ data, updateData }: Props) {
                     {task.title}
                   </span>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-                    <StatusBadge status={task.status} t={t} />
+                    <span style={{
+                      width: 10, height: 10, borderRadius: '50%', flexShrink: 0,
+                      background: task.status === 'done' ? 'var(--success)' : task.status === 'in_progress' ? 'var(--warning)' : task.status === 'blocked' ? 'var(--danger)' : 'var(--border-light)',
+                      display: 'inline-block',
+                    }} title={t(`task_status_${task.status}`)} />
                     {owner && <Avatar staff={owner} size={18} />}
                     {task.deadline && (
                       <span style={{ fontSize: 11, color: isOverdue ? 'var(--danger)' : 'var(--text-muted)', fontWeight: isOverdue ? 600 : 400, fontFamily: 'var(--font)' }}>
@@ -700,7 +708,8 @@ export default function TasksView({ data, updateData }: Props) {
               <label style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 14px', cursor: 'pointer', fontSize: 12, fontFamily: 'var(--font)', color: 'var(--text)', fontWeight: 600, borderBottom: '1px solid var(--border)' }}
                 onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--bg3)'}
                 onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'none'}>
-                <input type="checkbox" checked={allStatuses} onChange={() => setStatusFilters([])}
+                <input type="checkbox" checked={allStatuses}
+                  onChange={() => setStatusFilters(allStatuses ? (['__none__'] as any) : [])}
                   style={{ accentColor: 'var(--accent)', width: 14, height: 14, cursor: 'pointer', flexShrink: 0 }} />
                 {t('all')} ({STATUS_LIST.length})
               </label>
@@ -709,7 +718,7 @@ export default function TasksView({ data, updateData }: Props) {
                   onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--bg3)'}
                   onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'none'}>
                   <input type="checkbox"
-                    checked={allStatuses || statusFilters.includes(s)}
+                    checked={!(statusFilters as any).includes('__none__') && (allStatuses || statusFilters.includes(s))}
                     onChange={() => {
                       if (allStatuses) setStatusFilters(STATUS_LIST.filter(x => x !== s));
                       else toggleStatus(s);
@@ -746,7 +755,8 @@ export default function TasksView({ data, updateData }: Props) {
               <label style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 14px', cursor: 'pointer', fontSize: 12, fontFamily: 'var(--font)', color: 'var(--text)', fontWeight: 600, borderBottom: '1px solid var(--border)' }}
                 onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--bg3)'}
                 onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'none'}>
-                <input type="checkbox" checked={allSelected} onChange={() => setResourceProjects([])}
+                <input type="checkbox" checked={allSelected}
+                  onChange={() => setResourceProjects(allSelected ? ['__none__'] : [])}
                   style={{ accentColor: 'var(--accent)', width: 14, height: 14, cursor: 'pointer', flexShrink: 0 }} />
                 {t('all')} ({allProjCount})
               </label>
@@ -755,7 +765,7 @@ export default function TasksView({ data, updateData }: Props) {
                   onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--bg3)'}
                   onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'none'}>
                   <input type="checkbox"
-                    checked={allSelected || resourceProjects.includes(p.id)}
+                    checked={!resourceProjects.includes('__none__') && (allSelected || resourceProjects.includes(p.id))}
                     onChange={() => {
                       if (allSelected) setResourceProjects(data.projects.filter(x => x.id !== p.id).map(x => x.id));
                       else setResourceProjects(prev => prev.includes(p.id) ? prev.filter(x => x !== p.id) : [...prev, p.id]);
@@ -818,6 +828,16 @@ export default function TasksView({ data, updateData }: Props) {
 
           {/* Status filter — both views */}
           {(tab === 'by_project' || tab === 'by_resource') && <StatusDropdown />}
+
+          {/* Milestone: project filter */}
+          {tab === 'milestones' && (
+            <select className="toolbar-select" style={{ maxWidth: 260 }}
+              value={milestoneProject}
+              onChange={e => setMilestoneProject(e.target.value)}>
+              <option value="">{t('all_projects')}</option>
+              {data.projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+            </select>
+          )}
 
           {/* Clear all */}
           {statusFilters.length > 0 && tab !== 'milestones' && (
