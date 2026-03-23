@@ -178,6 +178,11 @@ html, body {
   white-space: nowrap;
   background: var(--bg2);
 }
+.data-table tbody td.cap-ok,
+.data-table tbody td.cap-over,
+.data-table tbody td.cap-under {
+  background: unset; /* let cap-* classes define background */
+}
 .data-table tbody tr:last-child td { border-bottom: none; }
 
 /* ── COIN HAUT-GAUCHE : sticky top + left, z-index max ── */
@@ -262,9 +267,12 @@ html, body {
 }
 
 /* ── DARK MODE ── */
-/* All tbody td dark background */
-[data-theme="dark"] .data-table tbody td {
+/* All tbody td dark background — but NOT cap-colored cells */
+[data-theme="dark"] .data-table tbody td:not(.cap-ok):not(.cap-over):not(.cap-under) {
   background: var(--bg2);
+  border-bottom-color: rgba(255,255,255,0.06);
+}
+[data-theme="dark"] .data-table tbody td {
   border-bottom-color: rgba(255,255,255,0.06);
 }
 
