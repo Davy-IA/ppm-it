@@ -232,7 +232,12 @@ export default function StaffView({ data, updateData }: Props) {
                     <td>
                       <div style={{ display: 'flex', gap: 4 }}>
                         <button className="btn-icon" title={t('link_to_user') as string}
-                          style={{ width: 26, height: 26, color: (s as any).userId ? 'var(--success)' : 'var(--text-faint)' }}
+                          style={{
+                            width: 26, height: 26,
+                            color: (s as any).userId ? 'var(--accent)' : 'var(--text-faint)',
+                            background: (s as any).userId ? 'var(--accent-subtle)' : 'transparent',
+                            borderRadius: 6,
+                          }}
                           onClick={() => { setEditing({ ...s }); setIsNew(false); }}>
                           <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><circle cx="7.5" cy="5" r="3" stroke="currentColor" strokeWidth="1.3"/><path d="M2 13c0-3 2.5-5 5.5-5s5.5 2 5.5 5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg>
                         </button>
