@@ -412,7 +412,7 @@ export default function GanttView({ data, updateData, initialProjectId, openNewP
 
       {/* Gantt grid */}
       {phases.length === 0 ? (
-        <div className="card" style={{ textAlign:'center', padding:60, color:'var(--text-faint)' }}>
+        <div className="card" style={{ textAlign:'center', padding:60, color:'var(--text-faint)', marginTop: 20 }}>
           <div style={{fontSize:48,marginBottom:12}}>📅</div>
           <div style={{fontWeight:700,fontSize:16,color:'var(--text-muted)',marginBottom:6}}>{t('no_phases')}</div>
           <div style={{fontSize:13}}>{t('no_phases_cta')}</div>
