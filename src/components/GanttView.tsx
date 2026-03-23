@@ -37,10 +37,14 @@ function propagateDeps(phases: GanttPhase[]): GanttPhase[] {
   order.forEach(id => {
     const p = map[id];
     if (!p) return;
+    const prevStart = p.startDate;
+    // Décalage de la phase si dépendance inter-phases
     if (p.dependsOn && map[p.dependsOn]) {
       const dep = map[p.dependsOn];
       p.startDate = addDays(dep.startDate, dep.duration);
     }
+    // Delta de décalage de la phase parente
+    const delta = daysBetween(prevStart, p.startDate);
     const sm: Record<string, GanttSubphase> = {};
     p.subphases.forEach(s => { sm[s.id] = s; });
     const sv = new Set<string>(); const so: string[] = [];
@@ -48,7 +52,12 @@ function propagateDeps(phases: GanttPhase[]): GanttPhase[] {
     p.subphases.forEach(s => vs(s.id));
     so.forEach(sid => {
       const s = sm[sid]; if (!s) return;
+      // 1. Décaler la sous-phase avec la phase parente
+      if (delta !== 0) s.startDate = addDays(s.startDate, delta);
+      // 2. Appliquer la dépendance inter-sous-phases
       if (s.dependsOn && sm[s.dependsOn]) s.startDate = addDays(sm[s.dependsOn].startDate, sm[s.dependsOn].duration);
+      // 3. Contrainte : une sous-phase ne peut pas commencer avant la phase parente
+      if (s.startDate < p.startDate) s.startDate = p.startDate;
     });
   });
   return result;
@@ -129,6 +138,14 @@ export default function GanttView({ data, updateData, initialProjectId, onMounte
   };
 
   const savePhases = (next: GanttPhase[]) => {
+    // Contrainte : sous-phase ne peut pas commencer avant la phase parente
+    next = next.map(p => ({
+      ...p,
+      subphases: p.subphases.map(s => ({
+        ...s,
+        startDate: s.startDate < p.startDate ? p.startDate : s.startDate
+      }))
+    }));
     // Auto-extend phase duration if any subphase overflows
     next = next.map(p => {
       const phaseEnd = addDays(p.startDate, p.duration);
