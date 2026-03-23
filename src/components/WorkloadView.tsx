@@ -142,7 +142,7 @@ export default function WorkloadView({ data, updateData }: Props) {
     <div className="animate-in">
       <div className="page-sticky-header">
       {/* Filters + tabs */}
-      <div style={{ display: 'flex', gap: 10, marginBottom: showFilters ? 0 : 16, flexWrap: 'wrap', alignItems: 'center' }}>
+      <div style={{ display: 'flex', gap: 10, marginBottom: 16, flexWrap: 'wrap', alignItems: 'center' }}>
         <select className="toolbar-select" value={projectFilter} onChange={e => setProjectFilter(e.target.value)} style={{ maxWidth: 240 }}>
           <option value="">{t('all_projects')}</option>
           {data.projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
@@ -163,6 +163,27 @@ export default function WorkloadView({ data, updateData }: Props) {
           {t('filters_btn')}
           {activeFilters > 0 && <span style={{ background: 'var(--accent)', color: '#fff', borderRadius: 10, padding: '1px 6px', fontSize: 10, fontWeight: 700 }}>{activeFilters}</span>}
         </button>
+        {/* Inline advanced filters — appear to the right of Filtres button */}
+        {showFilters && (
+          <>
+            <select className="toolbar-select" value={profileFilter} onChange={e => setProfileFilter(e.target.value)}>
+              <option value="">— {t('profile')} —</option>
+              {spaceProfiles.map(p => <option key={p} value={p}>{p}</option>)}
+            </select>
+            {tab === 'allocation' && (
+              <select className="toolbar-select" value={staffFilter} onChange={e => setStaffFilter(e.target.value)}>
+                <option value="">— {t('resource')} —</option>
+                {data.staff.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+              </select>
+            )}
+            {tab === 'allocation' && (
+              <select className="toolbar-select" value={deptFilter} onChange={e => setDeptFilter(e.target.value)}>
+                <option value="">— {t('field_dept')} —</option>
+                {data.staff.map(s => s.department).filter((v, i, a) => v && a.indexOf(v) === i).sort().map(d => <option key={d} value={d}>{d}</option>)}
+              </select>
+            )}
+          </>
+        )}
         {activeFilters > 0 && (
           <button onClick={() => { setProjectFilter(''); setProfileFilter(''); setStaffFilter(''); setDeptFilter(''); }}
             style={{ fontSize: 11, color: 'var(--danger)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 600 }}>
@@ -187,38 +208,6 @@ export default function WorkloadView({ data, updateData }: Props) {
           )}
         </div>
       </div>
-
-      {/* Advanced filter panel */}
-      {showFilters && (
-        <div style={{ padding: '12px 0 16px', marginBottom: 0, display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'flex-end' }}>
-          <div>
-            <label style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-faint)', textTransform: 'uppercase' as const, letterSpacing: '0.07em', display: 'block', marginBottom: 5 }}>{t('profile')}</label>
-            <select className="toolbar-select" value={profileFilter} onChange={e => setProfileFilter(e.target.value)}>
-              <option value="">— {t('all')} —</option>
-              {spaceProfiles.map(p => <option key={p} value={p}>{p}</option>)}
-            </select>
-          </div>
-          {tab === 'allocation' && (
-            <div>
-              <label style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-faint)', textTransform: 'uppercase' as const, letterSpacing: '0.07em', display: 'block', marginBottom: 5 }}>{t('resource')}</label>
-              <select className="toolbar-select" value={staffFilter} onChange={e => setStaffFilter(e.target.value)}>
-                <option value="">— {t('all')} —</option>
-                {data.staff.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-              </select>
-            </div>
-          )}
-          {tab === 'allocation' && (
-            <div>
-              <label style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-faint)', textTransform: 'uppercase' as const, letterSpacing: '0.07em', display: 'block', marginBottom: 5 }}>{t('field_dept')}</label>
-              <select className="toolbar-select" value={deptFilter} onChange={e => setDeptFilter(e.target.value)}>
-                <option value="">— {t('all')} —</option>
-                {data.staff.map(s => s.department).filter((v, i, a) => v && a.indexOf(v) === i).sort().map(d => <option key={d} value={d}>{d}</option>)}
-              </select>
-            </div>
-          )}
-
-        </div>
-      )}
 
       </div>
 
