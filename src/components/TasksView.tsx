@@ -339,7 +339,7 @@ export default function TasksView({ data, updateData }: Props) {
       <>
         <div key={task.id} className="utbl-row" style={{ background: 'var(--bg2)' }}>
           {/* Task name col */}
-          <div className="utbl-td" style={{ flex: '0 0 42%', display: 'flex', alignItems: 'center', gap: 0, paddingLeft: depth > 0 ? 32 : undefined }}>
+          <div className="utbl-td" style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: 0, paddingLeft: depth > 0 ? 32 : undefined }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, flex: 1, minWidth: 0 }}>
               <span style={{ color: 'var(--text)', fontSize: 12, flex: 1, whiteSpace: 'normal', lineHeight: 1.4, overflow: 'hidden' }}
                 title={task.title}>
@@ -369,7 +369,7 @@ export default function TasksView({ data, updateData }: Props) {
           {extraCols}
 
           {/* Owner */}
-          <div className="utbl-td" style={{ flex: '0 0 10%', display: 'flex', alignItems: 'center' }}>
+          <div className="utbl-td" style={{ width: COL.owner, flexShrink: 0, display: 'flex', alignItems: 'center' }}>
             {owner ? (
               <div style={{ position: 'relative', display: 'inline-flex' }} title={owner.name}>
                 <Avatar staff={owner} size={22} />
@@ -378,23 +378,23 @@ export default function TasksView({ data, updateData }: Props) {
           </div>
 
           {/* Status */}
-          <div className="utbl-td" style={{ flex: '0 0 14%' }}>
+          <div className="utbl-td" style={{ width: COL.status, flexShrink: 0 }}>
             <StatusBadge status={task.status} t={t} />
           </div>
 
           {/* Deadline */}
-          <div className="utbl-td" style={{ flex: '0 0 12%', color: isOverdue ? 'var(--danger)' : 'var(--text)', fontWeight: isOverdue ? 600 : 400, fontSize: 12 }}>
+          <div className="utbl-td" style={{ width: COL.deadline, flexShrink: 0, color: isOverdue ? 'var(--danger)' : 'var(--text)', fontWeight: isOverdue ? 600 : 400, fontSize: 12 }}>
             {task.deadline ? new Date(task.deadline).toLocaleDateString('fr-FR') : '—'}
           </div>
 
           {/* Milestone checkbox */}
-          <div className="utbl-td" style={{ flex: '0 0 12%', textAlign: 'center' }}>
+          <div className="utbl-td" style={{ width: COL.milestone, flexShrink: 0, textAlign: 'center' as const }}>
             <input type="checkbox" checked={task.isMilestone} onChange={e => toggleMilestone(task.id, e.target.checked)}
               style={{ width: 15, height: 15, accentColor: 'var(--warning)', cursor: 'pointer' }} />
           </div>
 
           {/* Actions */}
-          <div className="utbl-td" style={{ flex: '0 0 10%', display: 'flex', gap: 4 }}>
+          <div className="utbl-td" style={{ width: COL.actions, flexShrink: 0, display: 'flex', gap: 4 }}>
             <button className="btn-icon" style={{ width: 26, height: 26, fontSize: 12 }}
               onClick={() => { setEditingTask(task); setIsNew(false); }} title={t('edit')}>✎</button>
             <button className="btn-icon" style={{ width: 26, height: 26, fontSize: 12, color: 'var(--danger)' }}
@@ -407,7 +407,7 @@ export default function TasksView({ data, updateData }: Props) {
           const subOwner = data.staff.find(s => s.id === sub.ownerId);
           return (
             <div key={sub.id} className="utbl-row" style={{ background: 'var(--bg3)' }}>
-              <div className="utbl-td" style={{ flex: '0 0 42%', paddingLeft: 48, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <div className="utbl-td" style={{ flex: 1, minWidth: 0, paddingLeft: 48, display: 'flex', alignItems: 'center', gap: 6 }}>
                 <span style={{ color: 'var(--text-faint)', fontSize: 11, flexShrink: 0 }}>↳</span>
                 <span style={{ color: 'var(--text-muted)', fontSize: 12, whiteSpace: 'normal', lineHeight: 1.4 }}>{sub.title || '—'}</span>
               </div>
@@ -415,7 +415,7 @@ export default function TasksView({ data, updateData }: Props) {
               <div className="utbl-td" style={{ flex: '0 0 10%' }}>
                 {subOwner ? <Avatar staff={subOwner} size={20} /> : <span style={{ color: 'var(--text-faint)', fontSize: 11 }}>—</span>}
               </div>
-              <div className="utbl-td" style={{ flex: '0 0 14%' }}>
+              <div className="utbl-td" style={{ width: COL.status, flexShrink: 0 }}>
                 <StatusBadge status={sub.status} t={t} />
               </div>
               <div className="utbl-td" style={{ flex: '0 0 12%' }}>—</div>
@@ -429,14 +429,16 @@ export default function TasksView({ data, updateData }: Props) {
   };
 
   // ── TABLE HEADER ───────────────────────────────────────────────────────
+  const COL = { owner: 64, status: 120, deadline: 105, milestone: 130, actions: 72 };
+
   const renderTableHead = () => (
     <div className="utbl-head">
-      <div className="utbl-th" style={{ flex: '0 0 52%' }}>{t('task_title_col')}</div>
-      <div className="utbl-th" style={{ flex: '0 0 10%' }}>{t('task_owner_col')}</div>
-      <div className="utbl-th" style={{ flex: '0 0 14%' }}>{t('status')}</div>
-      <div className="utbl-th" style={{ flex: '0 0 12%' }}>{t('task_deadline')}</div>
-      <div className="utbl-th" style={{ flex: '0 0 12%', textAlign: 'center' }}>{t('task_milestone_col')}</div>
-      <div className="utbl-th" style={{ flex: '0 0 10%' }} />
+      <div className="utbl-th" style={{ flex: 1, minWidth: 0 }}>{t('task_title_col')}</div>
+      <div className="utbl-th" style={{ width: COL.owner, flexShrink: 0 }}>{t('task_owner_col')}</div>
+      <div className="utbl-th" style={{ width: COL.status, flexShrink: 0 }}>{t('status')}</div>
+      <div className="utbl-th" style={{ width: COL.deadline, flexShrink: 0 }}>{t('task_deadline')}</div>
+      <div className="utbl-th" style={{ width: COL.milestone, flexShrink: 0, textAlign: 'center' }}>{t('task_milestone_col')}</div>
+      <div className="utbl-th" style={{ width: COL.actions, flexShrink: 0 }} />
     </div>
   );
 
@@ -488,12 +490,12 @@ export default function TasksView({ data, updateData }: Props) {
   // ── PROJECT BREAK ROW (inside resource view) ───────────────────────────
   const renderProjBreakRow = (projectName: string) => (
     <div style={{
-      padding: '6px 14px 4px',
-      display: 'flex', alignItems: 'center', gap: 7,
-      borderTop: '1px dashed var(--border-light)',
+      padding: '9px 14px 6px',
+      display: 'flex', alignItems: 'center', gap: 8,
+      background: 'var(--bg3)',
+      borderTop: '2px solid var(--border-light)',
     }}>
-      <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--border-light)', flexShrink: 0, display: 'inline-block' }} />
-      <span style={{ fontFamily: 'var(--font)', fontWeight: 600, fontSize: 11, color: 'var(--text-muted)' }}>{projectName}</span>
+      <span style={{ fontFamily: 'var(--font)', fontWeight: 700, fontSize: 13, color: 'var(--text)', letterSpacing: '.01em' }}>{projectName}</span>
     </div>
   );
 
@@ -571,7 +573,6 @@ export default function TasksView({ data, updateData }: Props) {
               const projectIds = Array.from(new Set(staffTasks.map(t => t.projectId)));
               return (
                 <div key={staff.id}>
-                  {renderResourceRow(staff)}
                   {projectIds.map(projId => {
                     const proj = data.projects.find(p => p.id === projId);
                     if (!proj) return null;
