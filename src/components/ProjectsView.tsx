@@ -102,11 +102,12 @@ export default function ProjectsView({ data, updateData, setView, onNavigateToPl
   };
 
   const remove = (id: string) => {
-    if (!confirm(t('delete_confirm'))) return;
-    const projects = data.projects.filter(p => p.id !== id);
-    const workloads = data.workloads.filter(w => w.projectId !== id);
-    const allocations = data.allocations.filter(a => a.projectId !== id);
-    updateData({ ...data, projects, workloads, allocations });
+    setConfirmAction(() => () => {
+      const projects = data.projects.filter(p => p.id !== id);
+      const workloads = data.workloads.filter(w => w.projectId !== id);
+      const allocations = data.allocations.filter(a => a.projectId !== id);
+      updateData({ ...data, projects, workloads, allocations });
+    });
   };
 
   const pmOptions = data.staff.map(s => s.name);

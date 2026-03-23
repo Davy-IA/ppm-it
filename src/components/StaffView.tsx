@@ -5,6 +5,7 @@ import { AppData, Staff, MONTHS_2026_2028, PROFILES, DEPARTMENTS, COUNTRIES } fr
 import { v4 as uuid } from 'uuid';
 import { useSettings } from '@/lib/context';
 import ConfirmDialog from './ConfirmDialog';
+import AlertDialog from './AlertDialog';
 import { useAuth } from '@/lib/auth-context';
 
 interface Props { data: AppData; updateData: (d: AppData) => void; }
@@ -16,6 +17,7 @@ const EMPTY_STAFF: Omit<Staff, 'id'> = {
 export default function StaffView({ data, updateData }: Props) {
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
+  const [alertMessage, setAlertMessage] = useState<string | null>(null);
   const [confirmAction, setConfirmAction] = useState<(() => void) | null>(null);
   const { t, settings } = useSettings();
   const { token } = useAuth();
@@ -74,7 +76,7 @@ export default function StaffView({ data, updateData }: Props) {
       s.id !== editing.id &&
       s.name.trim().toLowerCase() === editing.name.trim().toLowerCase()
     );
-    if (duplicate) { alert(t('duplicate_resource_name' as any)); return; }
+    if (duplicate) { setAlertMessage(String(t('duplicate_resource_name' as any))); return; }
     const staff = isNew
       ? [...data.staff, { ...editing, id: uuid() }]
       : data.staff.map(s => s.id === editing.id ? editing : s);
@@ -318,6 +320,7 @@ export default function StaffView({ data, updateData }: Props) {
           </div>
         </div>
       )}
+      {alertMessage && <AlertDialog message={alertMessage} onClose={() => setAlertMessage(null)} />}
       {confirmAction && <ConfirmDialog onConfirm={() => { confirmAction(); setConfirmAction(null); }} onCancel={() => setConfirmAction(null)} />}
     </div>
   );

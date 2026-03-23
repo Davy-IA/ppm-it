@@ -1,4 +1,5 @@
 'use client';
+import AlertDialog from './AlertDialog';
 import { useState } from 'react';
 import { useSettings } from '@/lib/context';
 import ConfirmDialog from './ConfirmDialog';
@@ -11,6 +12,7 @@ const SPACE_COLORS = ['#7C5CBF','#10b981','#f59e0b','#ef4444','#8b5cf6','#06b6d4
 const SPACE_ICONS = ['◈','◉','▦','◎','▣','🏪','🏭','💼','📦','🌐','🔧','💻'];
 
 export default function SpacesManager({ spaces, onRefresh }: Props) {
+  const [alertMessage, setAlertMessage] = useState<string | null>(null);
   const [confirmAction, setConfirmAction] = useState<(() => void) | null>(null);
   const { token } = useAuth();
   const { t } = useSettings();
@@ -27,7 +29,7 @@ export default function SpacesManager({ spaces, onRefresh }: Props) {
       body: JSON.stringify(editing),
     });
     if (r.ok) { onRefresh(); setEditing(null); }
-    else { const d = await r.json(); alert(d.error); }
+    else { const d = await r.json(); setAlertMessage(d.error || 'Erreur'); }
   };
 
   const toggleActive = async (space: Space) => {
@@ -45,7 +47,7 @@ export default function SpacesManager({ spaces, onRefresh }: Props) {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (r.ok) { onRefresh(); setConfirmDelete(null); }
-    else { const d = await r.json(); alert(d.error); }
+    else { const d = await r.json(); setAlertMessage(d.error || 'Erreur'); }
   };
 
   return (
@@ -138,6 +140,7 @@ export default function SpacesManager({ spaces, onRefresh }: Props) {
           </div>
         </div>
       )}
+      {alertMessage && <AlertDialog message={alertMessage} onClose={() => setAlertMessage(null)} />}
       {confirmAction && <ConfirmDialog onConfirm={() => { confirmAction(); setConfirmAction(null); }} onCancel={() => setConfirmAction(null)} />}
     </div>
   );

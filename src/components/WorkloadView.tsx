@@ -5,10 +5,12 @@ import { AppData, WorkloadEntry, AllocationEntry, MONTHS_2026_2028, PROFILES } f
 import { v4 as uuid } from 'uuid';
 import { useSettings } from '@/lib/context';
 import ConfirmDialog from './ConfirmDialog';
+import AlertDialog from './AlertDialog';
 
 interface Props { data: AppData; updateData: (d: AppData) => void; }
 
 export default function WorkloadView({ data, updateData }: Props) {
+  const [alertMessage, setAlertMessage] = useState<string | null>(null);
   const [confirmAction, setConfirmAction] = useState<(() => void) | null>(null);
   const { t, settings } = useSettings();
   const locale = settings.locale ?? 'fr';
@@ -71,7 +73,7 @@ export default function WorkloadView({ data, updateData }: Props) {
       const maxAllowed = Math.max(0, need - otherAlloc);
       const capped = need > 0 ? Math.min(v, maxAllowed) : v;
       if (need > 0 && v > maxAllowed) {
-        alert(String(t('alloc_exceeds_workload' as any)) + ' (max: ' + maxAllowed + 'j)');
+        setAlertMessage(String(t('alloc_exceeds_workload' as any)) + ' (max: ' + maxAllowed + 'j)'); return;
       }
       const allocations = data.allocations.map(a => a.id === id ? { ...a, monthly: { ...a.monthly, [month]: capped } } : a);
       updateData({ ...data, allocations });
@@ -86,7 +88,7 @@ export default function WorkloadView({ data, updateData }: Props) {
         w.projectId === editingWorkload.projectId &&
         w.profile === editingWorkload.profile
       );
-      if (dup) { alert(t('duplicate_workload_key' as any)); return; }
+      if (dup) { setAlertMessage(String(t('duplicate_workload_key' as any))); return; }
     }
     const workloads = isNew
       ? [...data.workloads, { ...editingWorkload, id: uuid() }]
@@ -108,7 +110,7 @@ export default function WorkloadView({ data, updateData }: Props) {
         a.profile === editingAlloc.profile &&
         a.staffId === editingAlloc.staffId
       );
-      if (dup) { alert(t('duplicate_alloc_key' as any)); return; }
+      if (dup) { setAlertMessage(String(t('duplicate_alloc_key' as any))); return; }
     }
     const allocations = isNew
       ? [...data.allocations, { ...editingAlloc, id: uuid() }]
@@ -497,6 +499,7 @@ export default function WorkloadView({ data, updateData }: Props) {
           </div>
         </div>
       )}
+      {alertMessage && <AlertDialog message={alertMessage} onClose={() => setAlertMessage(null)} />}
       {confirmAction && <ConfirmDialog onConfirm={() => { confirmAction(); setConfirmAction(null); }} onCancel={() => setConfirmAction(null)} />}
     </div>
   );

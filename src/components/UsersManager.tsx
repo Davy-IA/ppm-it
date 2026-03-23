@@ -1,4 +1,5 @@
 'use client';
+import AlertDialog from './AlertDialog';
 import { useState, useEffect } from 'react';
 import { useSettings } from '@/lib/context';
 import { formatMonth, formatDate, formatDateTime } from '@/lib/locale-utils';
@@ -16,6 +17,7 @@ export default function UsersManager({ spaces, partners = [] }: Props) {
   const { token, user: me } = useAuth();
   const { t, settings } = useSettings();
   const locale = settings.locale ?? 'fr';
+  const [alertMessage, setAlertMessage] = useState<string | null>(null);
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<Partial<User> & { password?: string; spaceIds?: string[] } | null>(null);
@@ -75,7 +77,7 @@ export default function UsersManager({ spaces, partners = [] }: Props) {
     };
     const r = await fetch('/api/users', { method, headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify(body) });
     if (r.ok) { fetchUsers(); setEditing(null); }
-    else { const d = await r.json(); alert(d.error); }
+    else { const d = await r.json(); setAlertMessage(d.error || 'Erreur'); }
   };
 
   const toggleActive = async (user: User) => {
@@ -274,6 +276,7 @@ export default function UsersManager({ spaces, partners = [] }: Props) {
           </div>
         </div>
       )}
+      {alertMessage && <AlertDialog message={alertMessage} onClose={() => setAlertMessage(null)} />}
     </div>
   );
 }

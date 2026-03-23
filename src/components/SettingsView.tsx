@@ -1,4 +1,5 @@
 'use client';
+import AlertDialog from './AlertDialog';
 import { useState, useRef, useEffect } from 'react';
 import { AppData } from '@/types';
 import { useSettings } from '@/lib/context';
@@ -18,6 +19,7 @@ type ListKey = 'domains' | 'profiles' | 'statuses' | 'departments' | 'countries'
 export default function SettingsView({ data, updateData, spaces, onRefreshSpaces }: Props) {
   const { settings, updateSettings, t } = useSettings();
   const { user, token } = useAuth();
+  const [alertMessage, setAlertMessage] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
   const [confirmAction, setConfirmAction] = useState<(() => void) | null>(null);
   const [editingList, setEditingList] = useState<string | null>(null);
@@ -37,7 +39,7 @@ export default function SettingsView({ data, updateData, spaces, onRefreshSpaces
   const handleLogo = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 512000) { alert(String(t('max_file_size'))); return; }
+    if (file.size > 512000) { setAlertMessage(String(t('max_file_size'))); return; }
     const reader = new FileReader();
     reader.onload = () => { updateSettings({ logo: reader.result as string }); showSaved(); };
     reader.readAsDataURL(file);
@@ -46,7 +48,7 @@ export default function SettingsView({ data, updateData, spaces, onRefreshSpaces
   const handleLogoDark = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 512000) { alert(String(t('max_file_size'))); return; }
+    if (file.size > 512000) { setAlertMessage(String(t('max_file_size'))); return; }
     const reader = new FileReader();
     reader.onload = () => { updateSettings({ logoDark: reader.result as string } as any); showSaved(); };
     reader.readAsDataURL(file);
@@ -416,6 +418,7 @@ export default function SettingsView({ data, updateData, spaces, onRefreshSpaces
       {activeTab === 'users' && isAdmin && (
         <UsersManager spaces={spacesList.map(s => ({ id: s.id, name: s.name, color: s.color }))} partners={(data.partners ?? []).map(p => ({ id: p.id, name: p.name, type: p.type }))} />
       )}
+      {alertMessage && <AlertDialog message={alertMessage} onClose={() => setAlertMessage(null)} />}
       {confirmAction && <ConfirmDialog onConfirm={() => { confirmAction(); setConfirmAction(null); }} onCancel={() => setConfirmAction(null)} />}
     </div>
   );
