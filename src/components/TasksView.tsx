@@ -488,7 +488,7 @@ export default function TasksView({ data, updateData }: Props) {
 
     return (
       <div className="card card-table" style={{ borderRadius: 'var(--radius-lg)', overflow: 'hidden' }}>
-        <div className="utbl-wrap">
+        <div className="utbl-wrap" style={{ maxHeight: 'calc(100vh - 168px)' }}>
           <div className="utbl-inner">
             {renderTableHead()}
             {filteredTasks.length === 0 ? renderEmpty() : data.projects.filter(proj => (tasksByProject[proj.id] ?? []).length > 0).map(proj => {
@@ -536,7 +536,7 @@ export default function TasksView({ data, updateData }: Props) {
 
     return (
       <div className="card card-table" style={{ borderRadius: 'var(--radius-lg)', overflow: 'hidden' }}>
-        <div className="utbl-wrap">
+        <div className="utbl-wrap" style={{ maxHeight: 'calc(100vh - 168px)' }}>
           <div className="utbl-inner">
             {renderTableHead(true)}
             {filteredTasks.length === 0 ? renderEmpty() : sortedStaff.map(staff => {
@@ -738,10 +738,12 @@ export default function TasksView({ data, updateData }: Props) {
         </div>
       </div>
 
-      {/* View content */}
-      {tab === 'by_project' && renderByProject()}
-      {tab === 'by_resource' && renderByResource()}
-      {tab === 'milestones' && renderMilestones()}
+      {/* View content — marginTop:20 like StaffView card */}
+      <div style={{ marginTop: 20 }}>
+        {tab === 'by_project' && renderByProject()}
+        {tab === 'by_resource' && renderByResource()}
+        {tab === 'milestones' && renderMilestones()}
+      </div>
 
       {/* Modal */}
       {editingTask && (
