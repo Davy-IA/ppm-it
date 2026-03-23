@@ -23,15 +23,34 @@ const EMPTY_PROJECT: Omit<Project, 'id'> = {
 
 export default function ProjectsView({ data, updateData, setView, onNavigateToPlanning }: Props) {
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
-  const [domainFilter, setDomainFilter] = useState('');
-  const [showFilters, setShowFilters] = useState(false);
-  const [advFilters, setAdvFilters] = useState<Record<string, string>>({});
+  // Multi-select filters — empty array = All selected
+  const [fStatus,  setFStatus]  = useState<string[]>([]);
+  const [fDomain,  setFDomain]  = useState<string[]>([]);
+  const [fType,    setFType]    = useState<string[]>([]);
+  const [fDept,    setFDept]    = useState<string[]>([]);
+  const [fCountry, setFCountry] = useState<string[]>([]);
+  const [fSponsor, setFSponsor] = useState<string[]>([]);
+  const [fPM,      setFPM]      = useState<string[]>([]);
+  const [fPrio,    setFPrio]    = useState<string[]>([]);
+  const [fComplex, setFComplex] = useState<string[]>([]);
 
-  const setAdv = (key: string, val: string) =>
-    setAdvFilters(prev => val ? { ...prev, [key]: val } : Object.fromEntries(Object.entries(prev).filter(([k]) => k !== key)));
+  // Dropdown open state
+  const [openDrop, setOpenDrop] = useState<string | null>(null);
+  const closeDrop = () => setOpenDrop(null);
 
-  const activeFilterCount = Object.keys(advFilters).length + (statusFilter ? 1 : 0) + (domainFilter ? 1 : 0);
+  const toggleF = (setter: React.Dispatch<React.SetStateAction<string[]>>, val: string, all: string[]) =>
+    setter(prev => {
+      if (prev.length === 0) return all.filter(x => x !== val);   // all → deselect one
+      if (prev.includes(val)) {
+        const next = prev.filter(x => x !== val);
+        return next.length === 0 ? [] : next;                      // empty = back to all
+      }
+      const next = [...prev, val];
+      return next.length === all.length ? [] : next;               // all checked = back to []
+    });
+
+  const activeFilterCount = [fStatus, fDomain, fType, fDept, fCountry, fSponsor, fPM, fPrio, fComplex]
+    .filter(f => f.length > 0).length;
   const [confirmAction, setConfirmAction] = useState<(() => void) | null>(null);
   const { t, settings } = useSettings();
 
@@ -48,7 +67,6 @@ export default function ProjectsView({ data, updateData, setView, onNavigateToPl
   const [isNew, setIsNew] = useState(false);
   const [viewMode, setViewMode] = useState<'list' | 'gantt'>('list');
   const [ganttTimeScale, setGanttTimeScale] = useState<'week' | 'month' | 'semester' | 'year'>('month');
-  const [showGanttScaleMenu, setShowGanttScaleMenu] = useState(false);
   const [ganttScale, setGanttScale] = useState<'week' | 'month' | 'semester' | 'year'>('month');
   const [inlineEdit, setInlineEdit] = useState<{ id: string; field: string } | null>(null);
 
@@ -66,13 +84,17 @@ export default function ProjectsView({ data, updateData, setView, onNavigateToPl
 
   const filtered = data.projects.filter(p => {
     const matchSearch = !search || p.name.toLowerCase().includes(search.toLowerCase()) || (p.projectManager ?? '').toLowerCase().includes(search.toLowerCase());
-    const matchStatus = !statusFilter || p.status === statusFilter;
-    const matchDomain = !domainFilter || p.domain === domainFilter;
-    const matchAdv = Object.entries(advFilters).every(([key, val]) => {
-      const pVal = String((p as any)[key] ?? '').toLowerCase();
-      return pVal.includes(val.toLowerCase());
-    });
-    return matchSearch && matchStatus && matchDomain && matchAdv;
+    const m = (arr: string[], val: string | null | undefined) => arr.length === 0 || arr.includes(val ?? '');
+    return matchSearch
+      && m(fStatus,  p.status)
+      && m(fDomain,  p.domain)
+      && m(fType,    p.requestType)
+      && m(fDept,    p.leadDept)
+      && m(fCountry, p.leadCountry)
+      && m(fSponsor, p.sponsor)
+      && m(fPM,      p.projectManager)
+      && m(fPrio,    p.priority != null ? String(p.priority) : '')
+      && m(fComplex, p.complexity != null ? String(p.complexity) : '');
   });
 
   const [savedProjectId, setSavedProjectId] = useState<string | null>(null);
@@ -115,44 +137,90 @@ export default function ProjectsView({ data, updateData, setView, onNavigateToPl
   return (
     <div className="animate-in">
       <div className="page-sticky-header">
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-          <input className="toolbar-select" placeholder={t('search')} value={search} onChange={e => setSearch(e.target.value)} style={{ maxWidth: 220 }} />
-          <select className="toolbar-select" value={statusFilter} onChange={e => setStatusFilter(e.target.value)} style={{ maxWidth: 155 }}>
-            <option value="">{t('all_statuses')}</option>
-            {spaceStatuses.map(s => <option key={s} value={s}>{s.replace(/^\d-/, '')}</option>)}
-          </select>
-          <select className="toolbar-select" value={domainFilter} onChange={e => setDomainFilter(e.target.value)} style={{ maxWidth: 120 }}>
-            <option value="">{t('all_domains')}</option>
-            {spaceDomains.map(d => <option key={d} value={d}>{d}</option>)}
-          </select>
-          <button onClick={() => setShowFilters(f => !f)}
-            className={`toolbar-btn${activeFilterCount > 0 ? ' active' : ''}`}>
-            <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M1 3h11M3 6.5h7M5 10h3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
-            {t('filters_btn')}
-            {activeFilterCount > 0 && <span style={{ background: 'var(--accent)', color: '#fff', borderRadius: 10, padding: '1px 6px', fontSize: 10, fontWeight: 700 }}>{activeFilterCount}</span>}
-          </button>
-          {activeFilterCount > 0 && (
-            <button onClick={() => { setAdvFilters({}); setStatusFilter(''); setDomainFilter(''); }}
-              style={{ fontSize: 11, color: 'var(--danger)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 600 }}>
+        <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
+
+          {/* Search */}
+          <input className="toolbar-select" placeholder={t('search')} value={search}
+            onChange={e => setSearch(e.target.value)} style={{ maxWidth: 200 }} />
+
+          {/* Multi-select dropdown factory */}
+          {([
+            { key: 'status',  label: t('all_statuses') as string,  items: spaceStatuses.map(s => ({ val: s, label: s.replace(/^\d-/, '') })), fState: fStatus,  fSet: setFStatus  },
+            { key: 'domain',  label: t('all_domains') as string,   items: spaceDomains.map(d => ({ val: d, label: d })),                    fState: fDomain,  fSet: setFDomain  },
+            { key: 'type',    label: t('type') as string,           items: spaceRequestTypes.map(o => ({ val: o, label: o })),              fState: fType,    fSet: setFType    },
+            { key: 'dept',    label: t('lead_dept') as string,      items: spaceDepartments.map(o => ({ val: o, label: o })),               fState: fDept,    fSet: setFDept    },
+            { key: 'country', label: t('field_country') as string,  items: spaceCountries.map(o => ({ val: o, label: o })),                 fState: fCountry, fSet: setFCountry },
+            { key: 'sponsor', label: t('field_sponsor') as string,  items: spaceSponsors.map(o => ({ val: o, label: o })),                  fState: fSponsor, fSet: setFSponsor },
+            { key: 'pm',      label: t('project_manager') as string,items: data.projects.map(p => p.projectManager).filter((v,i,a) => v && a.indexOf(v)===i).sort().map(o => ({ val: o!, label: o! })), fState: fPM, fSet: setFPM },
+            { key: 'prio',    label: t('priority') as string,       items: ['1','2','3','4','5'].map(o => ({ val: o, label: `P${o}` })),     fState: fPrio,    fSet: setFPrio    },
+            { key: 'complex', label: t('complexity') as string,     items: ['1','2','3','4','5'].map(o => ({ val: o, label: `C${o}` })),     fState: fComplex, fSet: setFComplex },
+          ] as const).map(({ key, label, items, fState, fSet }) => {
+            const allSel = fState.length === 0;
+            const isOpen = openDrop === key;
+            return (
+              <div key={key} style={{ position: 'relative' }}>
+                <button
+                  className={`toolbar-btn${!allSel ? ' active' : ''}`}
+                  onClick={() => setOpenDrop(isOpen ? null : key)}
+                  style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                  {label}
+                  {!allSel && <span style={{ background: 'var(--accent)', color: '#fff', borderRadius: 10, padding: '1px 5px', fontSize: 10, fontWeight: 700 }}>{fState.length}</span>}
+                  <svg width="8" height="8" viewBox="0 0 8 8" fill="none"><path d="M1 3l3 3 3-3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                </button>
+                {isOpen && (
+                  <>
+                    <div style={{ position: 'fixed', inset: 0, zIndex: 3999 }} onClick={closeDrop} />
+                    <div style={{ position: 'absolute', top: 'calc(100% + 4px)', left: 0, background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 10, boxShadow: 'var(--shadow)', zIndex: 4000, minWidth: 190, maxHeight: 280, overflowY: 'auto', animation: 'dropIn .15s ease' }}>
+                      {/* All option */}
+                      <label style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 14px', cursor: 'pointer', fontSize: 12, fontFamily: 'var(--font)', color: 'var(--text)', fontWeight: 600, borderBottom: '1px solid var(--border)' }}
+                        onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--bg3)'}
+                        onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'none'}>
+                        <input type="checkbox" checked={allSel} onChange={() => fSet([])}
+                          style={{ accentColor: 'var(--accent)', width: 14, height: 14, cursor: 'pointer', flexShrink: 0 }} />
+                        {t('all')} ({items.length})
+                      </label>
+                      {items.map(({ val, label: lbl }) => (
+                        <label key={val} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 14px', cursor: 'pointer', fontSize: 12, fontFamily: 'var(--font)', color: 'var(--text)' }}
+                          onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--bg3)'}
+                          onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'none'}>
+                          <input type="checkbox"
+                            checked={allSel || fState.includes(val)}
+                            onChange={() => toggleF(fSet as React.Dispatch<React.SetStateAction<string[]>>, val, items.map(i => i.val))}
+                            style={{ accentColor: 'var(--accent)', width: 14, height: 14, cursor: 'pointer', flexShrink: 0 }} />
+                          {lbl}
+                        </label>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
+            );
+          })}
+
+          {/* Clear all filters */}
+          {(activeFilterCount > 0 || search) && (
+            <button onClick={() => { setSearch(''); setFStatus([]); setFDomain([]); setFType([]); setFDept([]); setFCountry([]); setFSponsor([]); setFPM([]); setFPrio([]); setFComplex([]); }}
+              style={{ fontSize: 11, color: 'var(--danger)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 600, whiteSpace: 'nowrap' }}>
               ✕ {t('clear_filters')}
             </button>
           )}
+
           <div style={{ flex: 1 }} />
-          {/* Gantt scale selector — only in gantt mode */}
+
+          {/* Gantt scale selector */}
           {viewMode === 'gantt' && (
             <div style={{ position: 'relative' }}>
-              <button onClick={() => setShowGanttScaleMenu(m => !m)}
-                className="toolbar-btn">
+              <button onClick={() => setOpenDrop(openDrop === 'gscale' ? null : 'gscale')} className="toolbar-btn">
                 <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M1 6h10M1 3h10M1 9h6" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg>
                 {ganttScale === 'week' ? String(t('scale_week')) : ganttScale === 'month' ? String(t('scale_month')) : ganttScale === 'semester' ? String(t('scale_semester')) : String(t('scale_year'))}
-                <svg width="8" height="8" viewBox="0 0 8 8" fill="none"><path d="M1 3l3 3 3-3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg>
+                <svg width="8" height="8" viewBox="0 0 8 8" fill="none"><path d="M1 3l3 3 3-3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg>
               </button>
-              {showGanttScaleMenu && (
+              {openDrop === 'gscale' && (
                 <>
-                  <div style={{ position: 'fixed', inset: 0, zIndex: 49 }} onClick={() => setShowGanttScaleMenu(false)} />
+                  <div style={{ position: 'fixed', inset: 0, zIndex: 49 }} onClick={closeDrop} />
                   <div style={{ position: 'absolute', right: 0, top: 'calc(100% + 4px)', background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 10, boxShadow: '0 8px 24px rgba(124,92,191,0.15)', zIndex: 50, overflow: 'hidden', minWidth: 140 }}>
                     {(['week', 'month', 'semester', 'year'] as const).map(scale => (
-                      <button key={scale} onClick={() => { setGanttScale(scale); setShowGanttScaleMenu(false); }}
+                      <button key={scale} onClick={() => { setGanttScale(scale); closeDrop(); }}
                         style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '9px 14px', border: 'none', background: ganttScale === scale ? 'var(--accent-subtle)' : 'none', color: ganttScale === scale ? 'var(--accent)' : 'var(--text)', cursor: 'pointer', fontSize: 13, fontWeight: ganttScale === scale ? 700 : 400, fontFamily: 'inherit', textAlign: 'left' as const }}>
                         {ganttScale === scale && <span style={{ color: 'var(--accent)', fontSize: 10 }}>✓</span>}
                         {scale === 'week' ? String(t('scale_week')) : scale === 'month' ? String(t('scale_month')) : scale === 'semester' ? String(t('scale_semester')) : String(t('scale_year'))}
@@ -163,6 +231,8 @@ export default function ProjectsView({ data, updateData, setView, onNavigateToPl
               )}
             </div>
           )}
+
+          {/* View toggle */}
           <div style={{ display: 'flex', gap: 2 }}>
             <button onClick={() => setViewMode('list')} className={`toolbar-btn${viewMode === 'list' ? ' primary' : ''}`}>
               <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><rect x="1" y="1" width="11" height="2" rx="1" fill="currentColor"/><rect x="1" y="5" width="11" height="2" rx="1" fill="currentColor"/><rect x="1" y="9" width="11" height="2" rx="1" fill="currentColor"/></svg>
@@ -179,42 +249,7 @@ export default function ProjectsView({ data, updateData, setView, onNavigateToPl
         </div>
       </div>
 
-      {/* Advanced filters panel */}
-      {showFilters && (
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 8, marginTop: 4, alignItems: 'center' }}>
-          <select className="toolbar-select" value={advFilters['requestType'] ?? ''} onChange={e => setAdv('requestType', e.target.value)}>
-            <option value="">— {t('type')} —</option>
-            {spaceRequestTypes.map(o => <option key={o} value={o}>{o}</option>)}
-          </select>
-          <select className="toolbar-select" value={advFilters['leadDept'] ?? ''} onChange={e => setAdv('leadDept', e.target.value)}>
-            <option value="">— {t('lead_dept')} —</option>
-            {spaceDepartments.map(o => <option key={o} value={o}>{o}</option>)}
-          </select>
-          <select className="toolbar-select" value={advFilters['leadCountry'] ?? ''} onChange={e => setAdv('leadCountry', e.target.value)}>
-            <option value="">— {t('country')} —</option>
-            {spaceCountries.map(o => <option key={o} value={o}>{o}</option>)}
-          </select>
-          <select className="toolbar-select" value={advFilters['sponsor'] ?? ''} onChange={e => setAdv('sponsor', e.target.value)}>
-            <option value="">— {t('field_sponsor')} —</option>
-            {spaceSponsors.map(o => <option key={o} value={o}>{o}</option>)}
-          </select>
-          <select className="toolbar-select" value={advFilters['projectManager'] ?? ''} onChange={e => setAdv('projectManager', e.target.value)}>
-            <option value="">— {t('project_manager')} —</option>
-            {(data.projects.map(p => p.projectManager).filter((v, i, a) => v && a.indexOf(v) === i) as string[]).map(o => <option key={o} value={o}>{o}</option>)}
-          </select>
-          <select className="toolbar-select" value={advFilters['priority'] ?? ''} onChange={e => setAdv('priority', e.target.value)}>
-            <option value="">— {t('priority')} —</option>
-            {['1','2','3','4','5'].map(o => <option key={o} value={o}>P{o}</option>)}
-          </select>
-          <select className="toolbar-select" value={advFilters['complexity'] ?? ''} onChange={e => setAdv('complexity', e.target.value)}>
-            <option value="">— {t('complexity')} —</option>
-            {['1','2','3','4','5'].map(o => <option key={o} value={o}>C{o}</option>)}
-          </select>
-          <input className="toolbar-select" value={advFilters['name'] ?? ''} onChange={e => setAdv('name', e.target.value)} placeholder={String(t('project_name'))} style={{ maxWidth: 160 }} />
-        </div>
-      )}
-
-      {/* Gantt Portfolio View */}
+            {/* Gantt Portfolio View */}
       {viewMode === 'gantt' && <PortfolioGantt data={data} filtered={filtered} t={t} timeScale={ganttScale} />}
 
       {/* Table — same structure as Workload (proven working) */}
