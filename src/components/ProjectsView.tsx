@@ -181,33 +181,36 @@ export default function ProjectsView({ data, updateData, setView, onNavigateToPl
 
       {/* Advanced filters panel */}
       {showFilters && (
-        <div style={{ padding: '12px 0 16px', marginBottom: 0, display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'flex-end' }}>
-          {[
-            { key: 'requestType', label: t('type'), opts: spaceRequestTypes },
-            { key: 'leadDept', label: t('lead_dept'), opts: spaceDepartments },
-            { key: 'leadCountry', label: t('country'), opts: spaceCountries },
-            { key: 'sponsor', label: t('field_sponsor'), opts: spaceSponsors },
-            { key: 'projectManager', label: t('project_manager'), opts: data.projects.map(p => p.projectManager).filter((v, i, a) => v && a.indexOf(v) === i) as string[] },
-            { key: 'priority', label: t('priority'), opts: ['1','2','3','4','5'] },
-            { key: 'complexity', label: t('complexity'), opts: ['1','2','3','4','5'] },
-          ].map(({ key, label, opts }) => (
-            <div key={key}>
-              <label style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '0.07em', display: 'block', marginBottom: 5 }}>{label}</label>
-              <select className="toolbar-select" value={advFilters[key] ?? ''} onChange={e => setAdv(key, e.target.value)}>
-                <option value="">— {t('all')} —</option>
-                {opts.map(o => <option key={o} value={o}>{key === 'priority' ? `P${o}` : key === 'complexity' ? `C${o}` : o}</option>)}
-              </select>
-            </div>
-          ))}
-          {/* Free text filters */}
-          {[
-            { key: 'name', label: t('project_name') },
-          ].map(({ key, label }) => (
-            <div key={key}>
-              <label style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '0.07em', display: 'block', marginBottom: 5 }}>{label}</label>
-              <input className="toolbar-select" value={advFilters[key] ?? ''} onChange={e => setAdv(key, e.target.value)} placeholder={`Filter...`} />
-            </div>
-          ))}
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 8, marginTop: 4, alignItems: 'center' }}>
+          <select className="toolbar-select" value={advFilters['requestType'] ?? ''} onChange={e => setAdv('requestType', e.target.value)}>
+            <option value="">— {t('type')} —</option>
+            {spaceRequestTypes.map(o => <option key={o} value={o}>{o}</option>)}
+          </select>
+          <select className="toolbar-select" value={advFilters['leadDept'] ?? ''} onChange={e => setAdv('leadDept', e.target.value)}>
+            <option value="">— {t('lead_dept')} —</option>
+            {spaceDepartments.map(o => <option key={o} value={o}>{o}</option>)}
+          </select>
+          <select className="toolbar-select" value={advFilters['leadCountry'] ?? ''} onChange={e => setAdv('leadCountry', e.target.value)}>
+            <option value="">— {t('country')} —</option>
+            {spaceCountries.map(o => <option key={o} value={o}>{o}</option>)}
+          </select>
+          <select className="toolbar-select" value={advFilters['sponsor'] ?? ''} onChange={e => setAdv('sponsor', e.target.value)}>
+            <option value="">— {t('field_sponsor')} —</option>
+            {spaceSponsors.map(o => <option key={o} value={o}>{o}</option>)}
+          </select>
+          <select className="toolbar-select" value={advFilters['projectManager'] ?? ''} onChange={e => setAdv('projectManager', e.target.value)}>
+            <option value="">— {t('project_manager')} —</option>
+            {(data.projects.map(p => p.projectManager).filter((v, i, a) => v && a.indexOf(v) === i) as string[]).map(o => <option key={o} value={o}>{o}</option>)}
+          </select>
+          <select className="toolbar-select" value={advFilters['priority'] ?? ''} onChange={e => setAdv('priority', e.target.value)}>
+            <option value="">— {t('priority')} —</option>
+            {['1','2','3','4','5'].map(o => <option key={o} value={o}>P{o}</option>)}
+          </select>
+          <select className="toolbar-select" value={advFilters['complexity'] ?? ''} onChange={e => setAdv('complexity', e.target.value)}>
+            <option value="">— {t('complexity')} —</option>
+            {['1','2','3','4','5'].map(o => <option key={o} value={o}>C{o}</option>)}
+          </select>
+          <input className="toolbar-select" value={advFilters['name'] ?? ''} onChange={e => setAdv('name', e.target.value)} placeholder={String(t('project_name'))} style={{ maxWidth: 160 }} />
         </div>
       )}
 
@@ -216,7 +219,7 @@ export default function ProjectsView({ data, updateData, setView, onNavigateToPl
 
       {/* Table — same structure as Workload (proven working) */}
       {viewMode === 'list' && (
-        <div className="card card-table" style={{ padding: 0, overflow: 'hidden', marginTop: 20 }}>
+        <div className="card card-table" style={{ padding: 0, overflow: 'hidden', marginTop: 12 }}>
           <div className="utbl-wrap" style={{ maxHeight: 'calc(100vh - 155px)' }}>
             <table className="data-table">
               <thead>
