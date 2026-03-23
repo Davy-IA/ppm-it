@@ -82,8 +82,7 @@ export default function WorkloadView({ data, updateData }: Props) {
   };
 
   const deleteWorkload = (id: string) => {
-    if (!confirm(t('delete_workload_confirm'))) return;
-    updateData({ ...data, workloads: data.workloads.filter(w => w.id !== id) });
+    setConfirmAction(() => () => updateData({ ...data, workloads: data.workloads.filter(w => w.id !== id) }));
   };
 
   // --- Allocation CRUD ---
@@ -105,8 +104,7 @@ export default function WorkloadView({ data, updateData }: Props) {
   };
 
   const deleteAlloc = (id: string) => {
-    if (!confirm(t('delete_alloc_confirm'))) return;
-    updateData({ ...data, allocations: data.allocations.filter(a => a.id !== id) });
+    setConfirmAction(() => () => updateData({ ...data, allocations: data.allocations.filter(a => a.id !== id) }));
   };
 
   const updateMonthlyW = (month: string, val: string) => {

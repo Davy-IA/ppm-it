@@ -83,10 +83,11 @@ export default function StaffView({ data, updateData }: Props) {
   };
 
   const remove = (id: string) => {
-    if (!confirm(t('delete_resource_confirm'))) return;
-    const staff = data.staff.filter(s => s.id !== id);
+    setConfirmAction(() => () => {
+      const staff = data.staff.filter(s => s.id !== id);
     const allocations = data.allocations.filter(a => a.staffId !== id);
-    updateData({ ...data, staff, allocations });
+      updateData({ ...data, staff, allocations });
+    });
   };
 
   const setCapacity = (month: string, val: string) => {
