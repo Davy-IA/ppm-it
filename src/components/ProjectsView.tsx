@@ -221,7 +221,7 @@ export default function ProjectsView({ data, updateData, setView, onNavigateToPl
             <table className="data-table">
               <thead>
                 <tr>
-                  <th className="sticky-left" style={{ minWidth: 240 }}>{t('project_name')}</th>
+                  <th className="sticky-left" style={{ minWidth: 300 }}>{t('project_name')}</th>
                   <th>{t('domain')}</th>
                   <th>{t('type')}</th>
                   <th>{t('lead_dept')}</th>
@@ -248,7 +248,23 @@ export default function ProjectsView({ data, updateData, setView, onNavigateToPl
                             onBlur={e => { updateField(p.id, 'name', e.target.value); setInlineEdit(null); }}
                             onKeyDown={e => { if (e.key === 'Enter' || e.key === 'Escape') { if (e.key === 'Enter') updateField(p.id, 'name', (e.target as HTMLInputElement).value); setInlineEdit(null); } }}
                             onClick={e => e.stopPropagation()} style={{ minWidth: 180 }} />
-                        : <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', display: 'block', whiteSpace: 'nowrap', maxWidth: 220 }}>{p.name}</span>
+                        : <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6, minWidth: 0 }}>
+                            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0 }}>{p.name}</span>
+                            {onNavigateToPlanning && (
+                              <button
+                                className="btn-icon"
+                                style={{ width: 22, height: 22, flexShrink: 0, color: 'var(--text-faint)', opacity: 0.6 }}
+                                title={t('go_to_planning') as string}
+                                onClick={e => { e.stopPropagation(); onNavigateToPlanning(p.id); }}
+                              >
+                                <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+                                  <rect x="1" y="4" width="8" height="3" rx="1.5" fill="currentColor"/>
+                                  <rect x="4" y="8" width="8" height="3" rx="1.5" fill="currentColor" opacity="0.5"/>
+                                  <path d="M10 1.5L12 3.5L10 5.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
+                                </svg>
+                              </button>
+                            )}
+                          </span>
                       }
                     </td>
                     <td className="cell-edit" onClick={() => setInlineEdit({ id: p.id, field: 'domain' })}>
