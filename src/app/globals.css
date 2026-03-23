@@ -657,8 +657,10 @@ th.cap-cell {
 /* ── Table inside card — rounded corners ── */
 .card-table {
   padding: 0;
-  /* NO overflow:hidden here — it breaks position:sticky on child elements */
   border-radius: var(--radius-lg) !important;
+}
+.card-table .utbl-wrap {
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
 }
 .card-table .data-table thead th:first-child { border-radius: var(--radius-lg) 0 0 0; }
 .card-table .data-table tbody tr:last-child td:first-child { border-radius: 0 0 0 var(--radius-lg); }
