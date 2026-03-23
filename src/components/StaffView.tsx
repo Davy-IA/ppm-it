@@ -256,6 +256,10 @@ export default function StaffView({ data, updateData }: Props) {
             </tbody>
           </table>
         </div>
+        <div style={{ padding: '10px 16px', borderTop: '1px solid var(--border)', fontSize: 11, color: 'var(--text-faint)', display: 'flex', gap: 16 }}>
+          <span style={{ color: 'var(--success)' }}>{`■ ${t('alloc_ok')}`}</span>
+          <span style={{ color: 'var(--danger)' }}>{`■ ${t('alloc_over_capacity')}`}</span>
+        </div>
       </div>
 
       {/* Modal */}

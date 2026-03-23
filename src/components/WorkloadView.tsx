@@ -398,6 +398,11 @@ export default function WorkloadView({ data, updateData }: Props) {
               </tbody>
             </table>
           </div>
+          <div style={{ padding: '10px 16px', borderTop: '1px solid var(--border)', fontSize: 11, color: 'var(--text-faint)', display: 'flex', gap: 16 }}>
+            <span style={{ color: 'var(--success)' }}>{`■ ${t('alloc_ok')}`}</span>
+            <span style={{ color: 'var(--danger)' }}>{`■ ${t('alloc_over_capacity')}`}</span>
+            <span style={{ color: 'var(--text-faint)' }}>{`■ ${t('out_of_range_short')}`}</span>
+          </div>
         </div>
       )}
 
