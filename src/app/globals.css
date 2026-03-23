@@ -178,11 +178,6 @@ html, body {
   white-space: nowrap;
   background: var(--bg2);
 }
-.data-table tbody td.cap-ok,
-.data-table tbody td.cap-over,
-.data-table tbody td.cap-under {
-  background: unset; /* let cap-* classes define background */
-}
 .data-table tbody tr:last-child td { border-bottom: none; }
 
 /* ── COIN HAUT-GAUCHE : sticky top + left, z-index max ── */
@@ -268,9 +263,8 @@ html, body {
 
 /* ── DARK MODE ── */
 /* All tbody td dark background — but NOT cap-colored cells */
-[data-theme="dark"] .data-table tbody td:not(.cap-ok):not(.cap-over):not(.cap-under) {
+[data-theme="dark"] .data-table tbody td:not(.cap-ok):not(.cap-over):not(.cap-under):not(.cap-in-range):not(.cap-zero) {
   background: var(--bg2);
-  border-bottom-color: rgba(255,255,255,0.06);
 }
 [data-theme="dark"] .data-table tbody td {
   border-bottom-color: rgba(255,255,255,0.06);
@@ -344,9 +338,9 @@ th.cap-cell {
 }
 
 /* Capacity coloring — only color, no bold */
-.cap-ok   { background: var(--success-subtle); color: var(--success); }
-.cap-over { background: var(--danger-subtle);  color: var(--danger); }
-.cap-under{ background: var(--warning-subtle); color: var(--warning); }
+.cap-ok   { background: var(--success-subtle) !important; color: var(--success); }
+.cap-over { background: var(--danger-subtle)  !important; color: var(--danger); }
+.cap-under{ background: var(--warning-subtle) !important; color: var(--warning); }
 .cap-zero { color: var(--text-faint); }
 .cap-in-range { background: rgba(124,92,191,0.06) !important; }
 [data-theme="dark"] .cap-in-range { background: rgba(124,92,191,0.12) !important; }

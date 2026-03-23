@@ -57,11 +57,25 @@ export default function WorkloadView({ data, updateData }: Props) {
 
   const updateAllocMonth = (id: string, month: string, value: string) => {
     const v = parseFloat(value);
-    const allocations = data.allocations.map(a => a.id === id
-      ? { ...a, monthly: { ...a.monthly, [month]: isNaN(v) ? 0 : v } }
-      : a
-    );
-    updateData({ ...data, allocations });
+    if (isNaN(v) || v < 0) { updateData({ ...data, allocations: data.allocations.map(a => a.id === id ? { ...a, monthly: { ...a.monthly, [month]: 0 } } : a) }); return; }
+    // Find the allocation being edited
+    const alloc = data.allocations.find(a => a.id === id);
+    if (alloc) {
+      // Find workload need for this project+profile+month
+      const workload = data.workloads.find(w => w.projectId === alloc.projectId && w.profile === alloc.profile);
+      const need = workload?.monthly[month] ?? 0;
+      // Total already allocated by OTHER allocations for same project+profile+month
+      const otherAlloc = data.allocations
+        .filter(a => a.id !== id && a.projectId === alloc.projectId && a.profile === alloc.profile)
+        .reduce((s, a) => s + (a.monthly[month] ?? 0), 0);
+      const maxAllowed = Math.max(0, need - otherAlloc);
+      const capped = need > 0 ? Math.min(v, maxAllowed) : v;
+      if (need > 0 && v > maxAllowed) {
+        alert(t('alloc_exceeds_workload' as any) || \`Maximum autorisé : \${maxAllowed}j (besoin : \${need}j, déjà affecté : \${otherAlloc}j)\`);
+      }
+      const allocations = data.allocations.map(a => a.id === id ? { ...a, monthly: { ...a.monthly, [month]: capped } } : a);
+      updateData({ ...data, allocations });
+    }
   };
 
   // --- Workload CRUD ---
