@@ -663,9 +663,9 @@ export default function TasksView({ data, updateData }: Props) {
 
   return (
     <div className="animate-in">
-      {/* Sticky header: toolbar + filters */}
+      {/* Sticky toolbar — same pattern as WorkloadView */}
       <div className="page-sticky-header">
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', marginBottom: 14 }}>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', marginBottom: 16 }}>
 
           {/* Sub-view tabs */}
           <div style={{ display: 'flex', gap: 2 }}>
@@ -683,7 +683,7 @@ export default function TasksView({ data, updateData }: Props) {
           {/* Separator */}
           <div style={{ width: 1, height: 20, background: 'var(--border)', margin: '0 2px' }} />
 
-          {/* Project multi-filter */}
+          {/* Project filter */}
           <select className="toolbar-select" style={{ maxWidth: 220 }}
             value={projectFilter.length === 1 ? projectFilter[0] : ''}
             onChange={e => {
@@ -734,6 +734,7 @@ export default function TasksView({ data, updateData }: Props) {
               + {t('task_new')}
             </button>
           </div>
+
         </div>
       </div>
 
