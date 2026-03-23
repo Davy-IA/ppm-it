@@ -415,7 +415,13 @@ export default function GanttView({ data, updateData, initialProjectId, openNewP
         <div className="card" style={{ textAlign:'center', padding:60, color:'var(--text-faint)', marginTop: 20 }}>
           <div style={{fontSize:48,marginBottom:12}}>📅</div>
           <div style={{fontWeight:700,fontSize:16,color:'var(--text-muted)',marginBottom:6}}>{t('no_phases')}</div>
-          <div style={{fontSize:13}}>{t('no_phases_cta')}</div>
+          <div style={{fontSize:13,marginBottom:24}}>{t('no_phases_cta')}</div>
+          <button className="btn btn-primary" onClick={() => {
+            setEditPhase({ id: uuid(), projectId: selProj, name: '', startDate: new Date().toISOString().slice(0,10), duration: 30, color: PHASE_COLORS[0], dependsOn: null, subphases: [] } as unknown as GanttPhase);
+            setIsNew(true);
+          }} style={{ margin: '0 auto' }}>
+            + {t('new_phase')}
+          </button>
         </div>
       ) : (
         <div className="card card-table" style={{ padding: 0, overflow: 'hidden', marginTop: 20 }}>
