@@ -80,6 +80,12 @@ const Icons: Record<string, JSX.Element> = {
       <circle cx="5.5" cy="10.5" r="1" fill="currentColor" opacity="0.6"/>
     </svg>
   ),
+  tasks: (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+      <path d="M2 4.5h7M2 8h9M2 11.5h5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+      <path d="M12 7l1.5 1.5L16 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  ),
 };
 
 function useTheme() {
@@ -110,6 +116,7 @@ export default function TopNav({ view, setView, saving, data, currentSpace, onCh
   const NAV_ITEMS = [
     { id: 'projects',  labelKey: 'nav_projects',  icon: Icons.projects },
     { id: 'gantt',     labelKey: 'nav_planning',   icon: Icons.gantt },
+    { id: 'tasks',     labelKey: 'nav_tasks',      icon: Icons.tasks },
     { id: 'staff',     labelKey: 'nav_staff',      icon: Icons.staff },
     { id: 'workload',  labelKey: 'nav_workload',   icon: Icons.workload },
     ...(settings.budgetUrl ? [{ id: 'budget', labelKey: 'nav_budget', icon: Icons.budget, external: settings.budgetUrl }] : []),

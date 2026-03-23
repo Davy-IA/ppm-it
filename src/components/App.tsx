@@ -12,8 +12,9 @@ import StaffView from './StaffView';
 import WorkloadView from './WorkloadView';
 import GanttView from './GanttView';
 import SettingsView from './SettingsView';
+import TasksView from './TasksView';
 
-export type View = 'dashboard' | 'projects' | 'gantt' | 'staff' | 'workload' | 'settings';
+export type View = 'dashboard' | 'projects' | 'gantt' | 'staff' | 'workload' | 'tasks' | 'settings';
 
 interface Space { id: string; name: string; description: string; color: string; icon: string; active?: boolean; }
 
@@ -122,6 +123,7 @@ export default function App() {
         {view === 'gantt' && <GanttView data={data} updateData={updateData} initialProjectId={planProjectId} openNewPhase={planOpenNew} onMounted={() => { setPlanProjectId(null); setPlanOpenNew(false); }} />}
         {view === 'staff' && <StaffView data={data} updateData={updateData} />}
         {view === 'workload' && <WorkloadView data={data} updateData={updateData} />}
+        {view === 'tasks' && <TasksView data={data} updateData={updateData} />}
         {view === 'settings' && <SettingsView data={data} updateData={updateData} spaces={spaces as any} onRefreshSpaces={fetchSpaces} />}
       </main>
     </div>

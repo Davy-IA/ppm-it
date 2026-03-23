@@ -1,3 +1,25 @@
+export type TaskStatus = 'todo' | 'in_progress' | 'done' | 'blocked';
+
+export interface SubTask {
+  id: string;
+  title: string;
+  ownerId: string | null;
+  status: TaskStatus;
+}
+
+export interface Task {
+  id: string;
+  projectId: string;
+  phaseId: string;
+  subphaseId: string | null;
+  title: string;
+  ownerId: string | null;
+  status: TaskStatus;
+  deadline: string | null;
+  isMilestone: boolean;
+  subtasks: SubTask[];
+}
+
 export interface Partner {
   id: string;
   name: string;
@@ -118,6 +140,7 @@ export interface AppData {
   allocations: AllocationEntry[];
   ganttPhases: GanttPhase[];
   milestones: Milestone[];
+  tasks: Task[];
 }
 
 export const MONTHS_2026_2028 = (() => {

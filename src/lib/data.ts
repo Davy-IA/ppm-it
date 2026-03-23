@@ -83,5 +83,6 @@ export const INITIAL_DATA: AppData = {
     },
   ],
   milestones: [],
+  tasks: [],
   spaceConfig: {},
 };
