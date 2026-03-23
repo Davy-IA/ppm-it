@@ -190,7 +190,7 @@ export default function WorkloadView({ data, updateData }: Props) {
 
       {/* Advanced filter panel */}
       {showFilters && (
-        <div style={{ background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 12, padding: 16, marginBottom: 16, display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 12 }}>
+        <div style={{ padding: '12px 0 16px', marginBottom: 0, display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'flex-end' }}>
           <div>
             <label style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-faint)', textTransform: 'uppercase' as const, letterSpacing: '0.07em', display: 'block', marginBottom: 5 }}>{t('profile')}</label>
             <select className="toolbar-select" value={profileFilter} onChange={e => setProfileFilter(e.target.value)}>
@@ -216,21 +216,7 @@ export default function WorkloadView({ data, updateData }: Props) {
               </select>
             </div>
           )}
-          <div>
-            <label style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-faint)', textTransform: 'uppercase' as const, letterSpacing: '0.07em', display: 'block', marginBottom: 5 }}>{t('project_name')}</label>
-            <select className="toolbar-select" value={projectFilter} onChange={e => setProjectFilter(e.target.value)}>
-              <option value="">— {t('all')} —</option>
-              {data.projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-            </select>
-          </div>
-          <div>
-            <label style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-faint)', textTransform: 'uppercase' as const, letterSpacing: '0.07em', display: 'block', marginBottom: 5 }}>{t('year')}</label>
-            <select className="toolbar-select" value={yearFilter} onChange={e => setYearFilter(e.target.value)}>
-              <option value="2026">2026</option>
-              <option value="2027">2027</option>
-              <option value="2028">2028</option>
-            </select>
-          </div>
+
         </div>
       )}
 

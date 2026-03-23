@@ -181,7 +181,7 @@ export default function ProjectsView({ data, updateData, setView, onNavigateToPl
 
       {/* Advanced filters panel */}
       {showFilters && (
-        <div style={{ background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 12, padding: 16, marginBottom: 16, display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 12 }}>
+        <div style={{ padding: '12px 0 16px', marginBottom: 0, display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'flex-end' }}>
           {[
             { key: 'requestType', label: t('type'), opts: spaceRequestTypes },
             { key: 'leadDept', label: t('lead_dept'), opts: spaceDepartments },
@@ -193,7 +193,7 @@ export default function ProjectsView({ data, updateData, setView, onNavigateToPl
           ].map(({ key, label, opts }) => (
             <div key={key}>
               <label style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '0.07em', display: 'block', marginBottom: 5 }}>{label}</label>
-              <select className="input" value={advFilters[key] ?? ''} onChange={e => setAdv(key, e.target.value)} style={{ fontSize: 12 }}>
+              <select className="toolbar-select" value={advFilters[key] ?? ''} onChange={e => setAdv(key, e.target.value)}>
                 <option value="">— {t('all')} —</option>
                 {opts.map(o => <option key={o} value={o}>{key === 'priority' ? `P${o}` : key === 'complexity' ? `C${o}` : o}</option>)}
               </select>
@@ -205,7 +205,7 @@ export default function ProjectsView({ data, updateData, setView, onNavigateToPl
           ].map(({ key, label }) => (
             <div key={key}>
               <label style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '0.07em', display: 'block', marginBottom: 5 }}>{label}</label>
-              <input className="input" value={advFilters[key] ?? ''} onChange={e => setAdv(key, e.target.value)} placeholder={`Filter...`} style={{ fontSize: 12 }} />
+              <input className="toolbar-select" value={advFilters[key] ?? ''} onChange={e => setAdv(key, e.target.value)} placeholder={`Filter...`} />
             </div>
           ))}
         </div>
