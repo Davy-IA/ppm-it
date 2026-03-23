@@ -411,7 +411,7 @@ export default function TasksView({ data, updateData }: Props) {
                 <span style={{ color: 'var(--text-faint)', fontSize: 11, flexShrink: 0 }}>↳</span>
                 <span style={{ color: 'var(--text-muted)', fontSize: 12, whiteSpace: 'normal', lineHeight: 1.4 }}>{sub.title || '—'}</span>
               </div>
-              {extraCols && <div className="utbl-td" style={{ flex: '0 0 16%' }} />}
+
               <div className="utbl-td" style={{ flex: '0 0 10%' }}>
                 {subOwner ? <Avatar staff={subOwner} size={20} /> : <span style={{ color: 'var(--text-faint)', fontSize: 11 }}>—</span>}
               </div>
@@ -429,10 +429,9 @@ export default function TasksView({ data, updateData }: Props) {
   };
 
   // ── TABLE HEADER ───────────────────────────────────────────────────────
-  const renderTableHead = (withPhaseCol = false) => (
+  const renderTableHead = () => (
     <div className="utbl-head">
-      <div className="utbl-th" style={{ flex: '0 0 42%' }}>{t('task_title_col')}</div>
-      {withPhaseCol && <div className="utbl-th" style={{ flex: '0 0 16%' }}>{t('task_phase_col')}</div>}
+      <div className="utbl-th" style={{ flex: '0 0 52%' }}>{t('task_title_col')}</div>
       <div className="utbl-th" style={{ flex: '0 0 10%' }}>{t('task_owner_col')}</div>
       <div className="utbl-th" style={{ flex: '0 0 14%' }}>{t('status')}</div>
       <div className="utbl-th" style={{ flex: '0 0 12%' }}>{t('task_deadline')}</div>
@@ -563,7 +562,7 @@ export default function TasksView({ data, updateData }: Props) {
       <div className="card card-table" style={{ borderRadius: 'var(--radius-lg)', overflow: 'hidden' }}>
         <div className="utbl-wrap" style={{ maxHeight: 'calc(100vh - 168px)' }}>
           <div className="utbl-inner">
-            {renderTableHead(true)}
+            {renderTableHead()}
             {resourceTasks.length === 0 ? renderEmpty() : sortedStaff.map(staff => {
               const staffTasks = resourceTasks.filter(t => t.ownerId === staff.id);
               if (staffTasks.length === 0) return null;
@@ -591,11 +590,7 @@ export default function TasksView({ data, updateData }: Props) {
                             tasks: projTasks.filter(t => t.phaseId === phId && t.subphaseId === sp.id),
                           })).filter(g => g.tasks.length > 0);
 
-                          const phaseColContent = (
-                            <div className="utbl-td" style={{ flex: '0 0 16%', fontSize: 11, color: 'var(--text-muted)' }}>
-                              {phase.name}
-                            </div>
-                          );
+                          const phaseColContent = undefined;
 
                           return (
                             <div key={phId}>
@@ -605,9 +600,7 @@ export default function TasksView({ data, updateData }: Props) {
                                 <div key={sp.id}>
                                   {renderSubphaseRow(sp)}
                                   {spTasks.map(task => renderTaskRow(task, 0,
-                                    <div className="utbl-td" style={{ flex: '0 0 16%', fontSize: 11, color: 'var(--text-muted)' }}>
-                                      {phase.name} › {sp.name}
-                                    </div>
+<></>
                                   ))}
                                 </div>
                               ))}
@@ -687,79 +680,95 @@ export default function TasksView({ data, updateData }: Props) {
   const STATUS_LIST: TaskStatus[] = ['todo', 'in_progress', 'done', 'blocked'];
 
   // Status multi-select dropdown — shared across views
-  const StatusDropdown = () => (
-    <div style={{ position: 'relative' }}>
-      <button
-        className={`toolbar-btn${statusFilters.length > 0 ? ' active' : ''}`}
-        onClick={() => { setShowStatusDrop(v => !v); setShowProjDrop(false); }}
-        style={{ display: 'flex', alignItems: 'center', gap: 6 }}
-      >
-        <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M1 3h11M3 6.5h7M5 10h3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
-        {t('status')}
-        {statusFilters.length > 0 && <span style={{ background: 'var(--accent)', color: '#fff', borderRadius: 10, padding: '1px 6px', fontSize: 10, fontWeight: 700 }}>{statusFilters.length}</span>}
-      </button>
-      {showStatusDrop && (
-        <>
-          <div style={{ position: 'fixed', inset: 0, zIndex: 3999 }} onClick={() => setShowStatusDrop(false)} />
-          <div style={{ position: 'absolute', top: 'calc(100% + 4px)', left: 0, background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 10, boxShadow: 'var(--shadow)', zIndex: 4000, minWidth: 160, overflow: 'hidden', animation: 'dropIn .15s ease' }}>
-            {STATUS_LIST.map(s => (
-              <label key={s} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 14px', cursor: 'pointer', fontSize: 12, fontFamily: 'var(--font)', color: 'var(--text)' }}
+  const StatusDropdown = () => {
+    const allStatuses = statusFilters.length === 0;
+    return (
+      <div style={{ position: 'relative' }}>
+        <button
+          className={`toolbar-btn${!allStatuses ? ' active' : ''}`}
+          onClick={() => { setShowStatusDrop(v => !v); setShowProjDrop(false); }}
+          style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M1 3h11M3 6.5h7M5 10h3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+          {t('status')}
+          {!allStatuses && <span style={{ background: 'var(--accent)', color: '#fff', borderRadius: 10, padding: '1px 6px', fontSize: 10, fontWeight: 700 }}>{statusFilters.length}</span>}
+        </button>
+        {showStatusDrop && (
+          <>
+            <div style={{ position: 'fixed', inset: 0, zIndex: 3999 }} onClick={() => setShowStatusDrop(false)} />
+            <div style={{ position: 'absolute', top: 'calc(100% + 4px)', left: 0, background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 10, boxShadow: 'var(--shadow)', zIndex: 4000, minWidth: 175, overflow: 'hidden', animation: 'dropIn .15s ease' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 14px', cursor: 'pointer', fontSize: 12, fontFamily: 'var(--font)', color: 'var(--text)', fontWeight: 600, borderBottom: '1px solid var(--border)' }}
                 onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--bg3)'}
                 onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'none'}>
-                <input type="checkbox" checked={statusFilters.includes(s)} onChange={() => toggleStatus(s)}
+                <input type="checkbox" checked={allStatuses} onChange={() => setStatusFilters([])}
                   style={{ accentColor: 'var(--accent)', width: 14, height: 14, cursor: 'pointer', flexShrink: 0 }} />
-                {t(`task_status_${s}`)}
+                {t('all')} ({STATUS_LIST.length})
               </label>
-            ))}
-            {statusFilters.length > 0 && (
-              <button onClick={() => setStatusFilters([])}
-                style={{ width: '100%', padding: '7px 14px', borderTop: '1px solid var(--border)', fontSize: 11, color: 'var(--danger)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 600, textAlign: 'left' as const }}>
-                ✕ {t('clear_filters')}
-              </button>
-            )}
-          </div>
-        </>
-      )}
-    </div>
-  );
+              {STATUS_LIST.map(s => (
+                <label key={s} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 14px', cursor: 'pointer', fontSize: 12, fontFamily: 'var(--font)', color: 'var(--text)' }}
+                  onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--bg3)'}
+                  onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'none'}>
+                  <input type="checkbox"
+                    checked={allStatuses || statusFilters.includes(s)}
+                    onChange={() => {
+                      if (allStatuses) setStatusFilters(STATUS_LIST.filter(x => x !== s));
+                      else toggleStatus(s);
+                    }}
+                    style={{ accentColor: 'var(--accent)', width: 14, height: 14, cursor: 'pointer', flexShrink: 0 }} />
+                  {t(`task_status_${s}`)}
+                </label>
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+    );
+  };
 
   // Multi-project checkbox dropdown — for resource view
-  const ProjDropdown = () => (
-    <div style={{ position: 'relative' }}>
-      <button
-        className={`toolbar-btn${resourceProjects.length > 0 ? ' active' : ''}`}
-        onClick={() => { setShowProjDrop(v => !v); setShowStatusDrop(false); }}
-        style={{ display: 'flex', alignItems: 'center', gap: 6 }}
-      >
-        {t('task_project')}
-        {resourceProjects.length > 0 && <span style={{ background: 'var(--accent)', color: '#fff', borderRadius: 10, padding: '1px 6px', fontSize: 10, fontWeight: 700 }}>{resourceProjects.length}</span>}
-      </button>
-      {showProjDrop && (
-        <>
-          <div style={{ position: 'fixed', inset: 0, zIndex: 3999 }} onClick={() => setShowProjDrop(false)} />
-          <div style={{ position: 'absolute', top: 'calc(100% + 4px)', left: 0, background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 10, boxShadow: 'var(--shadow)', zIndex: 4000, minWidth: 220, maxHeight: 280, overflowY: 'auto', animation: 'dropIn .15s ease' }}>
-            {data.projects.map(p => (
-              <label key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 14px', cursor: 'pointer', fontSize: 12, fontFamily: 'var(--font)', color: 'var(--text)' }}
+  const allProjCount = data.projects.length;
+  const ProjDropdown = () => {
+    const allSelected = resourceProjects.length === 0;
+    return (
+      <div style={{ position: 'relative' }}>
+        <button
+          className={`toolbar-btn${!allSelected ? ' active' : ''}`}
+          onClick={() => { setShowProjDrop(v => !v); setShowStatusDrop(false); }}
+          style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M1 3h11M3 6.5h7M5 10h3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+          {t('task_project')}
+          {!allSelected && <span style={{ background: 'var(--accent)', color: '#fff', borderRadius: 10, padding: '1px 6px', fontSize: 10, fontWeight: 700 }}>{resourceProjects.length}/{allProjCount}</span>}
+        </button>
+        {showProjDrop && (
+          <>
+            <div style={{ position: 'fixed', inset: 0, zIndex: 3999 }} onClick={() => setShowProjDrop(false)} />
+            <div style={{ position: 'absolute', top: 'calc(100% + 4px)', left: 0, background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 10, boxShadow: 'var(--shadow)', zIndex: 4000, minWidth: 230, maxHeight: 300, overflowY: 'auto', animation: 'dropIn .15s ease' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 14px', cursor: 'pointer', fontSize: 12, fontFamily: 'var(--font)', color: 'var(--text)', fontWeight: 600, borderBottom: '1px solid var(--border)' }}
                 onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--bg3)'}
                 onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'none'}>
-                <input type="checkbox"
-                  checked={resourceProjects.includes(p.id)}
-                  onChange={() => setResourceProjects(prev => prev.includes(p.id) ? prev.filter(x => x !== p.id) : [...prev, p.id])}
+                <input type="checkbox" checked={allSelected} onChange={() => setResourceProjects([])}
                   style={{ accentColor: 'var(--accent)', width: 14, height: 14, cursor: 'pointer', flexShrink: 0 }} />
-                {p.name}
+                {t('all')} ({allProjCount})
               </label>
-            ))}
-            {resourceProjects.length > 0 && (
-              <button onClick={() => setResourceProjects([])}
-                style={{ width: '100%', padding: '7px 14px', borderTop: '1px solid var(--border)', fontSize: 11, color: 'var(--danger)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 600, textAlign: 'left' as const }}>
-                ✕ {t('clear_filters')}
-              </button>
-            )}
-          </div>
-        </>
-      )}
-    </div>
-  );
+              {data.projects.map(p => (
+                <label key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 14px', cursor: 'pointer', fontSize: 12, fontFamily: 'var(--font)', color: 'var(--text)' }}
+                  onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--bg3)'}
+                  onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'none'}>
+                  <input type="checkbox"
+                    checked={allSelected || resourceProjects.includes(p.id)}
+                    onChange={() => {
+                      if (allSelected) setResourceProjects(data.projects.filter(x => x.id !== p.id).map(x => x.id));
+                      else setResourceProjects(prev => prev.includes(p.id) ? prev.filter(x => x !== p.id) : [...prev, p.id]);
+                    }}
+                    style={{ accentColor: 'var(--accent)', width: 14, height: 14, cursor: 'pointer', flexShrink: 0 }} />
+                  {p.name}
+                </label>
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+    );
+  };
 
   return (
     <div className="animate-in">
