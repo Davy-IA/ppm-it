@@ -71,7 +71,7 @@ export default function WorkloadView({ data, updateData }: Props) {
       const maxAllowed = Math.max(0, need - otherAlloc);
       const capped = need > 0 ? Math.min(v, maxAllowed) : v;
       if (need > 0 && v > maxAllowed) {
-        alert(t('alloc_exceeds_workload' as any) || \`Maximum autorisé : \${maxAllowed}j (besoin : \${need}j, déjà affecté : \${otherAlloc}j)\`);
+        alert(String(t('alloc_exceeds_workload' as any)) + ' (max: ' + maxAllowed + 'j)');
       }
       const allocations = data.allocations.map(a => a.id === id ? { ...a, monthly: { ...a.monthly, [month]: capped } } : a);
       updateData({ ...data, allocations });
