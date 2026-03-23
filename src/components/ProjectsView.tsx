@@ -220,7 +220,7 @@ export default function ProjectsView({ data, updateData, setView, onNavigateToPl
       {/* Table — same structure as Workload (proven working) */}
       {viewMode === 'list' && (
         <div className="card card-table" style={{ padding: 0, overflow: 'hidden', marginTop: 20 }}>
-          <div className="utbl-wrap" style={{ maxHeight: 'calc(100vh - 168px)' }}>
+          <div className="utbl-wrap" style={{ maxHeight: 'calc(100vh - 148px)' }}>
             <table className="data-table">
               <thead>
                 <tr>
