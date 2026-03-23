@@ -306,7 +306,7 @@ export default function WorkloadView({ data, updateData }: Props) {
                       })}
                       <td style={{ fontFamily: 'DM Mono, monospace', fontSize: 12, fontWeight: 600, color: 'var(--accent)' }}>{totalRow > 0 ? `${totalRow}j` : '—'}</td>
                       <td>
-                        <button className="btn btn-danger btn-sm" onClick={() => setConfirmAction(() => deleteWorkload(w.id))}><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 3.5h9M5 3.5V2.5h3v1M10.5 3.5l-.7 7H3.2l-.7-7" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg></button>
+                        <button className="btn btn-icon" style={{ width:26, height:26, color:'var(--text-faint)' }} onClick={() => setConfirmAction(() => deleteWorkload(w.id))} title="Supprimer"><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 3.5h9M5 3.5V2.5h3v1M10.5 3.5l-.7 7H3.2l-.7-7" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg></button>
                       </td>
                     </tr>
                   );
@@ -404,7 +404,7 @@ export default function WorkloadView({ data, updateData }: Props) {
                       })}
                       <td style={{ fontFamily: 'DM Mono, monospace', fontSize: 12, fontWeight: 600, color: 'var(--accent)' }}>{totalRow > 0 ? `${totalRow}j` : '—'}</td>
                       <td>
-                        <button className="btn btn-danger btn-sm" onClick={() => setConfirmAction(() => deleteAlloc(a.id))}><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 3.5h9M5 3.5V2.5h3v1M10.5 3.5l-.7 7H3.2l-.7-7" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg></button>
+                        <button className="btn btn-icon" style={{ width:26, height:26, color:'var(--text-faint)' }} onClick={() => setConfirmAction(() => deleteAlloc(a.id))} title="Supprimer"><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 3.5h9M5 3.5V2.5h3v1M10.5 3.5l-.7 7H3.2l-.7-7" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg></button>
                       </td>
                     </tr>
                   );

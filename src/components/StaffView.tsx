@@ -242,7 +242,7 @@ export default function StaffView({ data, updateData }: Props) {
                         }}>
                           <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><rect x="1" y="4" width="7" height="8" rx="1.2" stroke="currentColor" strokeWidth="1.3"/><path d="M4 4V2.5A1.5 1.5 0 015.5 1H10a1.5 1.5 0 011.5 1.5V8A1.5 1.5 0 0110 9.5H8.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg>
                         </button>
-                        <button className="btn btn-danger btn-sm" onClick={() => setConfirmAction(() => remove(s.id))}><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 2l9 9M11 2l-9 9" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg></button>
+                        <button className="btn btn-icon" style={{ width:26, height:26, color:'var(--text-faint)' }} onClick={() => setConfirmAction(() => remove(s.id))} title="Supprimer"><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 3.5h9M5 3.5V2.5h3v1M10.5 3.5l-.7 7H3.2l-.7-7" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg></button>
                       </div>
                     </td>
                   </tr>
