@@ -23,6 +23,7 @@ export default function App() {
   const [currentSpace, setCurrentSpace] = useState<Space | null>(null);
   const [view, setView] = useState<View>('projects');
   const [planProjectId, setPlanProjectId] = useState<string | null>(null);
+  const [planOpenNew, setPlanOpenNew] = useState(false);
   const [data, setData] = useState<AppData>({ ...INITIAL_DATA, projects: [], staff: [], workloads: [], allocations: [], ganttPhases: [] });
   const [saving, setSaving] = useState(false);
   const [spacesLoading, setSpacesLoading] = useState(false);
@@ -117,8 +118,8 @@ export default function App() {
       />
       <main className="app-content">
         {view === 'dashboard' && <DashboardHub data={data} setView={setView} />}
-        {view === 'projects' && <ProjectsView data={data} updateData={updateData} onNavigateToPlanning={(id) => { setPlanProjectId(id); setView('gantt'); }} />}
-        {view === 'gantt' && <GanttView data={data} updateData={updateData} initialProjectId={planProjectId} onMounted={() => setPlanProjectId(null)} />}
+        {view === 'projects' && <ProjectsView data={data} updateData={updateData} onNavigateToPlanning={(id, openNew) => { setPlanProjectId(id); setPlanOpenNew(openNew ?? false); setView('gantt'); }} />}
+        {view === 'gantt' && <GanttView data={data} updateData={updateData} initialProjectId={planProjectId} openNewPhase={planOpenNew} onMounted={() => { setPlanProjectId(null); setPlanOpenNew(false); }} />}
         {view === 'staff' && <StaffView data={data} updateData={updateData} />}
         {view === 'workload' && <WorkloadView data={data} updateData={updateData} />}
         {view === 'settings' && <SettingsView data={data} updateData={updateData} spaces={spaces as any} onRefreshSpaces={fetchSpaces} />}

@@ -5,7 +5,7 @@ import { v4 as uuid } from 'uuid';
 import { useSettings } from '@/lib/context';
 import ConfirmDialog from './ConfirmDialog';
 
-interface Props { data: AppData; updateData: (d: AppData) => void; setView?: (v: string) => void; onNavigateToPlanning?: (projectId: string) => void; }
+interface Props { data: AppData; updateData: (d: AppData) => void; setView?: (v: string) => void; onNavigateToPlanning?: (projectId: string, openNew?: boolean) => void; }
 
 const STATUS_BADGE: Record<string, string> = {
   '1-To arbitrate': 'badge-gray', '2-Validated': 'badge-blue',
@@ -97,7 +97,7 @@ export default function ProjectsView({ data, updateData, setView, onNavigateToPl
     updateData({ ...data, projects, workloads, allocations });
     setEditing(null);
     if (andPlan && onNavigateToPlanning) {
-      onNavigateToPlanning(newId);
+      onNavigateToPlanning(newId, true);
     }
   };
 
@@ -255,7 +255,7 @@ export default function ProjectsView({ data, updateData, setView, onNavigateToPl
                                 className="btn-icon"
                                 style={{ width: 22, height: 22, flexShrink: 0, color: 'var(--text-faint)', opacity: 0.6 }}
                                 title={t('go_to_planning') as string}
-                                onClick={e => { e.stopPropagation(); onNavigateToPlanning(p.id); }}
+                                onClick={e => { e.stopPropagation(); onNavigateToPlanning(p.id, false); }}
                               >
                                 <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
                                   <rect x="1" y="4" width="8" height="3" rx="1.5" fill="currentColor"/>

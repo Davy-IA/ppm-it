@@ -6,7 +6,7 @@ import { formatMonth, formatDate, formatDateTime } from '@/lib/locale-utils';
 import { AppData, GanttPhase, GanttSubphase, Milestone } from '@/types';
 import { v4 as uuid } from 'uuid';
 
-interface Props { data: AppData; updateData: (d: AppData) => void; initialProjectId?: string | null; onMounted?: () => void; }
+interface Props { data: AppData; updateData: (d: AppData) => void; initialProjectId?: string | null; openNewPhase?: boolean; onMounted?: () => void; }
 
 const PHASE_COLORS = ['#7C5CBF','#10b981','#f59e0b','#ef4444','#8b5cf6','#06b6d4','#f97316','#ec4899'];
 const DAY_PX = 26;
@@ -70,7 +70,7 @@ function getRange(phases: GanttPhase[], extra?: string | null) {
   return { start: all.reduce((a,b)=>a<b?a:b), end: all.reduce((a,b)=>a>b?a:b) };
 }
 
-export default function GanttView({ data, updateData, initialProjectId, onMounted }: Props) {
+export default function GanttView({ data, updateData, initialProjectId, openNewPhase, onMounted }: Props) {
   const { settings, t } = useSettings();
   const scrollRef = useRef<HTMLDivElement>(null);
   const nameRowRef = useRef<HTMLDivElement>(null);
@@ -78,15 +78,16 @@ export default function GanttView({ data, updateData, initialProjectId, onMounte
   const fmt = (d: string) => formatDate(d, locale);
   const [selProj, setSelProj] = useState(initialProjectId ?? data.projects[0]?.id ?? '');
 
-  // When landing from "Save & Plan": select project + open new phase modal
+  // When landing from portfolio: select project. If openNewPhase (Save & Plan), open modal
   useEffect(() => {
     if (initialProjectId) {
       setSelProj(initialProjectId);
-      // Small delay to let the component render with the new project
-      setTimeout(() => {
-        setEditPhase({ id: uuid(), projectId: initialProjectId, name: '', startDate: new Date().toISOString().slice(0,10), duration: 30, color: PHASE_COLORS[0], dependsOn: null, subphases: [] } as unknown as GanttPhase);
-        setIsNew(true);
-      }, 100);
+      if (openNewPhase) {
+        setTimeout(() => {
+          setEditPhase({ id: uuid(), projectId: initialProjectId, name: '', startDate: new Date().toISOString().slice(0,10), duration: 30, color: PHASE_COLORS[0], dependsOn: null, subphases: [] } as unknown as GanttPhase);
+          setIsNew(true);
+        }, 100);
+      }
       onMounted?.();
     }
   }, [initialProjectId]);
