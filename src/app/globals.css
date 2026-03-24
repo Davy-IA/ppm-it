@@ -170,15 +170,46 @@ html, body {
    tbody td.sticky-* = z:15  (other sticky body cols)
 */
 
-/* ── CELLULES NORMALES ── */
+/* CELLULES NORMALES */
 .data-table tbody td {
-  padding: 7px 14px;
-  border-bottom: 1px solid var(--border);
-  color: var(--text);
-  white-space: nowrap;
-  background: var(--bg2);
+    padding: 7px 14px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+    white-space: nowrap;
+    background: var(--bg2);
 }
-.data-table tbody tr:last-child td { border-bottom: none; }
+
+/* LIGNE ZEBRA */
+.data-table tbody tr:nth-child(even) td {
+    background: rgba(124, 92, 191, 0.04);
+}
+
+/* HOVER */
+.data-table tbody tr:hover td {
+    background: rgba(124, 92, 191, 0.12) !important;
+    transition: background 0.15s ease;
+}
+
+/* DERNIÈRE LIGNE */
+.data-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* PREMIÈRE COLONNE STICKY */
+.data-table thead th:first-child {
+    position: sticky;
+    top: 0;
+    left: 0;
+    z-index: 40;
+}
+
+.data-table tbody td:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 20;
+    font-weight: 600;
+    color: var(--accent); /* optionnel pour faire ressortir */
+}
 
 /* ── COIN HAUT-GAUCHE : sticky top + left, z-index max ── */
 .data-table thead th:first-child {
