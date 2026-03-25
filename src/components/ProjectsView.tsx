@@ -79,8 +79,13 @@ export default function ProjectsView({ data, updateData, setView, onNavigateToPl
   const spaceCountries: string[]    = sc.countries     ?? settings.countries     ?? COUNTRIES;
   const spaceSponsors: string[]     = sc.sponsors      ?? settings.sponsors      ?? SPONSORS;
 
-  // E7: Custom fields from spaceConfig
-  const customFields: { id: string; label: string; type: 'text' | 'select'; options?: string[] }[] = sc.customFields ?? [];
+  // E7: Custom fields — global (from settings) + space-specific (from spaceConfig)
+  const globalCustomFields: { id: string; label: string; type: 'text' | 'select'; options?: string[] }[] = (settings as any).customFields ?? [];
+  const spaceCustomFields: { id: string; label: string; type: 'text' | 'select'; options?: string[] }[] = sc.customFields ?? [];
+  const customFields = [
+    ...globalCustomFields,
+    ...spaceCustomFields.filter(sf => !globalCustomFields.some(gf => gf.id === sf.id)),
+  ];
   const allCols: ColDef[] = [
     ...BASE_COLS,
     ...customFields.map(cf => ({ id: `cf_${cf.id}`, labelKey: cf.label, minWidth: 110, isCustom: true, cfId: cf.id } as ColDef)),
@@ -462,7 +467,19 @@ export default function ProjectsView({ data, updateData, setView, onNavigateToPl
                 <tr>
                   <th className="sticky-left" style={{ minWidth: 300 }}>{t('project_name')}</th>
                   {visibleCols.map(col => (
-                    <th key={col.id} style={{ minWidth: col.minWidth, textAlign: col.textAlign as any }}>
+                    <th key={col.id}
+                      style={{ minWidth: col.minWidth, textAlign: col.textAlign as any, cursor: 'grab', userSelect: 'none', opacity: dragColId === col.id ? 0.4 : 1 }}
+                      draggable
+                      onDragStart={() => setDragColId(col.id)}
+                      onDragOver={e => e.preventDefault()}
+                      onDrop={() => {
+                        if (!dragColId || dragColId === col.id) return;
+                        const order = [...effectiveOrder];
+                        const from = order.indexOf(dragColId); const to = order.indexOf(col.id);
+                        order.splice(from, 1); order.splice(to, 0, dragColId);
+                        saveColOrder(order); setDragColId(null);
+                      }}
+                    >
                       {col.isCustom ? col.labelKey : t(col.labelKey as any) as string}
                     </th>
                   ))}
@@ -722,8 +739,8 @@ function PortfolioGantt({ data, filtered, t, timeScale }: { data: AppData; filte
         <div style={{ overflow: 'auto', maxHeight: 'calc(100vh - 155px)' }}>
           <div style={{ minWidth: LEFT_W + chartW }}>
             {/* Header row — sticky */}
-            <div style={{ display: 'flex', background: '#3D3A4E', borderBottom: 'none', position: 'sticky', top: 0, zIndex: 6 }}>
-              <div style={{ width: LEFT_W, minWidth: LEFT_W, flexShrink: 0, height: 38, display: 'flex', alignItems: 'center', padding: '0 14px', fontSize: 11, fontWeight: 700, color: '#FFFFFF', textTransform: 'uppercase' as const, letterSpacing: '0.07em', position: 'sticky', left: 0, zIndex: 25, background: '#3D3A4E', borderRight: '1px solid rgba(255,255,255,0.10)' }}>
+            <div style={{ display: 'flex', background: '#3D3A4E', borderBottom: 'none', position: 'sticky', top: 0, zIndex: 30 }}>
+              <div style={{ width: LEFT_W, minWidth: LEFT_W, flexShrink: 0, height: 38, display: 'flex', alignItems: 'center', padding: '0 14px', fontSize: 11, fontWeight: 700, color: '#FFFFFF', textTransform: 'uppercase' as const, letterSpacing: '0.07em', position: 'sticky', left: 0, zIndex: 35, background: '#3D3A4E', borderRight: '1px solid rgba(255,255,255,0.10)' }}>
                 {t('project_name')}
               </div>
               <div style={{ width: chartW, flexShrink: 0, position: 'relative', height: 38 }}>
@@ -773,7 +790,7 @@ function PortfolioGantt({ data, filtered, t, timeScale }: { data: AppData; filte
                     )}
                     {/* ◆ Go-live */}
                     {glX !== null && glX >= -4 && glX <= chartW + 4 && (
-                      <div style={{ position: 'absolute', left: glX - 7, top: '50%', transform: 'translateY(-50%) rotate(45deg)', width: 12, height: 12, background: color, border: '2px solid white', boxShadow: '0 1px 4px rgba(0,0,0,.25)', zIndex: 5 }} title={`Go-Live: ${p.goLive}`} />
+                      <div style={{ position: 'absolute', left: glX - 7, top: '50%', transform: 'translateY(-50%) rotate(45deg)', width: 12, height: 12, background: color, border: '2px solid white', boxShadow: '0 1px 4px rgba(0,0,0,.25)', zIndex: 5 }} title={`${t('go_live')}: ${p.goLive}`} />
                     )}
                     {/* Manual milestones */}
                     {(data.milestones ?? []).filter(m => m.projectId === p.id && !m.isAutoGoLive).map(m => {

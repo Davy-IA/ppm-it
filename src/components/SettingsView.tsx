@@ -347,19 +347,24 @@ export default function SettingsView({ data, updateData, spaces, onRefreshSpaces
             </div>
 
 
-            {/* E7: Custom fields — space-level only, not available in global scope */}
-            {!isGlobal && (() => {
-              const customFields: { id: string; label: string; type: 'text' | 'select'; options?: string[] }[] = spaceConfig.customFields ?? [];
+            {/* E7: Custom fields — global and space scope */}
+            {(() => {
+              const customFields: { id: string; label: string; type: 'text' | 'select'; options?: string[] }[] =
+                isGlobal ? ((settings as any).customFields ?? []) : (spaceConfig.customFields ?? []);
               const saveCustomFields = (fields: typeof customFields) => {
-                const newConfig = { ...spaceConfig, customFields: fields };
-                updateData({ ...data, spaceConfig: newConfig } as any);
+                if (isGlobal) {
+                  updateSettings({ ...(settings as any), customFields: fields } as any);
+                } else {
+                  const newConfig = { ...spaceConfig, customFields: fields };
+                  updateData({ ...data, spaceConfig: newConfig } as any);
+                }
                 showSaved();
               };
               return (
                 <div className="card" style={{ padding: 0, overflow: 'hidden', marginBottom: 20 }}>
                   <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <span style={{ fontWeight: 700, fontSize: 13 }}>Champs personnalisés</span>
-                    <span style={{ fontSize: 11, color: 'var(--text-faint)' }}>Colonnes supplémentaires dans le Portfolio</span>
+                    <span style={{ fontSize: 11, color: 'var(--text-faint)' }}>{isGlobal ? 'Champs visibles dans tous les espaces' : 'Champs visibles uniquement dans cet espace'}</span>
                   </div>
                   <table className="data-table">
                     <thead><tr>
