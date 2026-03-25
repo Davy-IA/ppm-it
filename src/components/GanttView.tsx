@@ -102,6 +102,18 @@ export default function GanttView({ data, updateData, initialProjectId, openNewP
   const [showScaleMenu, setShowScaleMenu] = useState(false);
   const [confirmAction, setConfirmAction] = useState<(() => void) | null>(null);
 
+  // E4: Drag state
+  const dragRef = useRef<{
+    type: 'move' | 'resize-right' | 'resize-left';
+    phaseId: string;
+    subId?: string;
+    startX: number;
+    origStart: string;
+    origDuration: number;
+    moved: boolean;
+  } | null>(null);
+  const [dragPhases, setDragPhases] = useState<GanttPhase[] | null>(null);
+
   const [statusFilter, setStatusFilter] = useState('');
   const [domainFilter, setDomainFilter] = useState('');
   const [deptFilter, setDeptFilter] = useState('');
@@ -164,6 +176,64 @@ export default function GanttView({ data, updateData, initialProjectId, openNewP
     const others = data.ganttPhases.filter(p => p.projectId !== selProj);
     updateData({ ...data, ganttPhases: [...others, ...next] });
   };
+
+  const onBarMouseDown = (
+    e: React.MouseEvent,
+    type: 'move' | 'resize-right' | 'resize-left',
+    phId: string,
+    origStart: string,
+    origDuration: number,
+    subId?: string
+  ) => {
+    e.stopPropagation();
+    e.preventDefault();
+    dragRef.current = { type, phaseId: phId, subId, startX: e.clientX, origStart, origDuration, moved: false };
+  };
+
+  const onChartMouseMove = (e: React.MouseEvent, dayPx: number) => {
+    if (!dragRef.current) return;
+    const delta = e.clientX - dragRef.current.startX;
+    if (Math.abs(delta) > 3) dragRef.current.moved = true;
+    const deltaDays = Math.round(delta / dayPx);
+    const { type, phaseId, subId, origStart, origDuration } = dragRef.current;
+    setDragPhases(phases.map(ph => {
+      if (ph.id !== phaseId) return ph;
+      if (subId) {
+        // Subphase drag
+        const newSubs = ph.subphases.map(s => {
+          if (s.id !== subId) return s;
+          if (type === 'move') return { ...s, startDate: addDays(origStart, deltaDays), dependsOn: null };
+          if (type === 'resize-right') return { ...s, duration: Math.max(1, origDuration + deltaDays) };
+          if (type === 'resize-left') {
+            const newDur = Math.max(1, origDuration - deltaDays);
+            return { ...s, startDate: addDays(origStart, origDuration - newDur), duration: newDur };
+          }
+          return s;
+        });
+        return { ...ph, subphases: newSubs };
+      }
+      // Phase drag
+      if (type === 'move') return { ...ph, startDate: addDays(origStart, deltaDays), dependsOn: null };
+      if (type === 'resize-right') return { ...ph, duration: Math.max(1, origDuration + deltaDays) };
+      if (type === 'resize-left') {
+        const newDur = Math.max(1, origDuration - deltaDays);
+        return { ...ph, startDate: addDays(origStart, origDuration - newDur), duration: newDur };
+      }
+      return ph;
+    }));
+  };
+
+  const commitDrag = () => {
+    if (dragRef.current?.moved && dragPhases) savePhases(dragPhases);
+    dragRef.current = null;
+    setDragPhases(null);
+  };
+
+  useEffect(() => {
+    const onUp = () => commitDrag();
+    window.addEventListener('mouseup', onUp);
+    return () => window.removeEventListener('mouseup', onUp);
+  }, [dragPhases]); // eslint-disable-line
 
   const range = getRange(phases, project?.goLive);
   const ganttEnd = phases.length ? phases.flatMap(p => [addDays(p.startDate, p.duration)]).reduce((a,b)=>a>b?a:b) : null;
@@ -517,7 +587,10 @@ export default function GanttView({ data, updateData, initialProjectId, openNewP
               </div>
 
               {/* Chart */}
-              <div style={{ width:chartW, flexShrink:0, position:'relative' }}>
+              <div style={{ width:chartW, flexShrink:0, position:'relative' }}
+                onMouseMove={e => onChartMouseMove(e, DAY_PX_DYN)}
+                onMouseUp={commitDrag}
+                onMouseLeave={commitDrag}>
                 <div style={{ position:'relative', width:chartW }}>
                   {/* Grid lines */}
                   {months.map((m,i) => <div key={i} style={{ position:'absolute', left:m.left, top:0, bottom:0, width:1, background:'var(--border)', zIndex:0 }}/>)}
@@ -600,17 +673,22 @@ export default function GanttView({ data, updateData, initialProjectId, openNewP
                     );
                   })()}
 
-                  {phases.map(ph => {
+                  {(dragPhases ?? phases).map(ph => {
                     const px = daysBetween(displayMin, ph.startDate)*DAY_PX_DYN;
                     const pw = Math.max(ph.duration*DAY_PX_DYN, 16);
                     return (
                       <div key={ph.id}>
                         {/* Phase row */}
                         <div style={{ position:'relative', height:40, borderBottom:'1px solid var(--border)' }}>
-                          <div style={{ position:'absolute', top:7, left:px, width:pw, height:26, borderRadius:6, background:ph.color||'#7C5CBF', cursor:'pointer', display:'flex', alignItems:'center', padding:'0 8px', boxShadow:'0 2px 8px rgba(0,0,0,0.15)', transition:'opacity 0.15s' }}
-                            onClick={()=>{setEditPhase({...ph});setIsNew(false);}}
+                          <div style={{ position:'absolute', top:7, left:px, width:pw, height:26, borderRadius:6, background:ph.color||'#7C5CBF', cursor:'grab', display:'flex', alignItems:'center', padding:'0 8px', boxShadow:'0 2px 8px rgba(0,0,0,0.15)', userSelect:'none' }}
+                            onMouseDown={e => onBarMouseDown(e, 'move', ph.id, ph.startDate, ph.duration)}
+                            onClick={() => { if (!dragRef.current?.moved) { setEditPhase({...ph}); setIsNew(false); } }}
                             title={`${ph.name} — ${fmt(ph.startDate)} → ${fmt(addDays(ph.startDate,ph.duration))} (${ph.duration}j)`}>
-                            {pw>60 && <span style={{fontSize:11,fontWeight:700,color:'#fff',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{ph.name}</span>}
+                            <div style={{ position:'absolute', left:0, top:0, bottom:0, width:8, cursor:'ew-resize', zIndex:2 }}
+                              onMouseDown={e => { e.stopPropagation(); onBarMouseDown(e, 'resize-left', ph.id, ph.startDate, ph.duration); }} />
+                            {pw>60 && <span style={{fontSize:11,fontWeight:700,color:'#fff',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',pointerEvents:'none'}}>{ph.name}</span>}
+                            <div style={{ position:'absolute', right:0, top:0, bottom:0, width:8, cursor:'ew-resize', zIndex:2 }}
+                              onMouseDown={e => { e.stopPropagation(); onBarMouseDown(e, 'resize-right', ph.id, ph.startDate, ph.duration); }} />
                           </div>
                         </div>
                         {/* Subphase rows */}
@@ -619,10 +697,15 @@ export default function GanttView({ data, updateData, initialProjectId, openNewP
                           const sw = Math.max(sub.duration*DAY_PX_DYN, 10);
                           return (
                             <div key={sub.id} style={{ position:'relative', height:34, borderBottom:'1px solid var(--border)', background:'rgba(124,92,191,0.03)' }}>
-                              <div style={{ position:'absolute', top:6, left:sx, width:sw, height:22, borderRadius:5, background:ph.color||'#10b981', opacity:0.72, cursor:'pointer', display:'flex', alignItems:'center', padding:'0 6px', transition:'opacity 0.15s' }}
-                                onClick={()=>{setEditSub({sub:{...sub},phase:ph});setIsNew(false);}}
+                              <div style={{ position:'absolute', top:6, left:sx, width:sw, height:22, borderRadius:5, background:ph.color||'#10b981', opacity:0.72, cursor:'grab', display:'flex', alignItems:'center', padding:'0 6px', userSelect:'none' }}
+                                onMouseDown={e => onBarMouseDown(e, 'move', ph.id, sub.startDate, sub.duration, sub.id)}
+                                onClick={() => { if (!dragRef.current?.moved) { setEditSub({sub:{...sub},phase:ph}); setIsNew(false); } }}
                                 title={`${sub.name} — ${fmt(sub.startDate)} → ${fmt(addDays(sub.startDate,sub.duration))} (${sub.duration}j)`}>
-                                {sw>44 && <span style={{fontSize:10,fontWeight:600,color:'#fff',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{sub.name}</span>}
+                                <div style={{ position:'absolute', left:0, top:0, bottom:0, width:6, cursor:'ew-resize', zIndex:2 }}
+                                  onMouseDown={e => { e.stopPropagation(); onBarMouseDown(e, 'resize-left', ph.id, sub.startDate, sub.duration, sub.id); }} />
+                                {sw>44 && <span style={{fontSize:10,fontWeight:600,color:'#fff',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',pointerEvents:'none'}}>{sub.name}</span>}
+                                <div style={{ position:'absolute', right:0, top:0, bottom:0, width:6, cursor:'ew-resize', zIndex:2 }}
+                                  onMouseDown={e => { e.stopPropagation(); onBarMouseDown(e, 'resize-right', ph.id, sub.startDate, sub.duration, sub.id); }} />
                               </div>
                             </div>
                           );
