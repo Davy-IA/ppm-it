@@ -24,8 +24,8 @@ export default function SettingsView({ data, updateData, spaces, onRefreshSpaces
   const [confirmAction, setConfirmAction] = useState<(() => void) | null>(null);
   const [editingList, setEditingList] = useState<string | null>(null);
   // E7: Custom fields editing state
-  const [editingCf, setEditingCf] = useState<{ id: string; label: string; type: string; options: string } | null>(null);
-  const [newCf, setNewCf] = useState<{ label: string; type: string; options: string }>({ label: '', type: 'text', options: '' });
+  const [editingCf, setEditingCf] = useState<{ id: string; label: string; type: 'text' | 'select'; options: string } | null>(null);
+  const [newCf, setNewCf] = useState<{ label: string; type: 'text' | 'select'; options: string }>({ label: '', type: 'text', options: '' });
   const isSpaceAdmin = user?.role === 'space_admin';
   const [activeTab, setActiveTab] = useState<'identity' | 'theme' | 'lists' | 'lang' | 'users' | 'spaces'>(isSpaceAdmin ? 'lists' : 'identity');
   const [spacesList, setSpacesList] = useState<Space[]>(spaces);
@@ -371,7 +371,7 @@ export default function SettingsView({ data, updateData, spaces, onRefreshSpaces
                           {editingCf?.id === cf.id ? (
                             <>
                               <td><input className="cell-input" autoFocus defaultValue={cf.label} onBlur={e => setEditingCf({ ...editingCf, label: e.target.value })} style={{ minWidth: 120 }} /></td>
-                              <td><select className="cell-select" defaultValue={cf.type} onChange={e => setEditingCf({ ...editingCf, type: e.target.value })}><option value="text">Texte</option><option value="select">Liste</option></select></td>
+                              <td><select className="cell-select" defaultValue={cf.type} onChange={e => setEditingCf({ ...editingCf, type: e.target.value as 'text' | 'select' })}><option value="text">Texte</option><option value="select">Liste</option></select></td>
                               <td><input className="cell-input" defaultValue={(cf.options ?? []).join(', ')} onBlur={e => setEditingCf({ ...editingCf, options: e.target.value })} placeholder="val1, val2, …" style={{ minWidth: 160 }} /></td>
                               <td style={{ display: 'flex', gap: 4 }}>
                                 <button className="btn btn-primary btn-sm" onClick={() => {
@@ -400,7 +400,7 @@ export default function SettingsView({ data, updateData, spaces, onRefreshSpaces
                       {/* Add new row */}
                       <tr style={{ background: 'var(--bg3)' }}>
                         <td><input className="cell-input" placeholder="Nom du champ" value={newCf.label} onChange={e => setNewCf({ ...newCf, label: e.target.value })} style={{ minWidth: 120 }} /></td>
-                        <td><select className="cell-select" value={newCf.type} onChange={e => setNewCf({ ...newCf, type: e.target.value })}><option value="text">Texte</option><option value="select">Liste</option></select></td>
+                        <td><select className="cell-select" value={newCf.type} onChange={e => setNewCf({ ...newCf, type: e.target.value as 'text' | 'select' })}><option value="text">Texte</option><option value="select">Liste</option></select></td>
                         <td><input className="cell-input" placeholder="val1, val2, …" value={newCf.options} onChange={e => setNewCf({ ...newCf, options: e.target.value })} style={{ minWidth: 160 }} /></td>
                         <td>
                           <button className="btn btn-primary btn-sm" disabled={!newCf.label.trim()} onClick={() => {
