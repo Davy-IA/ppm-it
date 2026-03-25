@@ -1,5 +1,5 @@
 'use client';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { AppData, GanttPhase, GanttSubphase, Staff, Task, SubTask, TaskStatus } from '@/types';
 import { useSettings } from '@/lib/context';
 import { useAuth } from '@/lib/auth-context';
@@ -237,13 +237,14 @@ const labelStyle: React.CSSProperties = {
 };
 
 // ── Main component ─────────────────────────────────────────────────────────
-interface Props { data: AppData; updateData: (d: AppData) => void; }
+interface SpaceRef { id: string; name: string; }
+interface Props { data: AppData; updateData: (d: AppData) => void; spaces?: SpaceRef[]; currentSpaceId?: string; }
 
 type TabView = 'by_project' | 'by_resource' | 'milestones';
 
-export default function TasksView({ data, updateData }: Props) {
+export default function TasksView({ data, updateData, spaces, currentSpaceId }: Props) {
   const { t } = useSettings();
-  const { user } = useAuth();
+  const { user, token } = useAuth();
   const [tab, setTab] = useState<TabView>('by_project');
 
   // Filters — by_project: single project required; by_resource: resource + multi-project
@@ -256,6 +257,18 @@ export default function TasksView({ data, updateData }: Props) {
   // Vue "par ressource" — resource selector + multi-project checkboxes
   const [resourceFilter, setResourceFilter] = useState<string>(''); // staffId, default = currentStaff
   const [resourceProjects, setResourceProjects] = useState<string[]>([]); // empty = all
+  // Space filter for by_resource view
+  const [resourceSpaceId, setResourceSpaceId] = useState<string>(currentSpaceId ?? '');
+  const [resourceSpaceData, setResourceSpaceData] = useState<AppData | null>(null);
+
+  useEffect(() => {
+    if (!resourceSpaceId || resourceSpaceId === currentSpaceId) { setResourceSpaceData(null); return; }
+    const tok = token ?? localStorage.getItem('ppm_token');
+    if (!tok) return;
+    fetch(`/api/spaces/${resourceSpaceId}/data`, { headers: { Authorization: `Bearer ${tok}` } })
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d) setResourceSpaceData(d); });
+  }, [resourceSpaceId, currentSpaceId, token]);
 
   // Shared status filter (multi-select checkboxes) — shown in both views
   const [statusFilters, setStatusFilters] = useState<TaskStatus[]>([]);
@@ -297,14 +310,17 @@ export default function TasksView({ data, updateData }: Props) {
     saveTasks(tasks.map(t => t.id === id ? { ...t, isMilestone: val } : t));
   };
 
-  // Compute current user's linked staff id
+  // Active data for by_resource view (may be from a different space)
+  const resData = resourceSpaceData ?? data;
+
+  // Compute current user's linked staff id (in the active resource-view space)
   const currentStaff = useMemo(() =>
-    data.staff.find(s => (s as any).userId === user?.id || s.name.toLowerCase() === `${user?.firstName ?? ''} ${user?.lastName ?? ''}`.toLowerCase().trim()),
-    [data.staff, user]
+    resData.staff.find(s => (s as any).userId === user?.id || s.name.toLowerCase() === `${user?.firstName ?? ''} ${user?.lastName ?? ''}`.toLowerCase().trim()),
+    [resData.staff, user]
   );
 
   // Init resource filter to current user on first render
-  const effectiveResource = resourceFilter || currentStaff?.id || (data.staff[0]?.id ?? '');
+  const effectiveResource = resourceFilter || currentStaff?.id || (resData.staff[0]?.id ?? '');
 
   // Tasks filtered for "par projet" view
   const projectTasks = useMemo(() => {
@@ -314,14 +330,15 @@ export default function TasksView({ data, updateData }: Props) {
     return ts;
   }, [tasks, selectedProject, statusFilters]);
 
-  // Tasks filtered for "par ressource" view
+  // Tasks filtered for "par ressource" view (use resData tasks when viewing another space)
   const resourceTasks = useMemo(() => {
     if (resourceProjects[0] === '__none__' || (statusFilters as any)[0] === '__none__') return [];
-    let ts = tasks.filter(t => t.ownerId === effectiveResource || t.subtasks.some(s => s.ownerId === effectiveResource));
+    const baseTasks: Task[] = (resData as any).tasks ?? tasks;
+    let ts = baseTasks.filter(t => t.ownerId === effectiveResource || t.subtasks.some(s => s.ownerId === effectiveResource));
     if (resourceProjects.length > 0) ts = ts.filter(t => resourceProjects.includes(t.projectId));
     if (statusFilters.length > 0) ts = ts.filter(t => statusFilters.includes(t.status));
     return ts;
-  }, [tasks, effectiveResource, resourceProjects, statusFilters]);
+  }, [resData, tasks, effectiveResource, resourceProjects, statusFilters]);
 
   // Tasks for milestone view
   const filteredTasks = useMemo(() => {
@@ -561,7 +578,7 @@ export default function TasksView({ data, updateData }: Props) {
 
   // ── VIEW: BY RESOURCE ──────────────────────────────────────────────────
   const renderByResource = () => {
-    const activeStaff = data.staff.find(s => s.id === effectiveResource);
+    const activeStaff = resData.staff.find(s => s.id === effectiveResource);
     const sortedStaff = activeStaff ? [activeStaff] : [];
 
     return (
@@ -578,7 +595,7 @@ export default function TasksView({ data, updateData }: Props) {
               return (
                 <div key={staff.id}>
                   {projectIds.map(projId => {
-                    const proj = data.projects.find(p => p.id === projId);
+                    const proj = resData.projects.find(p => p.id === projId);
                     if (!proj) return null;
                     const projTasks = staffTasks.filter(t => t.projectId === projId);
                     const phaseIds = Array.from(new Set(projTasks.map(t => t.phaseId)));
@@ -587,7 +604,7 @@ export default function TasksView({ data, updateData }: Props) {
                       <div key={projId}>
                         {renderProjBreakRow(proj.name)}
                         {phaseIds.map(phId => {
-                          const phase = data.ganttPhases.find(p => p.id === phId);
+                          const phase = resData.ganttPhases.find(p => p.id === phId);
                           if (!phase) return null;
                           const phaseTasks = projTasks.filter(t => t.phaseId === phId && !t.subphaseId);
                           const spGroups = phase.subphases.map(sp => ({
@@ -734,8 +751,8 @@ export default function TasksView({ data, updateData }: Props) {
     );
   };
 
-  // Multi-project checkbox dropdown — for resource view
-  const allProjCount = data.projects.length;
+  // Multi-project checkbox dropdown — for resource view (uses resData.projects)
+  const allProjCount = resData.projects.length;
   const ProjDropdown = () => {
     const allSelected = resourceProjects.length === 0;
     return (
@@ -760,14 +777,14 @@ export default function TasksView({ data, updateData }: Props) {
                   style={{ accentColor: 'var(--accent)', width: 14, height: 14, cursor: 'pointer', flexShrink: 0 }} />
                 {t('all')} ({allProjCount})
               </label>
-              {data.projects.map(p => (
+              {resData.projects.map(p => (
                 <label key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 14px', cursor: 'pointer', fontSize: 12, fontFamily: 'var(--font)', color: 'var(--text)' }}
                   onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--bg3)'}
                   onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'none'}>
                   <input type="checkbox"
                     checked={!resourceProjects.includes('__none__') && (allSelected || resourceProjects.includes(p.id))}
                     onChange={() => {
-                      if (allSelected) setResourceProjects(data.projects.filter(x => x.id !== p.id).map(x => x.id));
+                      if (allSelected) setResourceProjects(resData.projects.filter(x => x.id !== p.id).map(x => x.id));
                       else setResourceProjects(prev => prev.includes(p.id) ? prev.filter(x => x !== p.id) : [...prev, p.id]);
                     }}
                     style={{ accentColor: 'var(--accent)', width: 14, height: 14, cursor: 'pointer', flexShrink: 0 }} />
@@ -814,13 +831,20 @@ export default function TasksView({ data, updateData }: Props) {
             </select>
           )}
 
-          {/* Vue ressource : resource selector */}
+          {/* Vue ressource : space selector + resource selector */}
           {tab === 'by_resource' && (
             <>
+              {spaces && spaces.length > 1 && (
+                <select className="toolbar-select" style={{ maxWidth: 180, fontWeight: 600 }}
+                  value={resourceSpaceId}
+                  onChange={e => { setResourceSpaceId(e.target.value); setResourceFilter(''); setResourceProjects([]); }}>
+                  {spaces.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                </select>
+              )}
               <select className="toolbar-select" style={{ maxWidth: 220, fontWeight: 600 }}
                 value={effectiveResource}
                 onChange={e => setResourceFilter(e.target.value)}>
-                {data.staff.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                {resData.staff.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
               </select>
               <ProjDropdown />
             </>

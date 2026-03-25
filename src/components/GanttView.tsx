@@ -147,7 +147,9 @@ export default function GanttView({ data, updateData, initialProjectId, openNewP
         startDate: s.startDate < p.startDate ? p.startDate : s.startDate
       }))
     }));
-    // Auto-extend phase duration if any subphase overflows
+    // Propagate dependencies FIRST so sub-phase positions are correct
+    next = propagateDeps(next);
+    // Auto-extend phase duration if any subphase overflows (after propagation)
     next = next.map(p => {
       const phaseEnd = addDays(p.startDate, p.duration);
       const subEnd = p.subphases.length
@@ -160,7 +162,7 @@ export default function GanttView({ data, updateData, initialProjectId, openNewP
       return p;
     });
     const others = data.ganttPhases.filter(p => p.projectId !== selProj);
-    updateData({ ...data, ganttPhases: [...others, ...propagateDeps(next)] });
+    updateData({ ...data, ganttPhases: [...others, ...next] });
   };
 
   const range = getRange(phases, project?.goLive);
@@ -185,11 +187,16 @@ export default function GanttView({ data, updateData, initialProjectId, openNewP
   const anchorYear = anchorD.getFullYear();
   const anchorMon  = anchorD.getMonth(); // 0-11
 
-  // Compute real end date from all phases + subphases
-  const allEndDates = phases.flatMap(p => [
-    addDays(p.startDate, p.duration),
-    ...p.subphases.map(s => addDays(s.startDate, s.duration))
-  ]);
+  // Compute real end date from all phases + subphases + go-live + milestones
+  const allEndDates = [
+    ...phases.flatMap(p => [
+      addDays(p.startDate, p.duration),
+      ...p.subphases.map(s => addDays(s.startDate, s.duration))
+    ]),
+    ...(goLive ? [goLive] : []),
+    ...(hypercare ? [hypercare] : []),
+    ...milestones.map(m => m.date),
+  ];
   const realMaxDate = allEndDates.length ? allEndDates.reduce((a,b) => a>b?a:b) : addDays(minDate, 90);
   // Add padding based on scale
   const paddedMaxDate = timeScale === 'week' ? addDays(realMaxDate, 14)
@@ -515,6 +522,84 @@ export default function GanttView({ data, updateData, initialProjectId, openNewP
                   {/* Grid lines */}
                   {months.map((m,i) => <div key={i} style={{ position:'absolute', left:m.left, top:0, bottom:0, width:1, background:'var(--border)', zIndex:0 }}/>)}
 
+                  {/* Dependency connectors SVG overlay */}
+                  {(() => {
+                    // Build Y-position map for all phases and sub-phases
+                    let yOff = 0;
+                    const phY: Record<string, number> = {};
+                    const subY: Record<string, number> = {};
+                    phases.forEach(ph => {
+                      phY[ph.id] = yOff + 20; // center of 40px row
+                      yOff += 40;
+                      if (!ph.collapsed) {
+                        ph.subphases.forEach(sub => {
+                          subY[sub.id] = yOff + 17; // center of 34px row
+                          yOff += 34;
+                        });
+                      }
+                    });
+                    const totalH = yOff;
+                    const paths: JSX.Element[] = [];
+
+                    // Phase → phase connectors
+                    phases.forEach(ph => {
+                      if (!ph.dependsOn || !phY[ph.dependsOn]) return;
+                      const dep = phases.find(p => p.id === ph.dependsOn);
+                      if (!dep) return;
+                      const x1 = daysBetween(displayMin, dep.startDate) * DAY_PX_DYN + dep.duration * DAY_PX_DYN;
+                      const x2 = daysBetween(displayMin, ph.startDate) * DAY_PX_DYN;
+                      const y1 = phY[dep.id];
+                      const y2 = phY[ph.id];
+                      const mx = x1 + 10;
+                      paths.push(
+                        <path key={`conn-ph-${ph.id}`}
+                          d={`M${x1},${y1} L${mx},${y1} L${mx},${y2} L${x2},${y2}`}
+                          fill="none" stroke="var(--text-faint)" strokeWidth="1.5"
+                          strokeDasharray="4 3" markerEnd="url(#dep-arrow)" opacity="0.7"
+                        />
+                      );
+                    });
+
+                    // Sub-phase → sub-phase connectors (within same parent)
+                    phases.forEach(ph => {
+                      if (ph.collapsed) return;
+                      const sm: Record<string, GanttSubphase> = {};
+                      ph.subphases.forEach(s => { sm[s.id] = s; });
+                      ph.subphases.forEach(sub => {
+                        if (!sub.dependsOn || !subY[sub.dependsOn] || !subY[sub.id]) return;
+                        const depSub = sm[sub.dependsOn];
+                        if (!depSub) return;
+                        const x1 = daysBetween(displayMin, depSub.startDate) * DAY_PX_DYN + depSub.duration * DAY_PX_DYN;
+                        const x2 = daysBetween(displayMin, sub.startDate) * DAY_PX_DYN;
+                        const y1 = subY[depSub.id];
+                        const y2 = subY[sub.id];
+                        const mx = x1 + 8;
+                        paths.push(
+                          <path key={`conn-sub-${sub.id}`}
+                            d={`M${x1},${y1} L${mx},${y1} L${mx},${y2} L${x2},${y2}`}
+                            fill="none" stroke="var(--text-faint)" strokeWidth="1.2"
+                            strokeDasharray="3 2" markerEnd="url(#dep-arrow-sm)" opacity="0.6"
+                          />
+                        );
+                      });
+                    });
+
+                    if (!paths.length) return null;
+                    return (
+                      <svg style={{ position:'absolute', top:0, left:0, width:chartW, height:totalH, pointerEvents:'none', zIndex:50, overflow:'visible' }}>
+                        <defs>
+                          <marker id="dep-arrow" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+                            <path d="M0,0 L0,6 L6,3 z" fill="var(--text-faint)" opacity="0.7"/>
+                          </marker>
+                          <marker id="dep-arrow-sm" markerWidth="5" markerHeight="5" refX="4" refY="2.5" orient="auto">
+                            <path d="M0,0 L0,5 L5,2.5 z" fill="var(--text-faint)" opacity="0.6"/>
+                          </marker>
+                        </defs>
+                        {paths}
+                      </svg>
+                    );
+                  })()}
+
                   {phases.map(ph => {
                     const px = daysBetween(displayMin, ph.startDate)*DAY_PX_DYN;
                     const pw = Math.max(ph.duration*DAY_PX_DYN, 16);
@@ -605,7 +690,14 @@ export default function GanttView({ data, updateData, initialProjectId, openNewP
                 </div>
                 <div>
                   <label style={{fontSize:12,color:'var(--text-muted)',fontWeight:600,display:'block',marginBottom:6}}>{t('field_duration')}</label>
-                  <input type="number" min={1} className="input" value={editPhase.duration} onChange={e=>setEditPhase({...editPhase,duration:parseInt(e.target.value)||1})}/>
+                  <input type="number" min={1} className="input"
+                    value={editPhase.duration === 0 ? '' : editPhase.duration}
+                    onChange={e => {
+                      const v = e.target.value;
+                      setEditPhase({...editPhase, duration: v === '' ? 0 : Math.max(1, parseInt(v) || 1)});
+                    }}
+                    onBlur={() => { if (!editPhase.duration) setEditPhase({...editPhase, duration: 1}); }}
+                  />
                 </div>
               </div>
               <div>
@@ -724,7 +816,11 @@ function SubForm({ initial, phase, onSave, onClose }: { initial: GanttSubphase; 
           </div>
           <div>
             <label style={{fontSize:12,color:'var(--text-muted)',fontWeight:600,display:'block',marginBottom:6}}>{t('field_duration')}</label>
-            <input type="number" min={1} className="input" value={form.duration} onChange={e=>setForm({...form,duration:parseInt(e.target.value)||1})}/>
+            <input type="number" min={1} className="input"
+              value={form.duration === 0 ? '' : form.duration}
+              onChange={e => { const v = e.target.value; setForm({...form, duration: v === '' ? 0 : Math.max(1, parseInt(v) || 1)}); }}
+              onBlur={() => { if (!form.duration) setForm({...form, duration: 1}); }}
+            />
           </div>
         </div>
         <div>

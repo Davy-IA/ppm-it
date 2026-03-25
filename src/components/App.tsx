@@ -123,7 +123,7 @@ export default function App() {
         {view === 'gantt' && <GanttView data={data} updateData={updateData} initialProjectId={planProjectId} openNewPhase={planOpenNew} onMounted={() => { setPlanProjectId(null); setPlanOpenNew(false); }} />}
         {view === 'staff' && <StaffView data={data} updateData={updateData} />}
         {view === 'workload' && <WorkloadView data={data} updateData={updateData} />}
-        {view === 'tasks' && <TasksView data={data} updateData={updateData} />}
+        {view === 'tasks' && <TasksView data={data} updateData={updateData} spaces={spaces.filter(s => s.id !== '__global__') as any} currentSpaceId={currentSpace?.id} />}
         {view === 'settings' && <SettingsView data={data} updateData={updateData} spaces={spaces as any} onRefreshSpaces={fetchSpaces} />}
       </main>
     </div>
