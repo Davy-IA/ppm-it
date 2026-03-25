@@ -7,6 +7,22 @@ import ConfirmDialog from './ConfirmDialog';
 
 interface Props { data: AppData; updateData: (d: AppData) => void; setView?: (v: string) => void; onNavigateToPlanning?: (projectId: string, openNew?: boolean) => void; }
 
+// E8: Column definitions
+interface ColDef { id: string; labelKey: string; minWidth?: number; textAlign?: string; isCustom?: boolean; cfId?: string; }
+const BASE_COLS: ColDef[] = [
+  { id: 'domain',         labelKey: 'domain',          minWidth: 90 },
+  { id: 'requestType',    labelKey: 'type',             minWidth: 140 },
+  { id: 'leadDept',       labelKey: 'lead_dept',        minWidth: 110 },
+  { id: 'sponsor',        labelKey: 'field_sponsor',    minWidth: 130 },
+  { id: 'projectManager', labelKey: 'project_manager',  minWidth: 130 },
+  { id: 'priority',       labelKey: 'priority',         minWidth: 70, textAlign: 'center' },
+  { id: 'complexity',     labelKey: 'complexity',       minWidth: 70, textAlign: 'center' },
+  { id: 'status',         labelKey: 'status',           minWidth: 120 },
+  { id: 'startDate',      labelKey: 'start_date',       minWidth: 90 },
+  { id: 'goLive',         labelKey: 'go_live',          minWidth: 90 },
+  { id: 'hypercare',      labelKey: 'hypercare_date',   minWidth: 90 },
+];
+
 const STATUS_BADGE: Record<string, string> = {
   '1-To arbitrate': 'badge-gray', '2-Validated': 'badge-blue',
   '3-In progress': 'badge-green', '4-Frozen': 'badge-yellow',
@@ -63,12 +79,37 @@ export default function ProjectsView({ data, updateData, setView, onNavigateToPl
   const spaceCountries: string[]    = sc.countries     ?? settings.countries     ?? COUNTRIES;
   const spaceSponsors: string[]     = sc.sponsors      ?? settings.sponsors      ?? SPONSORS;
 
+  // E7: Custom fields from spaceConfig
+  const customFields: { id: string; label: string; type: 'text' | 'select'; options?: string[] }[] = sc.customFields ?? [];
+  const allCols: ColDef[] = [
+    ...BASE_COLS,
+    ...customFields.map(cf => ({ id: `cf_${cf.id}`, labelKey: cf.label, minWidth: 110, isCustom: true, cfId: cf.id } as ColDef)),
+  ];
+  const allColIds = allCols.map(c => c.id);
+  const effectiveOrder = [...colOrder.filter(id => allColIds.includes(id)), ...allColIds.filter(id => !colOrder.includes(id))];
+  const visibleCols = effectiveOrder.map(id => allCols.find(c => c.id === id)!).filter(c => c && colVisible[c.id] !== false);
+
   const [editing, setEditing] = useState<Project | null>(null);
   const [isNew, setIsNew] = useState(false);
   const [viewMode, setViewMode] = useState<'list' | 'gantt'>('list');
   const [ganttTimeScale, setGanttTimeScale] = useState<'week' | 'month' | 'semester' | 'year'>('month');
   const [ganttScale, setGanttScale] = useState<'week' | 'month' | 'semester' | 'year'>('month');
   const [inlineEdit, setInlineEdit] = useState<{ id: string; field: string } | null>(null);
+
+  // E8: Column config persisted in localStorage
+  const [colOrder, setColOrder] = useState<string[]>(() => {
+    try { const s = localStorage.getItem('ppm-col-order'); if (s) return JSON.parse(s); } catch {}
+    return BASE_COLS.map(c => c.id);
+  });
+  const [colVisible, setColVisible] = useState<Record<string, boolean>>(() => {
+    try { const s = localStorage.getItem('ppm-col-visible'); if (s) return JSON.parse(s); } catch {}
+    return {};
+  });
+  const [showColsDrop, setShowColsDrop] = useState(false);
+  const [dragColId, setDragColId] = useState<string | null>(null);
+
+  const saveColOrder = (order: string[]) => { setColOrder(order); localStorage.setItem('ppm-col-order', JSON.stringify(order)); };
+  const saveColVisible = (vis: Record<string, boolean>) => { setColVisible(vis); localStorage.setItem('ppm-col-visible', JSON.stringify(vis)); };
 
   const updateField = (id: string, field: string, value: any) => {
     const projects = data.projects.map(p => p.id === id ? { ...p, [field]: value || null } : p);
@@ -131,6 +172,115 @@ export default function ProjectsView({ data, updateData, setView, onNavigateToPl
   };
 
   const pmOptions = data.staff.map(s => s.name);
+
+  // E8+E7: Dynamic cell renderer
+  const renderCell = (p: Project, col: ColDef) => {
+    const id = col.id;
+    if (col.isCustom && col.cfId) {
+      const cfId = col.cfId;
+      const cf = customFields.find(f => f.id === cfId);
+      const val = (p as any).customFields?.[cfId] ?? '';
+      const saveCf = (v: string) => updateField(p.id, 'customFields', { ...((p as any).customFields ?? {}), [cfId]: v });
+      return (
+        <td key={id} className="cell-edit" onClick={() => setInlineEdit({ id: p.id, field: id })}>
+          {inlineEdit?.id === p.id && inlineEdit.field === id
+            ? cf?.type === 'select'
+              ? <select className="cell-select" autoFocus defaultValue={val} onChange={e => { saveCf(e.target.value); setInlineEdit(null); }} onBlur={() => setInlineEdit(null)} onClick={e => e.stopPropagation()}>
+                  <option value="">—</option>{(cf.options ?? []).map(o => <option key={o} value={o}>{o}</option>)}
+                </select>
+              : <input className="cell-input" autoFocus defaultValue={val}
+                  onBlur={e => { saveCf(e.target.value); setInlineEdit(null); }}
+                  onKeyDown={e => { if (e.key === 'Enter') { saveCf((e.target as HTMLInputElement).value); setInlineEdit(null); } if (e.key === 'Escape') setInlineEdit(null); }}
+                  onClick={e => e.stopPropagation()} />
+            : val || <span style={{color:'var(--text-faint)'}}>—</span>}
+        </td>
+      );
+    }
+    switch (id) {
+      case 'domain': return (
+        <td key={id} className="cell-edit" onClick={() => setInlineEdit({ id: p.id, field: 'domain' })}>
+          {inlineEdit?.id === p.id && inlineEdit.field === 'domain'
+            ? <select className="cell-select" autoFocus defaultValue={p.domain} onChange={e => { updateField(p.id, 'domain', e.target.value); setInlineEdit(null); }} onBlur={() => setInlineEdit(null)} onClick={e => e.stopPropagation()}>{spaceDomains.map(d => <option key={d} value={d}>{d}</option>)}</select>
+            : p.domain || <span style={{color:'var(--text-faint)'}}>—</span>}
+        </td>
+      );
+      case 'requestType': return (
+        <td key={id} className="cell-edit" onClick={() => setInlineEdit({ id: p.id, field: 'requestType' })}>
+          {inlineEdit?.id === p.id && inlineEdit.field === 'requestType'
+            ? <select className="cell-select" autoFocus defaultValue={p.requestType} onChange={e => { updateField(p.id, 'requestType', e.target.value); setInlineEdit(null); }} onBlur={() => setInlineEdit(null)} onClick={e => e.stopPropagation()}>{spaceRequestTypes.map(r => <option key={r} value={r}>{r}</option>)}</select>
+            : p.requestType || <span style={{color:'var(--text-faint)'}}>—</span>}
+        </td>
+      );
+      case 'leadDept': return (
+        <td key={id} className="cell-edit" onClick={() => setInlineEdit({ id: p.id, field: 'leadDept' })}>
+          {inlineEdit?.id === p.id && inlineEdit.field === 'leadDept'
+            ? <select className="cell-select" autoFocus defaultValue={p.leadDept} onChange={e => { updateField(p.id, 'leadDept', e.target.value); setInlineEdit(null); }} onBlur={() => setInlineEdit(null)} onClick={e => e.stopPropagation()}>{spaceDepartments.map(d => <option key={d} value={d}>{d}</option>)}</select>
+            : p.leadDept || <span style={{color:'var(--text-faint)'}}>—</span>}
+        </td>
+      );
+      case 'sponsor': return (
+        <td key={id} className="cell-edit" onClick={() => setInlineEdit({ id: p.id, field: 'sponsor' })}>
+          {inlineEdit?.id === p.id && inlineEdit.field === 'sponsor'
+            ? <select className="cell-select" autoFocus defaultValue={p.sponsor ?? ''} onChange={e => { updateField(p.id, 'sponsor', e.target.value); setInlineEdit(null); }} onBlur={() => setInlineEdit(null)} onClick={e => e.stopPropagation()}><option value="">—</option>{spaceSponsors.map(s => <option key={s} value={s}>{s}</option>)}</select>
+            : p.sponsor || <span style={{color:'var(--text-faint)'}}>—</span>}
+        </td>
+      );
+      case 'projectManager': return (
+        <td key={id} className="cell-edit" onClick={() => setInlineEdit({ id: p.id, field: 'projectManager' })}>
+          {inlineEdit?.id === p.id && inlineEdit.field === 'projectManager'
+            ? <><input className="cell-input" autoFocus defaultValue={p.projectManager ?? ''} list={`pm-${p.id}`}
+                onBlur={e => { updateField(p.id, 'projectManager', e.target.value); setInlineEdit(null); }}
+                onKeyDown={e => { if (e.key === 'Enter') { updateField(p.id, 'projectManager', (e.target as HTMLInputElement).value); setInlineEdit(null); } if (e.key === 'Escape') setInlineEdit(null); }}
+                onClick={e => e.stopPropagation()} style={{ minWidth: 130 }} />
+              <datalist id={`pm-${p.id}`}>{data.staff.map(s => <option key={s.id} value={s.name} />)}</datalist></>
+            : p.projectManager || <span style={{color:'var(--text-faint)'}}>—</span>}
+        </td>
+      );
+      case 'priority': return (
+        <td key={id} className="cell-edit" style={{ textAlign: 'center' }} onClick={() => setInlineEdit({ id: p.id, field: 'priority' })}>
+          {inlineEdit?.id === p.id && inlineEdit.field === 'priority'
+            ? <select className="cell-select" autoFocus defaultValue={p.priority ?? ''} onChange={e => { updateField(p.id, 'priority', e.target.value ? Number(e.target.value) : null); setInlineEdit(null); }} onBlur={() => setInlineEdit(null)} onClick={e => e.stopPropagation()} style={{ width: 55 }}><option value="">—</option>{[1,2,3,4,5].map(n => <option key={n} value={n}>P{n}</option>)}</select>
+            : p.priority ? `P${p.priority}` : <span style={{color:'var(--text-faint)'}}>—</span>}
+        </td>
+      );
+      case 'complexity': return (
+        <td key={id} className="cell-edit" style={{ textAlign: 'center' }} onClick={() => setInlineEdit({ id: p.id, field: 'complexity' })}>
+          {inlineEdit?.id === p.id && inlineEdit.field === 'complexity'
+            ? <select className="cell-select" autoFocus defaultValue={p.complexity ?? ''} onChange={e => { updateField(p.id, 'complexity', e.target.value ? Number(e.target.value) : null); setInlineEdit(null); }} onBlur={() => setInlineEdit(null)} onClick={e => e.stopPropagation()} style={{ width: 55 }}><option value="">—</option>{[1,2,3,4,5].map(n => <option key={n} value={n}>C{n}</option>)}</select>
+            : p.complexity ? `C${p.complexity}` : <span style={{color:'var(--text-faint)'}}>—</span>}
+        </td>
+      );
+      case 'status': return (
+        <td key={id} className="cell-edit" onClick={() => setInlineEdit({ id: p.id, field: 'status' })}>
+          {inlineEdit?.id === p.id && inlineEdit.field === 'status'
+            ? <select className="cell-select" autoFocus defaultValue={p.status ?? ''} onChange={e => { updateField(p.id, 'status', e.target.value); setInlineEdit(null); }} onBlur={() => setInlineEdit(null)} onClick={e => e.stopPropagation()}><option value="">—</option>{spaceStatuses.map(s => <option key={s} value={s}>{s.replace(/^\d-/, '')}</option>)}</select>
+            : p.status ? <span className={`badge ${STATUS_BADGE[p.status] ?? 'badge-gray'}`}>{p.status.replace(/^\d-/, '')}</span> : <span style={{color:'var(--text-faint)'}}>—</span>}
+        </td>
+      );
+      case 'startDate': return (
+        <td key={id} className="cell-edit" onClick={() => setInlineEdit({ id: p.id, field: 'startDate' })}>
+          {inlineEdit?.id === p.id && inlineEdit.field === 'startDate'
+            ? <input type="date" className="cell-input" autoFocus defaultValue={p.startDate ?? ''} onBlur={e => { updateField(p.id, 'startDate', e.target.value); setInlineEdit(null); }} onKeyDown={e => { if (e.key === 'Enter') { updateField(p.id, 'startDate', (e.target as HTMLInputElement).value); setInlineEdit(null); } if (e.key === 'Escape') setInlineEdit(null); }} onClick={e => e.stopPropagation()} style={{ minWidth: 120 }} />
+            : <span style={{color:'var(--text-muted)'}}>{p.startDate ? p.startDate.slice(0, 7) : '—'}</span>}
+        </td>
+      );
+      case 'goLive': return (
+        <td key={id} className="cell-edit" onClick={() => setInlineEdit({ id: p.id, field: 'goLive' })}>
+          {inlineEdit?.id === p.id && inlineEdit.field === 'goLive'
+            ? <input type="date" className="cell-input" autoFocus defaultValue={p.goLive ?? ''} onBlur={e => { updateField(p.id, 'goLive', e.target.value); setInlineEdit(null); }} onKeyDown={e => { if (e.key === 'Enter') { updateField(p.id, 'goLive', (e.target as HTMLInputElement).value); setInlineEdit(null); } if (e.key === 'Escape') setInlineEdit(null); }} onClick={e => e.stopPropagation()} style={{ minWidth: 120 }} />
+            : <span style={{color:'var(--text-muted)'}}>{p.goLive ? p.goLive.slice(0, 7) : '—'}</span>}
+        </td>
+      );
+      case 'hypercare': return (
+        <td key={id} className="cell-edit" onClick={() => setInlineEdit({ id: p.id, field: 'hypercare' })}>
+          {inlineEdit?.id === p.id && inlineEdit.field === 'hypercare'
+            ? <input type="date" className="cell-input" autoFocus defaultValue={(p as any).hypercare ?? ''} onBlur={e => { updateField(p.id, 'hypercare', e.target.value); setInlineEdit(null); }} onKeyDown={e => { if (e.key === 'Enter') { updateField(p.id, 'hypercare', (e.target as HTMLInputElement).value); setInlineEdit(null); } if (e.key === 'Escape') setInlineEdit(null); }} onClick={e => e.stopPropagation()} style={{ minWidth: 120 }} />
+            : <span style={{color:'var(--text-muted)'}}>{(p as any).hypercare ? (p as any).hypercare.slice(0, 7) : '—'}</span>}
+        </td>
+      );
+      default: return <td key={id} />;
+    }
+  };
 
   return (
     <div className="animate-in">
@@ -230,6 +380,59 @@ export default function ProjectsView({ data, updateData, setView, onNavigateToPl
             </div>
           )}
 
+          {/* E8: Columns config button (list view only) */}
+          {viewMode === 'list' && (
+            <div style={{ position: 'relative' }}>
+              <button className={`toolbar-btn${showColsDrop ? ' active' : ''}`}
+                onClick={() => setShowColsDrop(v => !v)}
+                style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><rect x="1" y="1" width="3" height="11" rx="1" fill="currentColor" opacity="0.6"/><rect x="5" y="1" width="3" height="11" rx="1" fill="currentColor"/><rect x="9" y="1" width="3" height="11" rx="1" fill="currentColor" opacity="0.6"/></svg>
+                Colonnes
+              </button>
+              {showColsDrop && (
+                <>
+                  <div style={{ position: 'fixed', inset: 0, zIndex: 3999 }} onClick={() => setShowColsDrop(false)} />
+                  <div style={{ position: 'absolute', right: 0, top: 'calc(100% + 4px)', background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 10, boxShadow: 'var(--shadow)', zIndex: 4000, minWidth: 220, maxHeight: 380, overflowY: 'auto', animation: 'dropIn .15s ease' }}>
+                    <div style={{ padding: '8px 14px', fontSize: 11, color: 'var(--text-faint)', fontWeight: 600, borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span>COLONNES</span>
+                      <button style={{ fontSize: 11, color: 'var(--accent)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}
+                        onClick={() => { saveColOrder(allCols.map(c => c.id)); saveColVisible({}); }}>
+                        Réinitialiser
+                      </button>
+                    </div>
+                    {effectiveOrder.filter(id => allCols.find(c => c.id === id)).map(colId => {
+                      const col = allCols.find(c => c.id === colId)!;
+                      const isVis = colVisible[colId] !== false;
+                      return (
+                        <div key={colId}
+                          draggable
+                          onDragStart={() => setDragColId(colId)}
+                          onDragOver={e => e.preventDefault()}
+                          onDrop={() => {
+                            if (!dragColId || dragColId === colId) return;
+                            const order = [...effectiveOrder];
+                            const from = order.indexOf(dragColId); const to = order.indexOf(colId);
+                            order.splice(from, 1); order.splice(to, 0, dragColId);
+                            saveColOrder(order); setDragColId(null);
+                          }}
+                          style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 14px', cursor: 'grab', fontSize: 12, fontFamily: 'var(--font)', color: isVis ? 'var(--text)' : 'var(--text-faint)', userSelect: 'none' }}
+                          onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--bg3)'}
+                          onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'none'}>
+                          <span style={{ color: 'var(--text-faint)', fontSize: 14, lineHeight: 1 }}>⠿</span>
+                          <input type="checkbox" checked={isVis}
+                            onChange={() => saveColVisible({ ...colVisible, [colId]: !isVis })}
+                            onClick={e => e.stopPropagation()}
+                            style={{ accentColor: 'var(--accent)', width: 14, height: 14, cursor: 'pointer', flexShrink: 0 }} />
+                          <span style={{ flex: 1 }}>{col.isCustom ? col.labelKey : t(col.labelKey as any) as string}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+
           {/* View toggle */}
           <div style={{ display: 'flex', gap: 2 }}>
             <button onClick={() => setViewMode('list')} className={`toolbar-btn${viewMode === 'list' ? ' primary' : ''}`}>
@@ -258,22 +461,16 @@ export default function ProjectsView({ data, updateData, setView, onNavigateToPl
               <thead>
                 <tr>
                   <th className="sticky-left" style={{ minWidth: 300 }}>{t('project_name')}</th>
-                  <th>{t('domain')}</th>
-                  <th>{t('type')}</th>
-                  <th>{t('lead_dept')}</th>
-                  <th>{t('sponsor')}</th>
-                  <th>{t('project_manager')}</th>
-                  <th>{t('priority')}</th>
-                  <th>{t('complexity')}</th>
-                  <th>{t('status')}</th>
-                  <th>{t('start_date')}</th>
-                  <th>{t('go_live')}</th>
-                  <th>{t('hypercare_date')}</th>
+                  {visibleCols.map(col => (
+                    <th key={col.id} style={{ minWidth: col.minWidth, textAlign: col.textAlign as any }}>
+                      {col.isCustom ? col.labelKey : t(col.labelKey as any) as string}
+                    </th>
+                  ))}
                 </tr>
               </thead>
               <tbody>
                 {filtered.length === 0 && (
-                  <tr><td colSpan={12} style={{ textAlign: 'center', padding: 32, color: 'var(--text-faint)' }}>{t('no_projects')}</td></tr>
+                  <tr><td colSpan={1 + visibleCols.length} style={{ textAlign: 'center', padding: 32, color: 'var(--text-faint)' }}>{t('no_projects')}</td></tr>
                 )}
                 {filtered.map(p => (
                   <tr key={p.id}>
@@ -287,17 +484,8 @@ export default function ProjectsView({ data, updateData, setView, onNavigateToPl
                             <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0 }}>{p.name}</span>
                             <span style={{ display: 'flex', alignItems: 'center', gap: 2, flexShrink: 0 }}>
                               {onNavigateToPlanning && (
-                                <button
-                                  className="btn-icon"
-                                  style={{ width: 22, height: 22, color: 'var(--text-faint)', opacity: 0.6 }}
-                                  title={t('go_to_planning') as string}
-                                  onClick={e => { e.stopPropagation(); onNavigateToPlanning(p.id, false); }}
-                                >
-                                  <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
-                                    <rect x="1" y="4" width="8" height="3" rx="1.5" fill="currentColor"/>
-                                    <rect x="4" y="8" width="8" height="3" rx="1.5" fill="currentColor" opacity="0.5"/>
-                                    <path d="M10 1.5L12 3.5L10 5.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
-                                  </svg>
+                                <button className="btn-icon" style={{ width: 22, height: 22, color: 'var(--text-faint)', opacity: 0.6 }} title={t('go_to_planning') as string} onClick={e => { e.stopPropagation(); onNavigateToPlanning(p.id, false); }}>
+                                  <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><rect x="1" y="4" width="8" height="3" rx="1.5" fill="currentColor"/><rect x="4" y="8" width="8" height="3" rx="1.5" fill="currentColor" opacity="0.5"/><path d="M10 1.5L12 3.5L10 5.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg>
                                 </button>
                               )}
                               <button className="btn-icon" style={{ width: 22, height: 22, color: 'var(--text-faint)', opacity: 0.6 }} onClick={e => { e.stopPropagation(); setConfirmAction(() => () => remove(p.id)); }} title="Supprimer"><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 3.5h9M5 3.5V2.5h3v1M10.5 3.5l-.7 7H3.2l-.7-7" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg></button>
@@ -305,65 +493,7 @@ export default function ProjectsView({ data, updateData, setView, onNavigateToPl
                           </span>
                       }
                     </td>
-                    <td className="cell-edit" onClick={() => setInlineEdit({ id: p.id, field: 'domain' })}>
-                      {inlineEdit?.id === p.id && inlineEdit.field === 'domain'
-                        ? <select className="cell-select" autoFocus defaultValue={p.domain} onChange={e => { updateField(p.id, 'domain', e.target.value); setInlineEdit(null); }} onBlur={() => setInlineEdit(null)} onClick={e => e.stopPropagation()}>{spaceDomains.map(d => <option key={d} value={d}>{d}</option>)}</select>
-                        : p.domain || <span style={{color:'var(--text-faint)'}}>—</span>}
-                    </td>
-                    <td className="cell-edit" onClick={() => setInlineEdit({ id: p.id, field: 'requestType' })}>
-                      {inlineEdit?.id === p.id && inlineEdit.field === 'requestType'
-                        ? <select className="cell-select" autoFocus defaultValue={p.requestType} onChange={e => { updateField(p.id, 'requestType', e.target.value); setInlineEdit(null); }} onBlur={() => setInlineEdit(null)} onClick={e => e.stopPropagation()}>{spaceRequestTypes.map(r => <option key={r} value={r}>{r}</option>)}</select>
-                        : p.requestType || <span style={{color:'var(--text-faint)'}}>—</span>}
-                    </td>
-                    <td className="cell-edit" onClick={() => setInlineEdit({ id: p.id, field: 'leadDept' })}>
-                      {inlineEdit?.id === p.id && inlineEdit.field === 'leadDept'
-                        ? <select className="cell-select" autoFocus defaultValue={p.leadDept} onChange={e => { updateField(p.id, 'leadDept', e.target.value); setInlineEdit(null); }} onBlur={() => setInlineEdit(null)} onClick={e => e.stopPropagation()}>{spaceDepartments.map(d => <option key={d} value={d}>{d}</option>)}</select>
-                        : p.leadDept || <span style={{color:'var(--text-faint)'}}>—</span>}
-                    </td>
-                    <td className="cell-edit" onClick={() => setInlineEdit({ id: p.id, field: 'sponsor' })}>
-                      {inlineEdit?.id === p.id && inlineEdit.field === 'sponsor'
-                        ? <select className="cell-select" autoFocus defaultValue={p.sponsor ?? ''} onChange={e => { updateField(p.id, 'sponsor', e.target.value); setInlineEdit(null); }} onBlur={() => setInlineEdit(null)} onClick={e => e.stopPropagation()}><option value="">—</option>{spaceSponsors.map(s => <option key={s} value={s}>{s}</option>)}</select>
-                        : p.sponsor || <span style={{color:'var(--text-faint)'}}>—</span>}
-                    </td>
-                    <td className="cell-edit" onClick={() => setInlineEdit({ id: p.id, field: 'projectManager' })}>
-                      {inlineEdit?.id === p.id && inlineEdit.field === 'projectManager'
-                        ? <><input className="cell-input" autoFocus defaultValue={p.projectManager ?? ''} list={`pm-${p.id}`}
-                            onBlur={e => { updateField(p.id, 'projectManager', e.target.value); setInlineEdit(null); }}
-                            onKeyDown={e => { if (e.key === 'Enter') { updateField(p.id, 'projectManager', (e.target as HTMLInputElement).value); setInlineEdit(null); } if (e.key === 'Escape') setInlineEdit(null); }}
-                            onClick={e => e.stopPropagation()} style={{ minWidth: 130 }} />
-                          <datalist id={`pm-${p.id}`}>{data.staff.map(s => <option key={s.id} value={s.name} />)}</datalist></>
-                        : p.projectManager || <span style={{color:'var(--text-faint)'}}>—</span>}
-                    </td>
-                    <td className="cell-edit" style={{ textAlign: 'center' }} onClick={() => setInlineEdit({ id: p.id, field: 'priority' })}>
-                      {inlineEdit?.id === p.id && inlineEdit.field === 'priority'
-                        ? <select className="cell-select" autoFocus defaultValue={p.priority ?? ''} onChange={e => { updateField(p.id, 'priority', e.target.value ? Number(e.target.value) : null); setInlineEdit(null); }} onBlur={() => setInlineEdit(null)} onClick={e => e.stopPropagation()} style={{ width: 55 }}><option value="">—</option>{[1,2,3,4,5].map(n => <option key={n} value={n}>P{n}</option>)}</select>
-                        : p.priority ? `P${p.priority}` : <span style={{color:'var(--text-faint)'}}>—</span>}
-                    </td>
-                    <td className="cell-edit" style={{ textAlign: 'center' }} onClick={() => setInlineEdit({ id: p.id, field: 'complexity' })}>
-                      {inlineEdit?.id === p.id && inlineEdit.field === 'complexity'
-                        ? <select className="cell-select" autoFocus defaultValue={p.complexity ?? ''} onChange={e => { updateField(p.id, 'complexity', e.target.value ? Number(e.target.value) : null); setInlineEdit(null); }} onBlur={() => setInlineEdit(null)} onClick={e => e.stopPropagation()} style={{ width: 55 }}><option value="">—</option>{[1,2,3,4,5].map(n => <option key={n} value={n}>C{n}</option>)}</select>
-                        : p.complexity ? `C${p.complexity}` : <span style={{color:'var(--text-faint)'}}>—</span>}
-                    </td>
-                    <td className="cell-edit" onClick={() => setInlineEdit({ id: p.id, field: 'status' })}>
-                      {inlineEdit?.id === p.id && inlineEdit.field === 'status'
-                        ? <select className="cell-select" autoFocus defaultValue={p.status ?? ''} onChange={e => { updateField(p.id, 'status', e.target.value); setInlineEdit(null); }} onBlur={() => setInlineEdit(null)} onClick={e => e.stopPropagation()}><option value="">—</option>{spaceStatuses.map(s => <option key={s} value={s}>{s.replace(/^\d-/, '')}</option>)}</select>
-                        : p.status ? <span className={`badge ${STATUS_BADGE[p.status] ?? 'badge-gray'}`}>{p.status.replace(/^\d-/, '')}</span> : <span style={{color:'var(--text-faint)'}}>—</span>}
-                    </td>
-                    <td className="cell-edit" onClick={() => setInlineEdit({ id: p.id, field: 'startDate' })}>
-                      {inlineEdit?.id === p.id && inlineEdit.field === 'startDate'
-                        ? <input type="date" className="cell-input" autoFocus defaultValue={p.startDate ?? ''} onBlur={e => { updateField(p.id, 'startDate', e.target.value); setInlineEdit(null); }} onKeyDown={e => { if (e.key === 'Enter') { updateField(p.id, 'startDate', (e.target as HTMLInputElement).value); setInlineEdit(null); } if (e.key === 'Escape') setInlineEdit(null); }} onClick={e => e.stopPropagation()} style={{ minWidth: 120 }} />
-                        : <span style={{color:'var(--text-muted)'}}>{p.startDate ? p.startDate.slice(0, 7) : '—'}</span>}
-                    </td>
-                    <td className="cell-edit" onClick={() => setInlineEdit({ id: p.id, field: 'goLive' })}>
-                      {inlineEdit?.id === p.id && inlineEdit.field === 'goLive'
-                        ? <input type="date" className="cell-input" autoFocus defaultValue={p.goLive ?? ''} onBlur={e => { updateField(p.id, 'goLive', e.target.value); setInlineEdit(null); }} onKeyDown={e => { if (e.key === 'Enter') { updateField(p.id, 'goLive', (e.target as HTMLInputElement).value); setInlineEdit(null); } if (e.key === 'Escape') setInlineEdit(null); }} onClick={e => e.stopPropagation()} style={{ minWidth: 120 }} />
-                        : <span style={{color:'var(--text-muted)'}}>{p.goLive ? p.goLive.slice(0, 7) : '—'}</span>}
-                    </td>
-                    <td className="cell-edit" onClick={() => setInlineEdit({ id: p.id, field: 'hypercare' })}>
-                      {inlineEdit?.id === p.id && inlineEdit.field === 'hypercare'
-                        ? <input type="date" className="cell-input" autoFocus defaultValue={(p as any).hypercare ?? ''} onBlur={e => { updateField(p.id, 'hypercare', e.target.value); setInlineEdit(null); }} onKeyDown={e => { if (e.key === 'Enter') { updateField(p.id, 'hypercare', (e.target as HTMLInputElement).value); setInlineEdit(null); } if (e.key === 'Escape') setInlineEdit(null); }} onClick={e => e.stopPropagation()} style={{ minWidth: 120 }} />
-                        : <span style={{color:'var(--text-muted)'}}>{(p as any).hypercare ? (p as any).hypercare.slice(0, 7) : '—'}</span>}
-                    </td>
+                    {visibleCols.map(col => renderCell(p, col))}
                   </tr>
                 ))}
               </tbody>

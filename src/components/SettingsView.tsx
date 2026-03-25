@@ -23,6 +23,9 @@ export default function SettingsView({ data, updateData, spaces, onRefreshSpaces
   const [saved, setSaved] = useState(false);
   const [confirmAction, setConfirmAction] = useState<(() => void) | null>(null);
   const [editingList, setEditingList] = useState<string | null>(null);
+  // E7: Custom fields editing state
+  const [editingCf, setEditingCf] = useState<{ id: string; label: string; type: string; options: string } | null>(null);
+  const [newCf, setNewCf] = useState<{ label: string; type: string; options: string }>({ label: '', type: 'text', options: '' });
   const isSpaceAdmin = user?.role === 'space_admin';
   const [activeTab, setActiveTab] = useState<'identity' | 'theme' | 'lists' | 'lang' | 'users' | 'spaces'>(isSpaceAdmin ? 'lists' : 'identity');
   const [spacesList, setSpacesList] = useState<Space[]>(spaces);
@@ -343,6 +346,75 @@ export default function SettingsView({ data, updateData, spaces, onRefreshSpaces
               </table>
             </div>
 
+
+            {/* E7: Custom fields — space-level only, not available in global scope */}
+            {!isGlobal && (() => {
+              const customFields: { id: string; label: string; type: 'text' | 'select'; options?: string[] }[] = spaceConfig.customFields ?? [];
+              const saveCustomFields = (fields: typeof customFields) => {
+                const newConfig = { ...spaceConfig, customFields: fields };
+                updateData({ ...data, spaceConfig: newConfig } as any);
+                showSaved();
+              };
+              return (
+                <div className="card" style={{ padding: 0, overflow: 'hidden', marginBottom: 20 }}>
+                  <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontWeight: 700, fontSize: 13 }}>Champs personnalisés</span>
+                    <span style={{ fontSize: 11, color: 'var(--text-faint)' }}>Colonnes supplémentaires dans le Portfolio</span>
+                  </div>
+                  <table className="data-table">
+                    <thead><tr>
+                      <th>Label</th><th>Type</th><th>Options (select)</th><th style={{ width: 60 }}></th>
+                    </tr></thead>
+                    <tbody>
+                      {customFields.map((cf, i) => (
+                        <tr key={cf.id}>
+                          {editingCf?.id === cf.id ? (
+                            <>
+                              <td><input className="cell-input" autoFocus defaultValue={cf.label} onBlur={e => setEditingCf({ ...editingCf, label: e.target.value })} style={{ minWidth: 120 }} /></td>
+                              <td><select className="cell-select" defaultValue={cf.type} onChange={e => setEditingCf({ ...editingCf, type: e.target.value })}><option value="text">Texte</option><option value="select">Liste</option></select></td>
+                              <td><input className="cell-input" defaultValue={(cf.options ?? []).join(', ')} onBlur={e => setEditingCf({ ...editingCf, options: e.target.value })} placeholder="val1, val2, …" style={{ minWidth: 160 }} /></td>
+                              <td style={{ display: 'flex', gap: 4 }}>
+                                <button className="btn btn-primary btn-sm" onClick={() => {
+                                  const updated = customFields.map((f, j) => j !== i ? f : {
+                                    ...f, label: editingCf.label ?? f.label, type: editingCf.type ?? f.type,
+                                    options: editingCf.options !== undefined ? editingCf.options.split(',').map((s: string) => s.trim()).filter(Boolean) : f.options,
+                                  });
+                                  saveCustomFields(updated); setEditingCf(null);
+                                }}>✓</button>
+                                <button className="btn btn-ghost btn-sm" onClick={() => setEditingCf(null)}>✕</button>
+                              </td>
+                            </>
+                          ) : (
+                            <>
+                              <td style={{ fontWeight: 600 }}>{cf.label}</td>
+                              <td><span className="badge badge-gray">{cf.type}</span></td>
+                              <td style={{ fontSize: 12, color: 'var(--text-faint)' }}>{(cf.options ?? []).join(', ') || '—'}</td>
+                              <td style={{ display: 'flex', gap: 4 }}>
+                                <button className="btn-icon" style={{ width: 28, height: 28, color: 'var(--accent)' }} onClick={() => setEditingCf({ id: cf.id, label: cf.label, type: cf.type, options: (cf.options ?? []).join(', ') })}>✎</button>
+                                <button className="btn-icon" style={{ width: 28, height: 28, color: 'var(--danger)' }} onClick={() => saveCustomFields(customFields.filter((_, j) => j !== i))}><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 3.5h9M5 3.5V2.5h3v1M10.5 3.5l-.7 7H3.2l-.7-7" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg></button>
+                              </td>
+                            </>
+                          )}
+                        </tr>
+                      ))}
+                      {/* Add new row */}
+                      <tr style={{ background: 'var(--bg3)' }}>
+                        <td><input className="cell-input" placeholder="Nom du champ" value={newCf.label} onChange={e => setNewCf({ ...newCf, label: e.target.value })} style={{ minWidth: 120 }} /></td>
+                        <td><select className="cell-select" value={newCf.type} onChange={e => setNewCf({ ...newCf, type: e.target.value })}><option value="text">Texte</option><option value="select">Liste</option></select></td>
+                        <td><input className="cell-input" placeholder="val1, val2, …" value={newCf.options} onChange={e => setNewCf({ ...newCf, options: e.target.value })} style={{ minWidth: 160 }} /></td>
+                        <td>
+                          <button className="btn btn-primary btn-sm" disabled={!newCf.label.trim()} onClick={() => {
+                            const field = { id: `cf_${Date.now()}`, label: newCf.label.trim(), type: newCf.type, options: newCf.type === 'select' ? newCf.options.split(',').map((s: string) => s.trim()).filter(Boolean) : undefined };
+                            saveCustomFields([...customFields, field]);
+                            setNewCf({ label: '', type: 'text', options: '' });
+                          }}>+ Ajouter</button>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              );
+            })()}
 
             {/* Inline edit modal for selected list */}
             {editingList && (() => {
