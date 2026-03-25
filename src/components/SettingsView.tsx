@@ -23,9 +23,10 @@ export default function SettingsView({ data, updateData, spaces, onRefreshSpaces
   const [saved, setSaved] = useState(false);
   const [confirmAction, setConfirmAction] = useState<(() => void) | null>(null);
   const [editingList, setEditingList] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'identity' | 'theme' | 'lists' | 'lang' | 'users' | 'spaces'>('identity');
+  const isSpaceAdmin = user?.role === 'space_admin';
+  const [activeTab, setActiveTab] = useState<'identity' | 'theme' | 'lists' | 'lang' | 'users' | 'spaces'>(isSpaceAdmin ? 'lists' : 'identity');
   const [spacesList, setSpacesList] = useState<Space[]>(spaces);
-  const [selectedSpaceId, setSelectedSpaceId] = useState<string>('__global__');
+  const [selectedSpaceId, setSelectedSpaceId] = useState<string>(isSpaceAdmin ? (spaces[0]?.id ?? '__global__') : '__global__');
   // Keep local list in sync when parent prop updates
   useEffect(() => { setSpacesList(spaces); }, [spaces]);
   const logoRef = useRef<HTMLInputElement>(null);
@@ -78,12 +79,12 @@ export default function SettingsView({ data, updateData, spaces, onRefreshSpaces
   ];
 
   const ALL_TABS = [
-    { id: 'identity',   label: t('settings_tab_identity'),   show: true },
-    { id: 'theme',      label: t('settings_tab_theme'),      show: true },
-    { id: 'lang',       label: t('settings_tab_lang'),       show: true },
+    { id: 'identity',   label: t('settings_tab_identity'),   show: !isSpaceAdmin },
+    { id: 'theme',      label: t('settings_tab_theme'),      show: !isSpaceAdmin },
+    { id: 'lang',       label: t('settings_tab_lang'),       show: !isSpaceAdmin },
     { id: 'users',      label: t('settings_tab_users'),      show: !!isAdmin },
     { id: 'spaces',     label: t('settings_tab_spaces'),     show: !!isAdmin },
-    { id: 'lists',      label: t('settings_tab_lists'),      show: !!isAdmin },
+    { id: 'lists',      label: t('settings_tab_lists'),      show: !!isAdmin || isSpaceAdmin },
   ].filter(t => t.show);
 
   return (
@@ -101,9 +102,9 @@ export default function SettingsView({ data, updateData, spaces, onRefreshSpaces
             ✓ {t('settings_saved')}
           </div>
         )}
-        {user && isAdmin && (
+        {user && (isAdmin || isSpaceAdmin) && (
           <div style={{ padding: '5px 10px', background: 'var(--accent-subtle)', borderRadius: 8, fontSize: 11, color: 'var(--accent)', fontWeight: 600, flexShrink: 0 }}>
-            {isSuperAdmin ? '⭐ ' + t('role_badge_superadmin') : '🔧 ' + t('role_badge_admin')}
+            {isSuperAdmin ? '⭐ ' + t('role_badge_superadmin') : isSpaceAdmin ? '📋 ' + t('role_space_admin') : '🔧 ' + t('role_badge_admin')}
           </div>
         )}
       </div>
@@ -253,8 +254,8 @@ export default function SettingsView({ data, updateData, spaces, onRefreshSpaces
         </div>
       )}
 
-      {/* LISTS TAB — admin only */}
-      {activeTab === 'lists' && isAdmin && (() => {
+      {/* LISTS TAB — admin and space_admin */}
+      {activeTab === 'lists' && (isAdmin || isSpaceAdmin) && (() => {
         const isGlobal = selectedSpaceId === '__global__';
         const spaceData = !isGlobal ? data : null;
         const spaceConfig = (spaceData as any)?.spaceConfig ?? {};
@@ -288,7 +289,7 @@ export default function SettingsView({ data, updateData, spaces, onRefreshSpaces
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.5" stroke="var(--accent)" strokeWidth="1.5"/><path d="M8 1.5C8 1.5 5 5 5 8s3 6.5 3 6.5M8 1.5C8 1.5 11 5 11 8s-3 6.5-3 6.5M1.5 8h13" stroke="var(--accent)" strokeWidth="1.3"/></svg>
               <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-muted)' }}>{t('scope_label')}</span>
               <select className="input" value={selectedSpaceId} onChange={e => setSelectedSpaceId(e.target.value)} style={{ maxWidth: 220, fontWeight: 600 }}>
-                <option value="__global__">🌐 {t('global_values')}</option>
+                {!isSpaceAdmin && <option value="__global__">🌐 {t('global_values')}</option>}
                 {spacesList.map(s => <option key={s.id} value={s.id}>{s.icon} {s.name}</option>)}
               </select>
               {!isGlobal && (
@@ -296,7 +297,7 @@ export default function SettingsView({ data, updateData, spaces, onRefreshSpaces
                   {t('space_override_active')}
                 </span>
               )}
-              <span style={{ fontSize: 12, color: 'var(--text-faint)', marginLeft: 8 }}>{t('space_override_hint')}</span>
+              {!isSpaceAdmin && <span style={{ fontSize: 12, color: 'var(--text-faint)', marginLeft: 8 }}>{t('space_override_hint')}</span>}
             </div>
 
             {/* Table of lists */}

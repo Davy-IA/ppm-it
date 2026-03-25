@@ -8,7 +8,7 @@ import { useAuth } from '@/lib/auth-context';
 interface Space { id: string; name: string; color: string; }
 interface User { id: string; email: string; first_name: string; last_name: string; role: string; active: boolean; last_login: string | null; spaces: Space[]; is_external?: boolean; partner_id?: string | null; }
 
-const ROLE_BADGES: Record<string, string> = { superadmin: 'badge-red', admin: 'badge-purple', global: 'badge-yellow', member: 'badge-blue' };
+const ROLE_BADGES: Record<string, string> = { superadmin: 'badge-red', admin: 'badge-purple', global: 'badge-yellow', member: 'badge-blue', space_admin: 'badge-green' };
 
 interface PartnerItem { id: string; name: string; type: string; }
 interface Props { spaces: Space[]; partners?: PartnerItem[]; }
@@ -89,8 +89,8 @@ export default function UsersManager({ spaces, partners = [] }: Props) {
   };
 
   const allowedRoles = me?.role === 'superadmin'
-    ? ['superadmin', 'admin', 'global', 'member']
-    : ['global', 'member'];
+    ? ['superadmin', 'admin', 'global', 'space_admin', 'member']
+    : ['global', 'space_admin', 'member'];
 
   return (
     <div>
@@ -201,7 +201,7 @@ export default function UsersManager({ spaces, partners = [] }: Props) {
                   ))}
                 </div>
               </div>
-              {editing.role === 'member' && (
+              {(editing.role === 'member' || editing.role === 'space_admin') && (
                 <div>
                   <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: 8 }}>{t('user_spaces_label')}</label>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>

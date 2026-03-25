@@ -42,6 +42,10 @@ export async function POST(req: NextRequest) {
   if (['superadmin', 'admin'].includes(body.role) && actor.role !== 'superadmin') {
     return NextResponse.json({ error: 'Only superadmin can create admin users' }, { status: 403 });
   }
+  // admin and superadmin can create space_admin; regular admin cannot escalate beyond space_admin
+  if (body.role === 'space_admin' && !['superadmin', 'admin'].includes(actor.role)) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  }
 
   const hash = await hashPassword(body.password);
   const { data: newUser, error } = await supabaseAdmin

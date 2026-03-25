@@ -5,11 +5,11 @@
 ═══════════════════════════════════════════ */
 :root {
   /* Fonds */
-  --bg:              #F0EDF8;
+  --bg:              #F5F5F7;
   --bg2:             #FFFFFF;
-  --bg3:             #F7F5FC;
+  --bg3:             #EFEFF2;
   --bg-sidebar:      #FFFFFF;
-  --bg-gradient:     #F0EDF8;
+  --bg-gradient:     #F5F5F7;
 
   /* Accent */
   --accent:          #7C5CBF;
@@ -179,11 +179,6 @@ html, body {
     background: var(--bg2);
 }
 
-/* LIGNE ZEBRA */
-.data-table tbody tr:nth-child(even) td {
-    background: rgba(124, 92, 191, 0.04);
-}
-
 /* HOVER */
 .data-table tbody tr:hover td {
     background: rgba(124, 92, 191, 0.12) !important;
@@ -208,7 +203,6 @@ html, body {
     left: 0;
     z-index: 20;
     font-weight: 600;
-    color: var(--accent); /* optionnel pour faire ressortir */
 }
 
 /* ── COIN HAUT-GAUCHE : sticky top + left, z-index max ── */

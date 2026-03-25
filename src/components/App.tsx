@@ -22,7 +22,7 @@ export default function App() {
   const { user, loading: authLoading, token } = useAuth();
   const [spaces, setSpaces] = useState<Space[]>([]);
   const [currentSpace, setCurrentSpace] = useState<Space | null>(null);
-  const [view, setView] = useState<View>('projects');
+  const [view, setView] = useState<View>(user?.role === 'space_admin' ? 'settings' : 'projects');
   const [planProjectId, setPlanProjectId] = useState<string | null>(null);
   const [planOpenNew, setPlanOpenNew] = useState(false);
   const [data, setData] = useState<AppData>({ ...INITIAL_DATA, projects: [], staff: [], workloads: [], allocations: [], ganttPhases: [] });
