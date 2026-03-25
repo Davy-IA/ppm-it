@@ -7,7 +7,7 @@ const JWT_SECRET = new TextEncoder().encode(
 );
 const SESSION_DURATION = 7 * 24 * 60 * 60 * 1000; // 7 days
 
-export type UserRole = 'superadmin' | 'admin' | 'global' | 'member';
+export type UserRole = 'superadmin' | 'admin' | 'global' | 'member' | 'space_admin';
 
 export interface SessionUser {
   id: string;
@@ -63,6 +63,7 @@ export async function getSessionUser(token: string): Promise<SessionUser | null>
     const { data: spaces } = await supabaseAdmin.from('spaces').select('id').eq('active', true);
     spaceIds = (spaces ?? []).map((s: any) => s.id);
   } else {
+    // member and space_admin: only assigned spaces
     const { data: memberships } = await supabaseAdmin
       .from('user_spaces')
       .select('space_id')
@@ -103,6 +104,7 @@ export async function loginUser(email: string, password: string): Promise<{ toke
     const { data: spaces } = await supabaseAdmin.from('spaces').select('id').eq('active', true);
     spaceIds = (spaces ?? []).map((s: any) => s.id);
   } else {
+    // member and space_admin: only assigned spaces
     const { data: memberships } = await supabaseAdmin
       .from('user_spaces').select('space_id').eq('user_id', user.id);
     spaceIds = (memberships ?? []).map((m: any) => m.space_id);
