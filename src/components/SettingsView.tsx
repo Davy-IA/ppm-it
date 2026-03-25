@@ -376,7 +376,7 @@ export default function SettingsView({ data, updateData, spaces, onRefreshSpaces
                               <td style={{ display: 'flex', gap: 4 }}>
                                 <button className="btn btn-primary btn-sm" onClick={() => {
                                   const updated = customFields.map((f, j) => j !== i ? f : {
-                                    ...f, label: editingCf.label ?? f.label, type: editingCf.type ?? f.type,
+                                    ...f, label: editingCf.label ?? f.label, type: (editingCf.type ?? f.type) as 'text' | 'select',
                                     options: editingCf.options !== undefined ? editingCf.options.split(',').map((s: string) => s.trim()).filter(Boolean) : f.options,
                                   });
                                   saveCustomFields(updated); setEditingCf(null);
