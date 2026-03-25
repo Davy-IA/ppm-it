@@ -56,13 +56,14 @@ export default function ProjectsView({ data, updateData, setView, onNavigateToPl
 
   const toggleF = (setter: React.Dispatch<React.SetStateAction<string[]>>, val: string, all: string[]) =>
     setter(prev => {
+      if ((prev as any)[0] === '__none__') return [val];           // was none → select this one
       if (prev.length === 0) return all.filter(x => x !== val);   // all → deselect one
       if (prev.includes(val)) {
         const next = prev.filter(x => x !== val);
-        return next.length === 0 ? [] : next;                      // empty = back to all
+        return next.length === 0 ? [] : next;
       }
       const next = [...prev, val];
-      return next.length === all.length ? [] : next;               // all checked = back to []
+      return next.length === all.length ? [] : next;
     });
 
   const activeFilterCount = [fStatus, fDomain, fType, fDept, fCountry, fSponsor, fPM, fPrio, fComplex]
@@ -96,6 +97,7 @@ export default function ProjectsView({ data, updateData, setView, onNavigateToPl
     return {};
   });
   const [showColsDrop, setShowColsDrop] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
   const [dragColId, setDragColId] = useState<string | null>(null);
 
   const saveColOrder = (order: string[]) => { setColOrder(order); localStorage.setItem('ppm-col-order', JSON.stringify(order)); };
@@ -125,7 +127,10 @@ export default function ProjectsView({ data, updateData, setView, onNavigateToPl
 
   const filtered = data.projects.filter(p => {
     const matchSearch = !search || p.name.toLowerCase().includes(search.toLowerCase()) || (p.projectManager ?? '').toLowerCase().includes(search.toLowerCase());
-    const m = (arr: string[], val: string | null | undefined) => arr.length === 0 || arr.includes(val ?? '');
+    const m = (arr: string[], val: string | null | undefined) => {
+      if ((arr as any)[0] === '__none__') return false;
+      return arr.length === 0 || arr.includes(val ?? '');
+    };
     return matchSearch
       && m(fStatus,  p.status)
       && m(fDomain,  p.domain)
@@ -282,105 +287,98 @@ export default function ProjectsView({ data, updateData, setView, onNavigateToPl
     }
   };
 
+  // EB1/EB2: Reusable filter dropdown renderer
+  const filterDefs = [
+    { key: 'status',  label: t('all_statuses') as string,  items: spaceStatuses.map(s => ({ val: s, label: s.replace(/^\d-/, '') })), fState: fStatus,  fSet: setFStatus  },
+    { key: 'domain',  label: t('all_domains') as string,   items: spaceDomains.map(d => ({ val: d, label: d })),                    fState: fDomain,  fSet: setFDomain  },
+    { key: 'type',    label: t('type') as string,           items: spaceRequestTypes.map(o => ({ val: o, label: o })),              fState: fType,    fSet: setFType    },
+    { key: 'dept',    label: t('lead_dept') as string,      items: spaceDepartments.map(o => ({ val: o, label: o })),               fState: fDept,    fSet: setFDept    },
+    { key: 'country', label: t('field_country') as string,  items: spaceCountries.map(o => ({ val: o, label: o })),                 fState: fCountry, fSet: setFCountry },
+    { key: 'sponsor', label: t('field_sponsor') as string,  items: spaceSponsors.map(o => ({ val: o, label: o })),                  fState: fSponsor, fSet: setFSponsor },
+    { key: 'pm',      label: t('project_manager') as string,items: data.projects.map(p => p.projectManager).filter((v,i,a) => v && a.indexOf(v)===i).sort().map(o => ({ val: o!, label: o! })), fState: fPM, fSet: setFPM },
+    { key: 'prio',    label: t('priority') as string,       items: ['1','2','3','4','5'].map(o => ({ val: o, label: `P${o}` })),     fState: fPrio,    fSet: setFPrio    },
+    { key: 'complex', label: t('complexity') as string,     items: ['1','2','3','4','5'].map(o => ({ val: o, label: `C${o}` })),     fState: fComplex, fSet: setFComplex },
+  ] as const;
+
+  const renderFilterDrop = ({ key, label, items, fState, fSet }: typeof filterDefs[number]) => {
+    const allSel = fState.length === 0;
+    const isNone = (fState as any)[0] === '__none__';
+    const isOpen = openDrop === key;
+    const activeCount = isNone ? 0 : fState.length;
+    return (
+      <div key={key} style={{ position: 'relative' }}>
+        <button
+          className={`toolbar-btn${(!allSel || isNone) ? ' active' : ''}`}
+          onClick={() => setOpenDrop(isOpen ? null : key)}
+          style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+          {label}
+          {activeCount > 0 && <span style={{ background: 'var(--accent)', color: '#fff', borderRadius: 10, padding: '1px 5px', fontSize: 10, fontWeight: 700 }}>{activeCount}</span>}
+          <svg width="8" height="8" viewBox="0 0 8 8" fill="none"><path d="M1 3l3 3 3-3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg>
+        </button>
+        {isOpen && (
+          <>
+            <div style={{ position: 'fixed', inset: 0, zIndex: 3999 }} onClick={closeDrop} />
+            <div style={{ position: 'absolute', top: 'calc(100% + 4px)', left: 0, background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 10, boxShadow: 'var(--shadow)', zIndex: 4000, minWidth: 190, maxHeight: 280, overflowY: 'auto', animation: 'dropIn .15s ease' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 14px', cursor: 'pointer', fontSize: 12, fontFamily: 'var(--font)', color: 'var(--text)', fontWeight: 600, borderBottom: '1px solid var(--border)' }}
+                onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--bg3)'}
+                onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'none'}>
+                <input type="checkbox" checked={allSel && !isNone}
+                  onChange={() => (fSet as any)(allSel && !isNone ? (['__none__'] as any) : [])}
+                  style={{ accentColor: 'var(--accent)', width: 14, height: 14, cursor: 'pointer', flexShrink: 0 }} />
+                {t('all')} ({items.length})
+              </label>
+              {(items as readonly { val: string; label: string }[]).map(({ val, label: lbl }) => (
+                <label key={val} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 14px', cursor: 'pointer', fontSize: 12, fontFamily: 'var(--font)', color: 'var(--text)' }}
+                  onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--bg3)'}
+                  onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'none'}>
+                  <input type="checkbox"
+                    checked={!isNone && (allSel || (fState as string[]).includes(val))}
+                    onChange={() => toggleF(fSet as React.Dispatch<React.SetStateAction<string[]>>, val, (items as readonly { val: string }[]).map(i => i.val))}
+                    style={{ accentColor: 'var(--accent)', width: 14, height: 14, cursor: 'pointer', flexShrink: 0 }} />
+                  {lbl}
+                </label>
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div className="animate-in">
       <div className="page-sticky-header">
-        <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
+        {/* Line 1: Search | Filtres | List/Gantt | Colonnes or Scale | → New Project */}
+        <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
 
           {/* Search */}
           <input className="toolbar-select" placeholder={t('search')} value={search}
             onChange={e => setSearch(e.target.value)} style={{ maxWidth: 200 }} />
 
-          {/* Multi-select dropdown factory */}
-          {([
-            { key: 'status',  label: t('all_statuses') as string,  items: spaceStatuses.map(s => ({ val: s, label: s.replace(/^\d-/, '') })), fState: fStatus,  fSet: setFStatus  },
-            { key: 'domain',  label: t('all_domains') as string,   items: spaceDomains.map(d => ({ val: d, label: d })),                    fState: fDomain,  fSet: setFDomain  },
-            { key: 'type',    label: t('type') as string,           items: spaceRequestTypes.map(o => ({ val: o, label: o })),              fState: fType,    fSet: setFType    },
-            { key: 'dept',    label: t('lead_dept') as string,      items: spaceDepartments.map(o => ({ val: o, label: o })),               fState: fDept,    fSet: setFDept    },
-            { key: 'country', label: t('field_country') as string,  items: spaceCountries.map(o => ({ val: o, label: o })),                 fState: fCountry, fSet: setFCountry },
-            { key: 'sponsor', label: t('field_sponsor') as string,  items: spaceSponsors.map(o => ({ val: o, label: o })),                  fState: fSponsor, fSet: setFSponsor },
-            { key: 'pm',      label: t('project_manager') as string,items: data.projects.map(p => p.projectManager).filter((v,i,a) => v && a.indexOf(v)===i).sort().map(o => ({ val: o!, label: o! })), fState: fPM, fSet: setFPM },
-            { key: 'prio',    label: t('priority') as string,       items: ['1','2','3','4','5'].map(o => ({ val: o, label: `P${o}` })),     fState: fPrio,    fSet: setFPrio    },
-            { key: 'complex', label: t('complexity') as string,     items: ['1','2','3','4','5'].map(o => ({ val: o, label: `C${o}` })),     fState: fComplex, fSet: setFComplex },
-          ] as const).map(({ key, label, items, fState, fSet }) => {
-            const allSel = fState.length === 0;
-            const isOpen = openDrop === key;
-            return (
-              <div key={key} style={{ position: 'relative' }}>
-                <button
-                  className={`toolbar-btn${!allSel ? ' active' : ''}`}
-                  onClick={() => setOpenDrop(isOpen ? null : key)}
-                  style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                  {label}
-                  {!allSel && <span style={{ background: 'var(--accent)', color: '#fff', borderRadius: 10, padding: '1px 5px', fontSize: 10, fontWeight: 700 }}>{fState.length}</span>}
-                  <svg width="8" height="8" viewBox="0 0 8 8" fill="none"><path d="M1 3l3 3 3-3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                </button>
-                {isOpen && (
-                  <>
-                    <div style={{ position: 'fixed', inset: 0, zIndex: 3999 }} onClick={closeDrop} />
-                    <div style={{ position: 'absolute', top: 'calc(100% + 4px)', left: 0, background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 10, boxShadow: 'var(--shadow)', zIndex: 4000, minWidth: 190, maxHeight: 280, overflowY: 'auto', animation: 'dropIn .15s ease' }}>
-                      {/* All option */}
-                      <label style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 14px', cursor: 'pointer', fontSize: 12, fontFamily: 'var(--font)', color: 'var(--text)', fontWeight: 600, borderBottom: '1px solid var(--border)' }}
-                        onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--bg3)'}
-                        onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'none'}>
-                        <input type="checkbox" checked={allSel} onChange={() => fSet([])}
-                          style={{ accentColor: 'var(--accent)', width: 14, height: 14, cursor: 'pointer', flexShrink: 0 }} />
-                        {t('all')} ({items.length})
-                      </label>
-                      {items.map(({ val, label: lbl }) => (
-                        <label key={val} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 14px', cursor: 'pointer', fontSize: 12, fontFamily: 'var(--font)', color: 'var(--text)' }}
-                          onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--bg3)'}
-                          onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'none'}>
-                          <input type="checkbox"
-                            checked={allSel || fState.includes(val)}
-                            onChange={() => toggleF(fSet as React.Dispatch<React.SetStateAction<string[]>>, val, items.map(i => i.val))}
-                            style={{ accentColor: 'var(--accent)', width: 14, height: 14, cursor: 'pointer', flexShrink: 0 }} />
-                          {lbl}
-                        </label>
-                      ))}
-                    </div>
-                  </>
-                )}
-              </div>
-            );
-          })}
+          {/* Filtres toggle button */}
+          <button
+            className={`toolbar-btn${showFilters || activeFilterCount > 0 ? ' active' : ''}`}
+            onClick={() => setShowFilters(v => !v)}
+            style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M1 3h10M3 6h6M5 9h2" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg>
+            Filtres
+            {activeFilterCount > 0 && <span style={{ background: 'var(--accent)', color: '#fff', borderRadius: 10, padding: '1px 5px', fontSize: 10, fontWeight: 700 }}>{activeFilterCount}</span>}
+            <svg width="8" height="8" viewBox="0 0 8 8" fill="none"><path d={showFilters ? 'M1 5l3-3 3 3' : 'M1 3l3 3 3-3'} stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          </button>
 
-          {/* Clear all filters */}
-          {(activeFilterCount > 0 || search) && (
-            <button onClick={() => { setSearch(''); setFStatus([]); setFDomain([]); setFType([]); setFDept([]); setFCountry([]); setFSponsor([]); setFPM([]); setFPrio([]); setFComplex([]); }}
-              style={{ fontSize: 11, color: 'var(--danger)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 600, whiteSpace: 'nowrap' }}>
-              ✕ {t('clear_filters')}
+          {/* View toggle */}
+          <div style={{ display: 'flex', gap: 2 }}>
+            <button onClick={() => setViewMode('list')} className={`toolbar-btn${viewMode === 'list' ? ' primary' : ''}`}>
+              <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><rect x="1" y="1" width="11" height="2" rx="1" fill="currentColor"/><rect x="1" y="5" width="11" height="2" rx="1" fill="currentColor"/><rect x="1" y="9" width="11" height="2" rx="1" fill="currentColor"/></svg>
+              {t('view_list')}
             </button>
-          )}
+            <button onClick={() => setViewMode('gantt')} className={`toolbar-btn${viewMode === 'gantt' ? ' primary' : ''}`}>
+              <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><rect x="1" y="1" width="5" height="3" rx="1" fill="currentColor" opacity="0.5"/><rect x="1" y="5" width="8" height="3" rx="1" fill="currentColor"/><rect x="1" y="9" width="6" height="3" rx="1" fill="currentColor" opacity="0.7"/></svg>
+              {t('view_gantt')}
+            </button>
+          </div>
 
-          <div style={{ flex: 1 }} />
-
-          {/* Gantt scale selector */}
-          {viewMode === 'gantt' && (
-            <div style={{ position: 'relative' }}>
-              <button onClick={() => setOpenDrop(openDrop === 'gscale' ? null : 'gscale')} className="toolbar-btn">
-                <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M1 6h10M1 3h10M1 9h6" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg>
-                {ganttScale === 'week' ? String(t('scale_week')) : ganttScale === 'month' ? String(t('scale_month')) : ganttScale === 'semester' ? String(t('scale_semester')) : String(t('scale_year'))}
-                <svg width="8" height="8" viewBox="0 0 8 8" fill="none"><path d="M1 3l3 3 3-3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg>
-              </button>
-              {openDrop === 'gscale' && (
-                <>
-                  <div style={{ position: 'fixed', inset: 0, zIndex: 49 }} onClick={closeDrop} />
-                  <div style={{ position: 'absolute', right: 0, top: 'calc(100% + 4px)', background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 10, boxShadow: '0 8px 24px rgba(124,92,191,0.15)', zIndex: 50, overflow: 'hidden', minWidth: 140 }}>
-                    {(['week', 'month', 'semester', 'year'] as const).map(scale => (
-                      <button key={scale} onClick={() => { setGanttScale(scale); closeDrop(); }}
-                        style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '9px 14px', border: 'none', background: ganttScale === scale ? 'var(--accent-subtle)' : 'none', color: ganttScale === scale ? 'var(--accent)' : 'var(--text)', cursor: 'pointer', fontSize: 13, fontWeight: ganttScale === scale ? 700 : 400, fontFamily: 'inherit', textAlign: 'left' as const }}>
-                        {ganttScale === scale && <span style={{ color: 'var(--accent)', fontSize: 10 }}>✓</span>}
-                        {scale === 'week' ? String(t('scale_week')) : scale === 'month' ? String(t('scale_month')) : scale === 'semester' ? String(t('scale_semester')) : String(t('scale_year'))}
-                      </button>
-                    ))}
-                  </div>
-                </>
-              )}
-            </div>
-          )}
-
-          {/* E8: Columns config button (list view only) */}
+          {/* E8: Columns button (list only) */}
           {viewMode === 'list' && (
             <div style={{ position: 'relative' }}>
               <button className={`toolbar-btn${showColsDrop ? ' active' : ''}`}
@@ -392,7 +390,7 @@ export default function ProjectsView({ data, updateData, setView, onNavigateToPl
               {showColsDrop && (
                 <>
                   <div style={{ position: 'fixed', inset: 0, zIndex: 3999 }} onClick={() => setShowColsDrop(false)} />
-                  <div style={{ position: 'absolute', right: 0, top: 'calc(100% + 4px)', background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 10, boxShadow: 'var(--shadow)', zIndex: 4000, minWidth: 220, maxHeight: 380, overflowY: 'auto', animation: 'dropIn .15s ease' }}>
+                  <div style={{ position: 'absolute', left: 0, top: 'calc(100% + 4px)', background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 10, boxShadow: 'var(--shadow)', zIndex: 4000, minWidth: 220, maxHeight: 380, overflowY: 'auto', animation: 'dropIn .15s ease' }}>
                     <div style={{ padding: '8px 14px', fontSize: 11, color: 'var(--text-faint)', fontWeight: 600, borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <span>COLONNES</span>
                       <button style={{ fontSize: 11, color: 'var(--accent)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}
@@ -433,21 +431,51 @@ export default function ProjectsView({ data, updateData, setView, onNavigateToPl
             </div>
           )}
 
-          {/* View toggle */}
-          <div style={{ display: 'flex', gap: 2 }}>
-            <button onClick={() => setViewMode('list')} className={`toolbar-btn${viewMode === 'list' ? ' primary' : ''}`}>
-              <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><rect x="1" y="1" width="11" height="2" rx="1" fill="currentColor"/><rect x="1" y="5" width="11" height="2" rx="1" fill="currentColor"/><rect x="1" y="9" width="11" height="2" rx="1" fill="currentColor"/></svg>
-              {t('view_list')}
-            </button>
-            <button onClick={() => setViewMode('gantt')} className={`toolbar-btn${viewMode === 'gantt' ? ' primary' : ''}`}>
-              <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><rect x="1" y="1" width="5" height="3" rx="1" fill="currentColor" opacity="0.5"/><rect x="1" y="5" width="8" height="3" rx="1" fill="currentColor"/><rect x="1" y="9" width="6" height="3" rx="1" fill="currentColor" opacity="0.7"/></svg>
-              {t('view_gantt')}
-            </button>
-          </div>
+          {/* Gantt scale selector (gantt only) */}
+          {viewMode === 'gantt' && (
+            <div style={{ position: 'relative' }}>
+              <button onClick={() => setOpenDrop(openDrop === 'gscale' ? null : 'gscale')} className="toolbar-btn">
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M1 6h10M1 3h10M1 9h6" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg>
+                {ganttScale === 'week' ? String(t('scale_week')) : ganttScale === 'month' ? String(t('scale_month')) : ganttScale === 'semester' ? String(t('scale_semester')) : String(t('scale_year'))}
+                <svg width="8" height="8" viewBox="0 0 8 8" fill="none"><path d="M1 3l3 3 3-3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              </button>
+              {openDrop === 'gscale' && (
+                <>
+                  <div style={{ position: 'fixed', inset: 0, zIndex: 49 }} onClick={closeDrop} />
+                  <div style={{ position: 'absolute', left: 0, top: 'calc(100% + 4px)', background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 10, boxShadow: '0 8px 24px rgba(124,92,191,0.15)', zIndex: 50, overflow: 'hidden', minWidth: 140 }}>
+                    {(['week', 'month', 'semester', 'year'] as const).map(scale => (
+                      <button key={scale} onClick={() => { setGanttScale(scale); closeDrop(); }}
+                        style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '9px 14px', border: 'none', background: ganttScale === scale ? 'var(--accent-subtle)' : 'none', color: ganttScale === scale ? 'var(--accent)' : 'var(--text)', cursor: 'pointer', fontSize: 13, fontWeight: ganttScale === scale ? 700 : 400, fontFamily: 'inherit', textAlign: 'left' as const }}>
+                        {ganttScale === scale && <span style={{ color: 'var(--accent)', fontSize: 10 }}>✓</span>}
+                        {scale === 'week' ? String(t('scale_week')) : scale === 'month' ? String(t('scale_month')) : scale === 'semester' ? String(t('scale_semester')) : String(t('scale_year'))}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+
+          <div style={{ flex: 1 }} />
+
+          {/* New Project — always far right */}
           <button className="btn btn-primary" onClick={() => { setEditing({ id: '', ...EMPTY_PROJECT }); setIsNew(true); }}>
             {t('new_project')}
           </button>
         </div>
+
+        {/* Line 2: Filters row (toggle) */}
+        {showFilters && (
+          <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap', marginTop: 6, paddingTop: 6, borderTop: '1px solid var(--border)' }}>
+            {filterDefs.map(renderFilterDrop)}
+            {(activeFilterCount > 0 || search) && (
+              <button onClick={() => { setSearch(''); setFStatus([]); setFDomain([]); setFType([]); setFDept([]); setFCountry([]); setFSponsor([]); setFPM([]); setFPrio([]); setFComplex([]); }}
+                style={{ fontSize: 11, color: 'var(--danger)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 600, whiteSpace: 'nowrap' }}>
+                ✕ {t('clear_filters')}
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
             {/* Gantt Portfolio View */}
