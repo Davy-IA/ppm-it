@@ -124,12 +124,10 @@ export default function ProjectsView({ data, updateData, setView, onNavigateToPl
   };
 
   const remove = (id: string) => {
-    setConfirmAction(() => () => {
-      const projects = data.projects.filter(p => p.id !== id);
-      const workloads = data.workloads.filter(w => w.projectId !== id);
-      const allocations = data.allocations.filter(a => a.projectId !== id);
-      updateData({ ...data, projects, workloads, allocations });
-    });
+    const projects = data.projects.filter(p => p.id !== id);
+    const workloads = data.workloads.filter(w => w.projectId !== id);
+    const allocations = data.allocations.filter(a => a.projectId !== id);
+    updateData({ ...data, projects, workloads, allocations });
   };
 
   const pmOptions = data.staff.map(s => s.name);
@@ -271,12 +269,11 @@ export default function ProjectsView({ data, updateData, setView, onNavigateToPl
                   <th>{t('start_date')}</th>
                   <th>{t('go_live')}</th>
                   <th>{t('hypercare_date')}</th>
-                  <th></th>
                 </tr>
               </thead>
               <tbody>
                 {filtered.length === 0 && (
-                  <tr><td colSpan={13} style={{ textAlign: 'center', padding: 32, color: 'var(--text-faint)' }}>{t('no_projects')}</td></tr>
+                  <tr><td colSpan={12} style={{ textAlign: 'center', padding: 32, color: 'var(--text-faint)' }}>{t('no_projects')}</td></tr>
                 )}
                 {filtered.map(p => (
                   <tr key={p.id}>
@@ -288,20 +285,23 @@ export default function ProjectsView({ data, updateData, setView, onNavigateToPl
                             onClick={e => e.stopPropagation()} style={{ minWidth: 180 }} />
                         : <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6, minWidth: 0 }}>
                             <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0 }}>{p.name}</span>
-                            {onNavigateToPlanning && (
-                              <button
-                                className="btn-icon"
-                                style={{ width: 22, height: 22, flexShrink: 0, color: 'var(--text-faint)', opacity: 0.6 }}
-                                title={t('go_to_planning') as string}
-                                onClick={e => { e.stopPropagation(); onNavigateToPlanning(p.id, false); }}
-                              >
-                                <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
-                                  <rect x="1" y="4" width="8" height="3" rx="1.5" fill="currentColor"/>
-                                  <rect x="4" y="8" width="8" height="3" rx="1.5" fill="currentColor" opacity="0.5"/>
-                                  <path d="M10 1.5L12 3.5L10 5.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
-                                </svg>
-                              </button>
-                            )}
+                            <span style={{ display: 'flex', alignItems: 'center', gap: 2, flexShrink: 0 }}>
+                              {onNavigateToPlanning && (
+                                <button
+                                  className="btn-icon"
+                                  style={{ width: 22, height: 22, color: 'var(--text-faint)', opacity: 0.6 }}
+                                  title={t('go_to_planning') as string}
+                                  onClick={e => { e.stopPropagation(); onNavigateToPlanning(p.id, false); }}
+                                >
+                                  <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+                                    <rect x="1" y="4" width="8" height="3" rx="1.5" fill="currentColor"/>
+                                    <rect x="4" y="8" width="8" height="3" rx="1.5" fill="currentColor" opacity="0.5"/>
+                                    <path d="M10 1.5L12 3.5L10 5.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
+                                  </svg>
+                                </button>
+                              )}
+                              <button className="btn-icon" style={{ width: 22, height: 22, color: 'var(--text-faint)', opacity: 0.6 }} onClick={e => { e.stopPropagation(); setConfirmAction(() => () => remove(p.id)); }} title="Supprimer"><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 3.5h9M5 3.5V2.5h3v1M10.5 3.5l-.7 7H3.2l-.7-7" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg></button>
+                            </span>
                           </span>
                       }
                     </td>
@@ -363,9 +363,6 @@ export default function ProjectsView({ data, updateData, setView, onNavigateToPl
                       {inlineEdit?.id === p.id && inlineEdit.field === 'hypercare'
                         ? <input type="date" className="cell-input" autoFocus defaultValue={(p as any).hypercare ?? ''} onBlur={e => { updateField(p.id, 'hypercare', e.target.value); setInlineEdit(null); }} onKeyDown={e => { if (e.key === 'Enter') { updateField(p.id, 'hypercare', (e.target as HTMLInputElement).value); setInlineEdit(null); } if (e.key === 'Escape') setInlineEdit(null); }} onClick={e => e.stopPropagation()} style={{ minWidth: 120 }} />
                         : <span style={{color:'var(--text-muted)'}}>{(p as any).hypercare ? (p as any).hypercare.slice(0, 7) : '—'}</span>}
-                    </td>
-                    <td>
-                      <button className="btn btn-icon" style={{ width:26, height:26, color:'var(--text-faint)' }} onClick={() => setConfirmAction(() => remove(p.id))} title="Supprimer"><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 3.5h9M5 3.5V2.5h3v1M10.5 3.5l-.7 7H3.2l-.7-7" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg></button>
                     </td>
                   </tr>
                 ))}
