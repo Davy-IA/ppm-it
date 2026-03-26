@@ -87,6 +87,8 @@ export interface AppSettings {
   milestoneTypes: string[];
   partnerTypes: string[];
   tableFontSize: number; // 11, 12, 13 (default), 14
+  startYear?: number;
+  endYear?: number;
 }
 
 export const DEFAULT_SETTINGS: AppSettings = {

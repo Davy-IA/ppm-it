@@ -500,6 +500,7 @@ export default function ProjectsView({ data, updateData, setView, onNavigateToPl
                       draggable
                       onDragStart={() => setDragColId(col.id)}
                       onDragOver={e => e.preventDefault()}
+                      onDragEnd={() => setDragColId(null)}
                       onDrop={() => {
                         if (!dragColId || dragColId === col.id) return;
                         const order = [...effectiveOrder];
