@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
 
   const { data: users } = await supabaseAdmin
     .from('users')
-    .select('id, email, first_name, last_name, role, active, last_login, created_at')
+    .select('id, email, first_name, last_name, role, active, last_login, created_at, has_global_access')
     .order('created_at');
 
   // Get space memberships
@@ -56,6 +56,7 @@ export async function POST(req: NextRequest) {
       first_name: body.firstName,
       last_name: body.lastName,
       role: body.role,
+      has_global_access: body.hasGlobalAccess ?? false,
     })
     .select()
     .single();
@@ -86,18 +87,22 @@ export async function PUT(req: NextRequest) {
     last_name: body.lastName,
     role: body.role,
     active: body.active,
+    has_global_access: body.hasGlobalAccess ?? false,
   };
   if (body.password) updates.password_hash = await hashPassword(body.password);
 
-  await supabaseAdmin.from('users').update(updates).eq('id', body.id);
+  const { error: updateError } = await supabaseAdmin.from('users').update(updates).eq('id', body.id);
+  if (updateError) return NextResponse.json({ error: updateError.message }, { status: 400 });
 
   // Update space memberships
   if (body.spaceIds !== undefined) {
-    await supabaseAdmin.from('user_spaces').delete().eq('user_id', body.id);
+    const { error: delError } = await supabaseAdmin.from('user_spaces').delete().eq('user_id', body.id);
+    if (delError) return NextResponse.json({ error: delError.message }, { status: 400 });
     if (body.spaceIds.length) {
-      await supabaseAdmin.from('user_spaces').insert(
+      const { error: insError } = await supabaseAdmin.from('user_spaces').insert(
         body.spaceIds.map((sid: string) => ({ user_id: body.id, space_id: sid }))
       );
+      if (insError) return NextResponse.json({ error: insError.message }, { status: 400 });
     }
   }
 

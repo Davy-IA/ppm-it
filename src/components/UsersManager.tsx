@@ -6,7 +6,7 @@ import { formatMonth, formatDate, formatDateTime } from '@/lib/locale-utils';
 import { useAuth } from '@/lib/auth-context';
 
 interface Space { id: string; name: string; color: string; }
-interface User { id: string; email: string; first_name: string; last_name: string; role: string; active: boolean; last_login: string | null; spaces: Space[]; is_external?: boolean; partner_id?: string | null; }
+interface User { id: string; email: string; first_name: string; last_name: string; role: string; active: boolean; last_login: string | null; spaces: Space[]; is_external?: boolean; partner_id?: string | null; has_global_access?: boolean; }
 
 const ROLE_BADGES: Record<string, string> = { superadmin: 'badge-red', admin: 'badge-purple', global: 'badge-yellow', member: 'badge-blue', space_admin: 'badge-green' };
 
@@ -74,6 +74,7 @@ export default function UsersManager({ spaces, partners = [] }: Props) {
       active: editing.active ?? true,
       password: editing.password,
       spaceIds: editing.spaceIds ?? [],
+      hasGlobalAccess: (editing as any).hasGlobalAccess ?? false,
     };
     const r = await fetch('/api/users', { method, headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify(body) });
     if (r.ok) { fetchUsers(); setEditing(null); }
@@ -89,8 +90,8 @@ export default function UsersManager({ spaces, partners = [] }: Props) {
   };
 
   const allowedRoles = me?.role === 'superadmin'
-    ? ['superadmin', 'admin', 'global', 'space_admin', 'member']
-    : ['global', 'space_admin', 'member'];
+    ? ['superadmin', 'admin', 'space_admin', 'member']
+    : ['space_admin', 'member'];
 
   return (
     <div>
@@ -130,7 +131,7 @@ export default function UsersManager({ spaces, partners = [] }: Props) {
                   </td>
                   <td>
                     <div style={{ display: 'flex', gap: 4 }}>
-                      <button className="btn btn-ghost btn-sm" onClick={() => { setEditing({ ...u, spaceIds: u.spaces?.map(s => s.id) ?? [] }); setIsNew(false); }} disabled={u.id === me?.id}>{t('edit_btn')}</button>
+                      <button className="btn btn-ghost btn-sm" onClick={() => { setEditing({ ...u, spaceIds: u.spaces?.map(s => s.id) ?? [], hasGlobalAccess: (u as any).has_global_access ?? false } as any); setIsNew(false); }} disabled={u.id === me?.id}>{t('edit_btn')}</button>
                       {u.id !== me?.id && <button className="btn btn-ghost btn-sm" onClick={() => toggleActive(u)}>{u.active ? t('deactivate') : t('activate')}</button>}
                     </div>
                   </td>
@@ -205,6 +206,13 @@ export default function UsersManager({ spaces, partners = [] }: Props) {
                 <div>
                   <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: 8 }}>{t('user_spaces_label')}</label>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    <button
+                      onClick={() => setEditing({ ...editing, hasGlobalAccess: !(editing as any).hasGlobalAccess } as any)}
+                      style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 8, border: `2px solid ${(editing as any).hasGlobalAccess ? '#f59e0b' : 'var(--border)'}`, background: (editing as any).hasGlobalAccess ? 'rgba(245,158,11,0.1)' : 'var(--bg3)', cursor: 'pointer', textAlign: 'left' }}>
+                      <div style={{ width: 10, height: 10, borderRadius: 3, background: '#f59e0b' }} />
+                      <span style={{ fontSize: 13, fontWeight: 500 }}>🌐 {t('global_portfolio')}</span>
+                      {(editing as any).hasGlobalAccess && <span style={{ marginLeft: 'auto', color: '#f59e0b', fontWeight: 700, fontSize: 12 }}>✓</span>}
+                    </button>
                     {spaces.map(space => {
                       const isChecked = (editing.spaceIds ?? []).includes(space.id);
                       return (

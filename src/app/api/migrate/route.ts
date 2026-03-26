@@ -13,6 +13,14 @@ export async function POST() {
     results.push('avatar column: needs manual SQL (see below)');
   }
 
+  // 3. Check has_global_access column
+  try {
+    await supabaseAdmin.from('users').select('has_global_access').limit(1);
+    results.push('has_global_access column: already exists');
+  } catch {
+    results.push('has_global_access column: needs manual SQL (see below)');
+  }
+
   // 2. Check/create password_reset_tokens table
   const { error: checkErr } = await supabaseAdmin
     .from('password_reset_tokens')
@@ -31,7 +39,10 @@ export async function POST() {
 -- 1. Add avatar to users
 ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar TEXT;
 
--- 2. Create password reset tokens table  
+-- 3. Add has_global_access to users
+ALTER TABLE users ADD COLUMN IF NOT EXISTS has_global_access BOOLEAN DEFAULT FALSE;
+
+-- 2. Create password reset tokens table
 CREATE TABLE IF NOT EXISTS password_reset_tokens (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,

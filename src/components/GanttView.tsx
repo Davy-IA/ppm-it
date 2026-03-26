@@ -108,6 +108,19 @@ export default function GanttView({ data, updateData, initialProjectId, openNewP
   const [timeScale, setTimeScale] = useState<'week' | 'month' | 'semester' | 'year'>('month');
   const [showScaleMenu, setShowScaleMenu] = useState(false);
   const [confirmAction, setConfirmAction] = useState<(() => void) | null>(null);
+  // ED2: resizable left column
+  const [leftW, setLeftW] = useState(260);
+  const colResizeRef = useRef<{ startX: number; startW: number } | null>(null);
+  useEffect(() => {
+    const onMove = (e: MouseEvent) => {
+      if (!colResizeRef.current) return;
+      setLeftW(Math.max(120, colResizeRef.current.startW + e.clientX - colResizeRef.current.startX));
+    };
+    const onUp = () => { colResizeRef.current = null; };
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+    return () => { document.removeEventListener('mousemove', onMove); document.removeEventListener('mouseup', onUp); };
+  }, []);
 
   // E4: Drag state
   const dragRef = useRef<{
@@ -330,7 +343,7 @@ export default function GanttView({ data, updateData, initialProjectId, openNewP
   }
   const totalDays = Math.max(daysBetween(displayMin, displayMax) + 1, 7);
   const chartW = totalDays * DAY_PX_DYN;
-  const LEFT_W = 260;
+  const LEFT_W = leftW;
   const today = new Date().toISOString().slice(0,10);
   // All X positions computed from displayMin (the visual origin)
   const todayX = daysBetween(displayMin, today) * DAY_PX_DYN;
@@ -574,8 +587,10 @@ export default function GanttView({ data, updateData, initialProjectId, openNewP
             <div style={{ minWidth: LEFT_W + chartW }}>
               {/* Sticky header row — exact copy of Portfolio Gantt */}
               <div style={{ display:'flex', background:'#3D3A4E', borderBottom:'none', position:'sticky', top:0, zIndex:1000 }}>
-                <div style={{ width:LEFT_W, minWidth:LEFT_W, flexShrink:0, height:38, display:'flex', alignItems:'center', padding:'0 16px', fontSize:11, fontWeight:700, color:'#FFFFFF', textTransform:'uppercase' as const, letterSpacing:'0.07em', position:'sticky', left:0, zIndex:1001, background:'#3D3A4E', borderRight:'1px solid rgba(255,255,255,0.10)' }}>
+                <div style={{ width:LEFT_W, minWidth:LEFT_W, flexShrink:0, height:38, display:'flex', alignItems:'center', padding:'0 16px', fontSize:11, fontWeight:700, color:'#FFFFFF', textTransform:'uppercase' as const, letterSpacing:'0.07em', position:'sticky', left:0, zIndex:1001, background:'#3D3A4E', borderRight:'1px solid rgba(255,255,255,0.10)', userSelect:'none' as const, overflow:'visible' as const }}>
                   {t('structure')}
+                  <div onMouseDown={e => { e.preventDefault(); colResizeRef.current = { startX: e.clientX, startW: leftW }; }}
+                    style={{ position:'absolute', right:-3, top:0, bottom:0, width:6, cursor:'col-resize', zIndex:1002 }} />
                 </div>
                 <div style={{ width:chartW, flexShrink:0, position:'relative', height:38 }}>
                   {months.map((m,i) => (

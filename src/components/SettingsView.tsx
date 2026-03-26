@@ -212,6 +212,37 @@ export default function SettingsView({ data, updateData, spaces, onRefreshSpaces
               </div>
             </div>
           </div>
+
+          {/* EE1: Year range — moved here from Lists tab */}
+          {isAdmin && (
+            <div className="card" style={{ gridColumn: '1 / -1' }}>
+              <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 4 }}>{t('settings_year_range' as any)}</div>
+              <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 14 }}>{t('settings_year_range_desc' as any)}</div>
+              <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
+                <div>
+                  <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>{t('settings_year_start' as any)}</label>
+                  <select className="input" value={(settings as any).startYear ?? new Date().getFullYear()}
+                    onChange={e => { updateSettings({ startYear: Number(e.target.value) } as any); showSaved(); }}
+                    style={{ width: 100 }}>
+                    {Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - 3 + i).map(y => (
+                      <option key={y} value={y}>{y}</option>
+                    ))}
+                  </select>
+                </div>
+                <div style={{ color: 'var(--text-faint)', alignSelf: 'flex-end', paddingBottom: 6 }}>→</div>
+                <div>
+                  <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>{t('settings_year_end' as any)}</label>
+                  <select className="input" value={(settings as any).endYear ?? new Date().getFullYear() + 2}
+                    onChange={e => { updateSettings({ endYear: Number(e.target.value) } as any); showSaved(); }}
+                    style={{ width: 100 }}>
+                    {Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - 1 + i).map(y => (
+                      <option key={y} value={y}>{y}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
 

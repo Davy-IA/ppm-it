@@ -1,7 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useSettings } from '@/lib/context';
-import { formatMonth, formatDate, formatDateTime } from '@/lib/locale-utils';
 import { useAuth } from '@/lib/auth-context';
 
 interface Space { id: string; name: string; color: string; icon: string; }
@@ -23,6 +22,8 @@ export default function GlobalPortfolio({ spaces, onBack }: Props) {
   const [fDomain, setFDomain] = useState<string[]>([]);
   const [fPM, setFPM] = useState<string[]>([]);
   const [search, setSearch] = useState('');
+  // Gantt time scale (ED7)
+  const [ganttTimeScale, setGanttTimeScale] = useState<'week' | 'month' | 'semester' | 'year'>('month');
 
   useEffect(() => {
     const fetchAll = async () => {
@@ -41,7 +42,6 @@ export default function GlobalPortfolio({ spaces, onBack }: Props) {
 
   const allProjects = spaces.flatMap(s => (allData[s.id]?.projects ?? []).map(p => ({ ...p, spaceName: s.name, spaceColor: s.color, spaceId: s.id })));
   const allStaff = spaces.flatMap(s => (allData[s.id]?.staff ?? []).map(st => ({ ...st, spaceName: s.name })));
-  const allGantt = spaces.flatMap(s => (allData[s.id]?.ganttPhases ?? []).map(g => ({ ...g, spaceName: s.name, spaceColor: s.color })));
 
   const STATUS_COLORS: Record<string, string> = {
     '1-To arbitrate': 'badge-gray', '2-Validated': 'badge-blue',
@@ -84,10 +84,13 @@ export default function GlobalPortfolio({ spaces, onBack }: Props) {
       </div>
 
       {/* Filter bar (ED8) */}
-      {!loading && activeTab === 'projects' && (
+      {!loading && (
         <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap', marginBottom: 14 }}>
-          <input className="toolbar-select" placeholder={t('search')} value={search}
-            onChange={e => setSearch(e.target.value)} style={{ maxWidth: 200 }} />
+          {/* Search — projects tab only */}
+          {activeTab === 'projects' && (
+            <input className="toolbar-select" placeholder={t('search')} value={search}
+              onChange={e => setSearch(e.target.value)} style={{ maxWidth: 200 }} />
+          )}
           {/* Space filter */}
           <select className="toolbar-select" value={fSpace[0] ?? ''} onChange={e => setFSpace(e.target.value ? [e.target.value] : [])}>
             <option value="">{t('global_col_space')} — {t('all')}</option>
@@ -100,8 +103,8 @@ export default function GlobalPortfolio({ spaces, onBack }: Props) {
               <option key={s} value={s}>{s.replace(/^\d-/, '')}</option>
             ))}
           </select>
-          {/* Domain filter */}
-          {(() => {
+          {/* Domain filter — projects tab only */}
+          {activeTab === 'projects' && (() => {
             const domains = Array.from(new Set(allProjects.map((p: any) => p.domain).filter(Boolean))).sort();
             return (
               <select className="toolbar-select" value={fDomain[0] ?? ''} onChange={e => setFDomain(e.target.value ? [e.target.value] : [])}>
@@ -110,8 +113,8 @@ export default function GlobalPortfolio({ spaces, onBack }: Props) {
               </select>
             );
           })()}
-          {/* PM filter */}
-          {(() => {
+          {/* PM filter — projects tab only */}
+          {activeTab === 'projects' && (() => {
             const pms = Array.from(new Set(allProjects.map((p: any) => p.projectManager).filter(Boolean))).sort();
             return (
               <select className="toolbar-select" value={fPM[0] ?? ''} onChange={e => setFPM(e.target.value ? [e.target.value] : [])}>
@@ -120,6 +123,15 @@ export default function GlobalPortfolio({ spaces, onBack }: Props) {
               </select>
             );
           })()}
+          {/* Time scale — gantt tab only (ED7) */}
+          {activeTab === 'gantt' && (
+            <select className="toolbar-select" value={ganttTimeScale} onChange={e => setGanttTimeScale(e.target.value as any)}>
+              <option value="week">{t('scale_week')}</option>
+              <option value="month">{t('scale_month')}</option>
+              <option value="semester">{t('scale_semester')}</option>
+              <option value="year">{t('scale_year')}</option>
+            </select>
+          )}
           {(search || fSpace.length || fStatus.length || fDomain.length || fPM.length) && (
             <button onClick={() => { setSearch(''); setFSpace([]); setFStatus([]); setFDomain([]); setFPM([]); }}
               style={{ fontSize: 11, color: 'var(--danger)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 600 }}>
@@ -185,63 +197,160 @@ export default function GlobalPortfolio({ spaces, onBack }: Props) {
             );
           })()}
 
-          {/* GANTT TAB */}
-          {activeTab === 'gantt' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-              {spaces.map(space => {
-                const phases = allData[space.id]?.ganttPhases ?? [];
-                if (phases.length === 0) return null;
-                return (
-                  <div key={space.id} className="card" style={{ padding: 0, overflow: 'hidden' }}>
-                    <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 10, background: `${space.color}08` }}>
-                      <span style={{ fontSize: 18 }}>{space.icon}</span>
-                      <span style={{ fontWeight: 700, color: space.color }}>{space.name}</span>
-                      <span className="badge badge-gray">{phases.length} phases</span>
+          {/* GANTT TAB (ED7) — visual bars like PortfolioGantt */}
+          {activeTab === 'gantt' && (() => {
+            const localeStr = ({ fr: 'fr-FR', en: 'en-US', pt: 'pt-BR', zh: 'zh-CN' } as Record<string,string>)[locale] ?? 'fr-FR';
+            function db(a: string, b: string) { return Math.round((new Date(b).getTime() - new Date(a).getTime()) / 86400000); }
+
+            const ganttProjects = allProjects
+              .filter((p: any) => !fSpace.length || fSpace.includes(p.spaceId))
+              .filter((p: any) => !fStatus.length || fStatus.includes(p.status ?? ''))
+              .filter((p: any) => p.startDate || p.goLive);
+
+            if (ganttProjects.length === 0) {
+              return <div className="card" style={{ textAlign: 'center', padding: 40, color: 'var(--text-faint)' }}>{t('no_project')}</div>;
+            }
+
+            const LEFT_W = 280;
+            const DAY_PX = ganttTimeScale === 'week' ? 22 : ganttTimeScale === 'month' ? 8 : ganttTimeScale === 'semester' ? 2.7 : 0.9;
+            const ROW_H = 40;
+
+            const projectDates = ganttProjects.flatMap((p: any) => [p.startDate, p.goLive].filter(Boolean) as string[]);
+            const minProjDate = projectDates.reduce((a: string, b: string) => a < b ? a : b);
+            const maxProjDate = projectDates.reduce((a: string, b: string) => a > b ? a : b);
+            const anchorD = new Date(minProjDate);
+            const anchorYear = anchorD.getFullYear();
+            const anchorMon = anchorD.getMonth();
+
+            let displayMin: string;
+            let displayMax: string;
+            if (ganttTimeScale === 'week') {
+              const d = new Date(minProjDate); const dow = d.getDay(); d.setDate(d.getDate() - (dow === 0 ? 6 : dow - 1));
+              displayMin = d.toISOString().slice(0,10);
+              const endW = new Date(maxProjDate); endW.setDate(endW.getDate() + 14);
+              displayMax = endW.toISOString().slice(0,10);
+            } else if (ganttTimeScale === 'month') {
+              displayMin = `${anchorYear}-${String(anchorMon + 1).padStart(2,'0')}-01`;
+              const endD = new Date(maxProjDate); endD.setMonth(endD.getMonth() + 1);
+              displayMax = endD.toISOString().slice(0,10);
+            } else if (ganttTimeScale === 'semester') {
+              const semStart = anchorMon < 6 ? 0 : 6;
+              displayMin = `${anchorYear}-${String(semStart + 1).padStart(2,'0')}-01`;
+              displayMax = `${new Date(maxProjDate).getFullYear()}-12-31`;
+            } else {
+              displayMin = `${anchorYear}-01-01`;
+              displayMax = `${anchorYear + 2}-12-31`;
+            }
+
+            const totalDays = Math.max(db(displayMin, displayMax) + 1, 7);
+            const chartW = totalDays * DAY_PX;
+            const today = new Date().toISOString().slice(0,10);
+            const todayX = db(displayMin, today) * DAY_PX;
+
+            const columns: { label: string; left: number; width: number }[] = [];
+            if (ganttTimeScale === 'week') {
+              let cur = new Date(displayMin); const dow = cur.getDay(); cur.setDate(cur.getDate() - (dow === 0 ? 6 : dow - 1));
+              while (db(displayMin, cur.toISOString().slice(0,10)) < totalDays) {
+                const wEnd = new Date(cur); wEnd.setDate(wEnd.getDate() + 6);
+                const left = Math.max(0, db(displayMin, cur.toISOString().slice(0,10))) * DAY_PX;
+                const right = Math.min(totalDays, db(displayMin, wEnd.toISOString().slice(0,10)) + 1) * DAY_PX;
+                columns.push({ label: cur.toLocaleDateString(localeStr, { day: 'numeric', month: 'short' }), left, width: right - left });
+                cur.setDate(cur.getDate() + 7);
+              }
+            } else if (ganttTimeScale === 'semester') {
+              let cur = new Date(displayMin); cur.setMonth(cur.getMonth() < 6 ? 0 : 6, 1);
+              while (db(displayMin, cur.toISOString().slice(0,10)) < totalDays) {
+                const isS1 = cur.getMonth() === 0;
+                const sEnd = new Date(cur.getFullYear(), isS1 ? 5 : 11, isS1 ? 30 : 31);
+                const left = Math.max(0, db(displayMin, cur.toISOString().slice(0,10))) * DAY_PX;
+                const right = Math.min(totalDays, db(displayMin, sEnd.toISOString().slice(0,10)) + 1) * DAY_PX;
+                columns.push({ label: `S${isS1 ? 1 : 2} ${cur.getFullYear()}`, left, width: right - left });
+                cur.setMonth(cur.getMonth() + 6);
+              }
+            } else if (ganttTimeScale === 'year') {
+              let cur = new Date(displayMin); cur.setMonth(0, 1);
+              while (db(displayMin, cur.toISOString().slice(0,10)) < totalDays) {
+                const yEnd = new Date(cur.getFullYear(), 11, 31);
+                const left = Math.max(0, db(displayMin, cur.toISOString().slice(0,10))) * DAY_PX;
+                const right = Math.min(totalDays, db(displayMin, yEnd.toISOString().slice(0,10)) + 1) * DAY_PX;
+                columns.push({ label: String(cur.getFullYear()), left, width: right - left });
+                cur.setFullYear(cur.getFullYear() + 1);
+              }
+            } else {
+              let cur = new Date(displayMin); cur.setDate(1);
+              while (db(displayMin, cur.toISOString().slice(0,10)) < totalDays) {
+                const mEnd = new Date(cur.getFullYear(), cur.getMonth() + 1, 0);
+                const left = Math.max(0, db(displayMin, cur.toISOString().slice(0,10))) * DAY_PX;
+                const right = Math.min(totalDays, db(displayMin, mEnd.toISOString().slice(0,10)) + 1) * DAY_PX;
+                columns.push({ label: cur.toLocaleDateString(localeStr, { month: 'short', year: '2-digit' }), left, width: right - left });
+                cur.setMonth(cur.getMonth() + 1);
+              }
+            }
+
+            const statusColor: Record<string, string> = {
+              '3-In progress': 'var(--success)', '2-Validated': 'var(--accent)',
+              '1-To arbitrate': 'var(--text-faint)', '4-Frozen': 'var(--warning)',
+              '5-Completed': 'var(--purple)', '6-Aborted': 'var(--danger)',
+            };
+
+            return (
+              <div className="card card-table" style={{ padding: 0, overflow: 'hidden' }}>
+                <div style={{ overflow: 'auto', maxHeight: 'calc(100vh - 230px)' }}>
+                  <div style={{ minWidth: LEFT_W + chartW }}>
+                    {/* Header */}
+                    <div style={{ display: 'flex', background: '#3D3A4E', position: 'sticky', top: 0, zIndex: 30 }}>
+                      <div style={{ width: LEFT_W, minWidth: LEFT_W, flexShrink: 0, height: 38, display: 'flex', alignItems: 'center', padding: '0 14px', fontSize: 11, fontWeight: 700, color: '#FFFFFF', textTransform: 'uppercase' as const, letterSpacing: '0.07em', position: 'sticky', left: 0, zIndex: 35, background: '#3D3A4E', borderRight: '1px solid rgba(255,255,255,0.10)' }}>
+                        {t('project_name')}
+                      </div>
+                      <div style={{ width: chartW, flexShrink: 0, position: 'relative', height: 38 }}>
+                        {columns.map((col, i) => (
+                          <div key={i} style={{ position: 'absolute', left: col.left, width: col.width, height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRight: '1px solid rgba(255,255,255,0.10)', fontSize: 11, fontWeight: 700, color: '#FFFFFF', textTransform: 'uppercase' as const, letterSpacing: '0.04em', overflow: 'hidden' }}>
+                            {col.label}
+                          </div>
+                        ))}
+                        {todayX >= 0 && todayX <= chartW && (
+                          <div style={{ position: 'absolute', left: todayX, top: 0, bottom: 0, width: 2, background: 'var(--accent)', opacity: 0.5 }} />
+                        )}
+                      </div>
                     </div>
-                    <div style={{ padding: 16 }}>
-                      {/* Group by project */}
-                      {(() => {
-                        const projIds = Array.from(new Set<string>(phases.map((p: any) => p.projectId)));
-                        return projIds.map(projId => {
-                          const proj = allData[space.id]?.projects?.find(p => p.id === projId);
-                          const projPhases = phases.filter((p: any) => p.projectId === projId);
-                          return (
-                            <div key={projId} style={{ marginBottom: 16 }}>
-                              <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 8, color: 'var(--text)' }}>
-                                {proj?.name ?? t('global_unknown_project')}
-                                <span style={{ marginLeft: 8 }} className="badge badge-gray">{projPhases.length} phases</span>
-                              </div>
-                              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                                {projPhases.map((phase: any) => {
-                                  const start = new Date(phase.startDate);
-                                  const end = new Date(phase.startDate);
-                                  end.setDate(end.getDate() + phase.duration);
-                                  return (
-                                    <div key={phase.id} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                                      <div style={{ width: 10, height: 10, borderRadius: 3, background: phase.color ?? space.color, flexShrink: 0 }} />
-                                      <span style={{ fontSize: 13, minWidth: 200 }}>{phase.name}</span>
-                                      <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
-                                        {start.toLocaleDateString(({ fr: 'fr-FR', en: 'en-US', pt: 'pt-BR', zh: 'zh-CN' }[locale] ?? 'fr-FR'), { day: '2-digit', month: 'short' })} → {end.toLocaleDateString(({ fr: 'fr-FR', en: 'en-US', pt: 'pt-BR', zh: 'zh-CN' }[locale] ?? 'fr-FR'), { day: '2-digit', month: 'short', year: '2-digit' })}
-                                      </span>
-                                      <span style={{ fontSize: 11, color: 'var(--text-faint)' }}>{phase.duration}j</span>
-                                      {phase.subphases?.length > 0 && <span className="badge badge-gray" style={{ fontSize: 10 }}>{phase.subphases.length} {t('gantt_subphases').toLowerCase()}</span>}
-                                    </div>
-                                  );
-                                })}
-                              </div>
-                            </div>
-                          );
-                        });
-                      })()}
-                    </div>
+                    {/* Project rows */}
+                    {ganttProjects.map((p: any, idx: number) => {
+                      const barStart = p.startDate ? db(displayMin, p.startDate) : null;
+                      const barGl = p.goLive ? db(displayMin, p.goLive) : null;
+                      const hasBar = barStart !== null && barGl !== null;
+                      const color = statusColor[p.status ?? ''] ?? 'var(--accent)';
+                      const bg = idx % 2 === 0 ? 'var(--bg2)' : 'var(--bg3)';
+                      return (
+                        <div key={idx} style={{ display: 'flex', borderBottom: '1px solid var(--border)', background: bg, minHeight: ROW_H }}>
+                          <div style={{ width: LEFT_W, minWidth: LEFT_W, flexShrink: 0, padding: '0 10px', display: 'flex', alignItems: 'center', gap: 6, position: 'sticky', left: 0, zIndex: 20, background: bg, borderRight: '1px solid var(--border)' }}>
+                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 10, fontWeight: 600, color: p.spaceColor, background: `${p.spaceColor}18`, borderRadius: 10, padding: '1px 5px', flexShrink: 0, whiteSpace: 'nowrap' as const }}>
+                              <span style={{ width: 5, height: 5, borderRadius: '50%', background: p.spaceColor, display: 'inline-block' }} />
+                              {p.spaceName}
+                            </span>
+                            <span style={{ fontSize: 11, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const, flex: 1 }} title={p.name}>{p.name}</span>
+                          </div>
+                          <div style={{ width: chartW, flexShrink: 0, position: 'relative', height: ROW_H }}>
+                            {columns.map((col, i) => (
+                              <div key={i} style={{ position: 'absolute', left: col.left, top: 0, bottom: 0, width: 1, background: 'var(--border)', opacity: 0.5 }} />
+                            ))}
+                            {todayX >= 0 && todayX <= chartW && (
+                              <div style={{ position: 'absolute', left: todayX, top: 0, bottom: 0, width: 2, background: 'var(--accent)', opacity: 0.35, zIndex: 4 }} />
+                            )}
+                            {hasBar && barStart! * DAY_PX <= chartW && barGl! * DAY_PX >= 0 && (
+                              <div style={{ position: 'absolute', left: Math.max(0, barStart!) * DAY_PX, width: Math.max(4, Math.min(chartW, barGl! * DAY_PX) - Math.max(0, barStart!) * DAY_PX), top: 9, height: 20, background: color, borderRadius: 4, zIndex: 3, opacity: 0.85 }} title={`${p.name}: ${p.startDate} → ${p.goLive}`} />
+                            )}
+                            {barGl !== null && barGl * DAY_PX >= -4 && barGl * DAY_PX <= chartW + 4 && (
+                              <div style={{ position: 'absolute', left: barGl * DAY_PX - 6, top: '50%', transform: 'translateY(-50%) rotate(45deg)', width: 11, height: 11, background: color, border: '2px solid white', boxShadow: '0 1px 4px rgba(0,0,0,.2)', zIndex: 5 }} title={`Go-live: ${p.goLive}`} />
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
-                );
-              })}
-              {allGantt.length === 0 && (
-                <div className="card" style={{ textAlign: 'center', padding: 40, color: 'var(--text-faint)' }}>{t('no_gantt_phase')}</div>
-              )}
-            </div>
-          )}
+                </div>
+              </div>
+            );
+          })()}
         </>
       )}
     </div>

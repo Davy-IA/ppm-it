@@ -186,7 +186,7 @@ export default function TopNav({ view, setView, saving, data, currentSpace, onCh
                     )}
                   </button>
                 ))}
-                {user && (user.role !== 'space_admin') && spaces.filter(s => s.id !== '__global__').length > 1 && (
+                {user && (user as any).hasGlobalAccess && spaces.filter(s => s.id !== '__global__').length > 0 && (
                   <button
                     className={`topnav-dropdown-item ${currentSpace?.id === '__global__' ? 'active' : ''}`}
                     style={{ borderTop: '1px solid var(--border)', marginTop: 4, paddingTop: 10 }}

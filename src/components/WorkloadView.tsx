@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { formatMonth, formatDate, formatDateTime } from '@/lib/locale-utils';
 import { AppData, WorkloadEntry, AllocationEntry, MONTHS_2026_2028, PROFILES } from '@/types';
 import { v4 as uuid } from 'uuid';
@@ -25,6 +25,24 @@ export default function WorkloadView({ data, updateData }: Props) {
   const [profileFilter, setProfileFilter] = useState('');
   const [staffFilter, setStaffFilter] = useState('');
   const [deptFilter, setDeptFilter] = useState('');
+  // ED2: resizable sticky columns
+  const [projColW, setProjColW] = useState(220);
+  const [profileColW, setProfileColW] = useState(80);
+  const [resourceColW, setResourceColW] = useState(140);
+  const colResizeRef = useRef<{ startX: number; startW: number; col: 'proj' | 'profile' | 'resource' } | null>(null);
+  useEffect(() => {
+    const onMove = (e: MouseEvent) => {
+      if (!colResizeRef.current) return;
+      const delta = e.clientX - colResizeRef.current.startX;
+      if (colResizeRef.current.col === 'proj') setProjColW(Math.max(100, colResizeRef.current.startW + delta));
+      else if (colResizeRef.current.col === 'profile') setProfileColW(Math.max(60, colResizeRef.current.startW + delta));
+      else setResourceColW(Math.max(80, colResizeRef.current.startW + delta));
+    };
+    const onUp = () => { colResizeRef.current = null; };
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+    return () => { document.removeEventListener('mousemove', onMove); document.removeEventListener('mouseup', onUp); };
+  }, []);
 
 
   const sc = (data as any).spaceConfig ?? {};
@@ -218,8 +236,16 @@ export default function WorkloadView({ data, updateData }: Props) {
             <table className="data-table">
               <thead>
                 <tr>
-                  <th className="sticky-left" style={{ minWidth: 220 }}>{t('project_name')}</th>
-                  <th className="sticky-left-2">{t('profile')}</th>
+                  <th className="sticky-left" style={{ minWidth: projColW, width: projColW, position: 'sticky', left: 0, userSelect: 'none', overflow: 'visible' }}>
+                    {t('project_name')}
+                    <div onMouseDown={e => { e.preventDefault(); colResizeRef.current = { startX: e.clientX, startW: projColW, col: 'proj' }; }}
+                      style={{ position: 'absolute', right: -3, top: 0, bottom: 0, width: 6, cursor: 'col-resize', zIndex: 50 }} />
+                  </th>
+                  <th className="sticky-left-2" style={{ left: projColW, minWidth: profileColW, width: profileColW, userSelect: 'none', overflow: 'visible' }}>
+                    {t('profile')}
+                    <div onMouseDown={e => { e.preventDefault(); colResizeRef.current = { startX: e.clientX, startW: profileColW, col: 'profile' }; }}
+                      style={{ position: 'absolute', right: -3, top: 0, bottom: 0, width: 6, cursor: 'col-resize', zIndex: 50 }} />
+                  </th>
                   {months.map(m => <th key={m} className="cap-cell">{monthLabel(m)}</th>)}
                   <th>{t('total')}</th>
                   <th></th>
@@ -237,8 +263,8 @@ export default function WorkloadView({ data, updateData }: Props) {
                   const hasDateRange = projStart && projEnd;
                   return (
                     <tr key={w.id}>
-                      <td className="sticky-left" style={{ fontWeight: 500, maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis' }}><span className="sticky-text" style={{overflow:'hidden',textOverflow:'ellipsis',display:'block',whiteSpace:'nowrap'}}>{w.projectName}</span></td>
-                      <td className="sticky-left-2"><span className="badge badge-blue">{w.profile}</span></td>
+                      <td className="sticky-left" style={{ fontWeight: 500, width: projColW, minWidth: projColW, maxWidth: projColW, overflow: 'hidden' }}><span style={{overflow:'hidden',textOverflow:'ellipsis',display:'block',whiteSpace:'nowrap'}}>{w.projectName}</span></td>
+                      <td className="sticky-left-2" style={{ left: projColW, width: profileColW, minWidth: profileColW }}><span className="badge badge-blue">{w.profile}</span></td>
                       {months.map(m => {
                         const need = w.monthly[m] ?? 0;
                         const covered = data.allocations
@@ -304,9 +330,21 @@ export default function WorkloadView({ data, updateData }: Props) {
             <table className="data-table">
               <thead>
                 <tr>
-                  <th className="sticky-left" style={{ minWidth: 220 }}>{t('project_name')}</th>
-                  <th className="sticky-left-2">{t('profile')}</th>
-                  <th className="sticky-left-3" style={{ minWidth: 140 }}>{t('resource_col')}</th>
+                  <th className="sticky-left" style={{ minWidth: projColW, width: projColW, position: 'sticky', left: 0, userSelect: 'none', overflow: 'visible' }}>
+                    {t('project_name')}
+                    <div onMouseDown={e => { e.preventDefault(); colResizeRef.current = { startX: e.clientX, startW: projColW, col: 'proj' }; }}
+                      style={{ position: 'absolute', right: -3, top: 0, bottom: 0, width: 6, cursor: 'col-resize', zIndex: 50 }} />
+                  </th>
+                  <th className="sticky-left-2" style={{ left: projColW, minWidth: profileColW, width: profileColW, userSelect: 'none', overflow: 'visible' }}>
+                    {t('profile')}
+                    <div onMouseDown={e => { e.preventDefault(); colResizeRef.current = { startX: e.clientX, startW: profileColW, col: 'profile' }; }}
+                      style={{ position: 'absolute', right: -3, top: 0, bottom: 0, width: 6, cursor: 'col-resize', zIndex: 50 }} />
+                  </th>
+                  <th className="sticky-left-3" style={{ left: projColW + profileColW, minWidth: resourceColW, width: resourceColW, userSelect: 'none', overflow: 'visible' }}>
+                    {t('resource_col')}
+                    <div onMouseDown={e => { e.preventDefault(); colResizeRef.current = { startX: e.clientX, startW: resourceColW, col: 'resource' }; }}
+                      style={{ position: 'absolute', right: -3, top: 0, bottom: 0, width: 6, cursor: 'col-resize', zIndex: 50 }} />
+                  </th>
                   {months.map(m => <th key={m} className="cap-cell">{monthLabel(m)}</th>)}
                   <th>{t('total')}</th>
                   <th></th>
@@ -325,9 +363,9 @@ export default function WorkloadView({ data, updateData }: Props) {
                   const hasDateRange = projStart && projEnd;
                   return (
                     <tr key={a.id}>
-                      <td className="sticky-left" style={{ fontWeight: 500, maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis' }}><span className="sticky-text" style={{overflow:'hidden',textOverflow:'ellipsis',display:'block',whiteSpace:'nowrap'}}>{a.projectName}</span></td>
-                      <td className="sticky-left-2"><span className="badge badge-blue">{a.profile}</span></td>
-                      <td className="sticky-left-3">
+                      <td className="sticky-left" style={{ fontWeight: 500, width: projColW, minWidth: projColW, maxWidth: projColW, overflow: 'hidden' }}><span style={{overflow:'hidden',textOverflow:'ellipsis',display:'block',whiteSpace:'nowrap'}}>{a.projectName}</span></td>
+                      <td className="sticky-left-2" style={{ left: projColW, width: profileColW, minWidth: profileColW }}><span className="badge badge-blue">{a.profile}</span></td>
+                      <td className="sticky-left-3" style={{ left: projColW + profileColW, width: resourceColW, minWidth: resourceColW }}>
                         <span style={{ fontWeight: 500 }}>{a.staffName}</span>
                         {staff?.type === 'External' && <span className="badge badge-yellow" style={{ marginLeft: 6, fontSize: 10 }}>{t('col_ext')}</span>}
                       </td>
