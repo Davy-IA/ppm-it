@@ -80,21 +80,6 @@ export default function ProjectsView({ data, updateData, setView, onNavigateToPl
   const spaceCountries: string[]    = sc.countries     ?? settings.countries     ?? COUNTRIES;
   const spaceSponsors: string[]     = sc.sponsors      ?? settings.sponsors      ?? SPONSORS;
 
-  // E7: Custom fields — global (from settings) + space-specific (from spaceConfig)
-  const globalCustomFields: { id: string; label: string; type: 'text' | 'select'; options?: string[] }[] = (settings as any).customFields ?? [];
-  const spaceCustomFields: { id: string; label: string; type: 'text' | 'select'; options?: string[] }[] = sc.customFields ?? [];
-  const customFields = [
-    ...globalCustomFields,
-    ...spaceCustomFields.filter(sf => !globalCustomFields.some(gf => gf.id === sf.id)),
-  ];
-  const allCols: ColDef[] = [
-    ...BASE_COLS,
-    ...customFields.map(cf => ({ id: `cf_${cf.id}`, labelKey: cf.label, minWidth: 110, isCustom: true, cfId: cf.id } as ColDef)),
-  ];
-  const allColIds = allCols.map(c => c.id);
-  const effectiveOrder = [...colOrder.filter(id => allColIds.includes(id)), ...allColIds.filter(id => !colOrder.includes(id))];
-  const visibleCols = effectiveOrder.map(id => allCols.find(c => c.id === id)!).filter(c => c && colVisible[c.id] !== false);
-
   const [editing, setEditing] = useState<Project | null>(null);
   const [isNew, setIsNew] = useState(false);
   const [viewMode, setViewMode] = useState<'list' | 'gantt'>('list');
@@ -117,6 +102,21 @@ export default function ProjectsView({ data, updateData, setView, onNavigateToPl
 
   const saveColOrder = (order: string[]) => { setColOrder(order); localStorage.setItem('ppm-col-order', JSON.stringify(order)); };
   const saveColVisible = (vis: Record<string, boolean>) => { setColVisible(vis); localStorage.setItem('ppm-col-visible', JSON.stringify(vis)); };
+
+  // E7: Custom fields — global (from settings) + space-specific (from spaceConfig)
+  const globalCustomFields: { id: string; label: string; type: 'text' | 'select'; options?: string[] }[] = (settings as any).customFields ?? [];
+  const spaceCustomFields: { id: string; label: string; type: 'text' | 'select'; options?: string[] }[] = sc.customFields ?? [];
+  const customFields = [
+    ...globalCustomFields,
+    ...spaceCustomFields.filter(sf => !globalCustomFields.some(gf => gf.id === sf.id)),
+  ];
+  const allCols: ColDef[] = [
+    ...BASE_COLS,
+    ...customFields.map(cf => ({ id: `cf_${cf.id}`, labelKey: cf.label, minWidth: 110, isCustom: true, cfId: cf.id } as ColDef)),
+  ];
+  const allColIds = allCols.map(c => c.id);
+  const effectiveOrder = [...colOrder.filter(id => allColIds.includes(id)), ...allColIds.filter(id => !colOrder.includes(id))];
+  const visibleCols = effectiveOrder.map(id => allCols.find(c => c.id === id)!).filter(c => c && colVisible[c.id] !== false);
 
   const updateField = (id: string, field: string, value: any) => {
     const projects = data.projects.map(p => p.id === id ? { ...p, [field]: value || null } : p);
