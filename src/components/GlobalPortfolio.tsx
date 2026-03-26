@@ -16,7 +16,13 @@ export default function GlobalPortfolio({ spaces, onBack }: Props) {
   const locale = settings.locale ?? 'fr';
   const [allData, setAllData] = useState<Record<string, SpaceData>>({});
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'projects' | 'kpis' | 'gantt'>('kpis');
+  const [activeTab, setActiveTab] = useState<'projects' | 'gantt'>('projects');
+  // Filters (ED8)
+  const [fSpace, setFSpace] = useState<string[]>([]);
+  const [fStatus, setFStatus] = useState<string[]>([]);
+  const [fDomain, setFDomain] = useState<string[]>([]);
+  const [fPM, setFPM] = useState<string[]>([]);
+  const [search, setSearch] = useState('');
 
   useEffect(() => {
     const fetchAll = async () => {
@@ -33,7 +39,7 @@ export default function GlobalPortfolio({ spaces, onBack }: Props) {
     fetchAll();
   }, [spaces, token]);
 
-  const allProjects = spaces.flatMap(s => (allData[s.id]?.projects ?? []).map(p => ({ ...p, spaceName: s.name, spaceColor: s.color })));
+  const allProjects = spaces.flatMap(s => (allData[s.id]?.projects ?? []).map(p => ({ ...p, spaceName: s.name, spaceColor: s.color, spaceId: s.id })));
   const allStaff = spaces.flatMap(s => (allData[s.id]?.staff ?? []).map(st => ({ ...st, spaceName: s.name })));
   const allGantt = spaces.flatMap(s => (allData[s.id]?.ganttPhases ?? []).map(g => ({ ...g, spaceName: s.name, spaceColor: s.color })));
 
@@ -42,17 +48,6 @@ export default function GlobalPortfolio({ spaces, onBack }: Props) {
     '3-In progress': 'badge-green', '4-Frozen': 'badge-yellow',
     '5-Completed': 'badge-purple', '6-Aborted': 'badge-red',
   };
-
-  const kpis = spaces.map(s => {
-    const d = allData[s.id];
-    return {
-      space: s,
-      projects: d?.projects?.length ?? 0,
-      active: d?.projects?.filter(p => p.status === '3-In progress').length ?? 0,
-      staff: d?.staff?.length ?? 0,
-      phases: d?.ganttPhases?.length ?? 0,
-    };
-  });
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', padding: '24px 32px' }}>
@@ -79,7 +74,6 @@ export default function GlobalPortfolio({ spaces, onBack }: Props) {
       {/* Tabs */}
       <div style={{ display: 'flex', gap: 4, marginBottom: 24, background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 10, padding: 4, width: 'fit-content' }}>
         {[
-          { id: 'kpis', label: t('global_kpis_tab') },
           { id: 'projects', label: t('global_projects_tab') },
           { id: 'gantt', label: t('global_gantt_tab') },
         ].map(tab => (
@@ -89,111 +83,107 @@ export default function GlobalPortfolio({ spaces, onBack }: Props) {
         ))}
       </div>
 
+      {/* Filter bar (ED8) */}
+      {!loading && activeTab === 'projects' && (
+        <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap', marginBottom: 14 }}>
+          <input className="toolbar-select" placeholder={t('search')} value={search}
+            onChange={e => setSearch(e.target.value)} style={{ maxWidth: 200 }} />
+          {/* Space filter */}
+          <select className="toolbar-select" value={fSpace[0] ?? ''} onChange={e => setFSpace(e.target.value ? [e.target.value] : [])}>
+            <option value="">{t('global_col_space')} — {t('all')}</option>
+            {spaces.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+          </select>
+          {/* Status filter */}
+          <select className="toolbar-select" value={fStatus[0] ?? ''} onChange={e => setFStatus(e.target.value ? [e.target.value] : [])}>
+            <option value="">{t('all_statuses')}</option>
+            {['1-To arbitrate','2-Validated','3-In progress','4-Frozen','5-Completed','6-Aborted'].map(s => (
+              <option key={s} value={s}>{s.replace(/^\d-/, '')}</option>
+            ))}
+          </select>
+          {/* Domain filter */}
+          {(() => {
+            const domains = Array.from(new Set(allProjects.map((p: any) => p.domain).filter(Boolean))).sort();
+            return (
+              <select className="toolbar-select" value={fDomain[0] ?? ''} onChange={e => setFDomain(e.target.value ? [e.target.value] : [])}>
+                <option value="">{t('all_domains')}</option>
+                {domains.map((d: any) => <option key={d} value={d}>{d}</option>)}
+              </select>
+            );
+          })()}
+          {/* PM filter */}
+          {(() => {
+            const pms = Array.from(new Set(allProjects.map((p: any) => p.projectManager).filter(Boolean))).sort();
+            return (
+              <select className="toolbar-select" value={fPM[0] ?? ''} onChange={e => setFPM(e.target.value ? [e.target.value] : [])}>
+                <option value="">{t('project_manager')} — {t('all')}</option>
+                {pms.map((pm: any) => <option key={pm} value={pm}>{pm}</option>)}
+              </select>
+            );
+          })()}
+          {(search || fSpace.length || fStatus.length || fDomain.length || fPM.length) && (
+            <button onClick={() => { setSearch(''); setFSpace([]); setFStatus([]); setFDomain([]); setFPM([]); }}
+              style={{ fontSize: 11, color: 'var(--danger)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 600 }}>
+              ✕ {t('clear_filters')}
+            </button>
+          )}
+        </div>
+      )}
+
       {loading ? (
         <div style={{ textAlign: 'center', padding: 60, color: 'var(--text-faint)' }}>{t('global_loading')}</div>
       ) : (
         <>
-          {/* KPIs TAB */}
-          {activeTab === 'kpis' && (
-            <div>
-              {/* Summary row */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 14, marginBottom: 24 }}>
-                {[
-                  { label: t('global_projects_total'), value: allProjects.length, color: 'var(--accent)' },
-                  { label: t('global_ongoing'), value: allProjects.filter(p => p.status === '3-In progress').length, color: 'var(--success)' },
-                  { label: t('global_to_arbitrate'), value: allProjects.filter(p => p.status === '1-To arbitrate').length, color: 'var(--warning)' },
-                  { label: t('kpi_resources'), value: allStaff.length, color: 'var(--purple)' },
-                  { label: t('global_active_spaces'), value: spaces.length, color: '#f59e0b' },
-                ].map(k => (
-                  <div key={k.label} className="card" style={{ borderLeft: `3px solid ${k.color}` }}>
-                    <div style={{ fontSize: 28, fontWeight: 800, fontFamily: 'JetBrains Mono, monospace', color: k.color }}>{k.value}</div>
-                    <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', marginTop: 4 }}>{k.label}</div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Per-space breakdown */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 16 }}>
-                {kpis.map(({ space, projects, active, staff, phases }) => (
-                  <div key={space.id} className="card" style={{ borderTop: `3px solid ${space.color}` }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-                      <span style={{ fontSize: 20 }}>{space.icon}</span>
-                      <div style={{ fontWeight: 700, fontSize: 15 }}>{space.name}</div>
-                    </div>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                      {[
-                        { label: t('kpi_projects'), value: projects },
-                        { label: t('global_ongoing'), value: active },
-                        { label: t('kpi_resources'), value: staff },
-                        { label: t('kpi_phases'), value: phases },
-                      ].map(k => (
-                        <div key={k.label} style={{ background: 'var(--bg3)', borderRadius: 8, padding: '10px 12px' }}>
-                          <div style={{ fontSize: 20, fontWeight: 800, fontFamily: 'JetBrains Mono, monospace', color: space.color }}>{k.value}</div>
-                          <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>{k.label}</div>
-                        </div>
-                      ))}
-                    </div>
-
-                    {/* Status bar */}
-                    <div style={{ marginTop: 14 }}>
-                      <div style={{ fontSize: 11, color: 'var(--text-faint)', marginBottom: 6 }}>{t('project_status_chart')}</div>
-                      {(() => {
-                        const d = allData[space.id];
-                        const statuses: Record<string, number> = {};
-                        (d?.projects ?? []).forEach(p => { const s = p.status ?? 'N/A'; statuses[s] = (statuses[s] ?? 0) + 1; });
-                        const colors: Record<string, string> = { '3-In progress': 'var(--success)', '2-Validated': 'var(--accent)', '1-To arbitrate': 'var(--text-faint)', '4-Frozen': 'var(--warning)', '5-Completed': 'var(--purple)', '6-Aborted': 'var(--danger)' };
-                        return Object.entries(statuses).map(([status, count]) => (
-                          <div key={status} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginBottom: 3 }}>
-                            <span style={{ color: 'var(--text-muted)' }}>{t(({'1-To arbitrate':'status_to_arbitrate','2-Validated':'status_validated','3-In progress':'status_in_progress','4-Frozen':'status_frozen','5-Completed':'status_completed','6-Aborted':'status_aborted'} as Record<string,string>)[status] ?? 'status_to_arbitrate') || status.replace(/^\d-/, '')}</span>
-                            <span style={{ fontWeight: 700, color: colors[status] ?? 'var(--text-faint)', fontFamily: 'JetBrains Mono, monospace' }}>{count}</span>
-                          </div>
-                        ));
-                      })()}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* PROJECTS TAB */}
-          {activeTab === 'projects' && (
-            <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-              <div style={{ overflowX: 'auto' }}>
-                <table className="data-table">
-                  <thead>
-                    <tr>
-                      <th>{t('global_col_space')}</th><th>{t('project_name')}</th><th>{t('domain')}</th>
-                      <th>{t('project_manager')}</th><th>{t('priority')}</th><th>{t('status')}</th>
-                      <th>{t('start_date')}</th><th>{t('go_live')}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {allProjects.length === 0 && (
-                      <tr><td colSpan={8} style={{ textAlign: 'center', padding: 32, color: 'var(--text-faint)' }}>{t('no_project')}</td></tr>
-                    )}
-                    {allProjects.map((p: any, i) => (
-                      <tr key={i}>
-                        <td>
-                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 12, fontWeight: 600, color: p.spaceColor, background: `${p.spaceColor}15`, borderRadius: 20, padding: '2px 8px' }}>
-                            <span style={{ width: 5, height: 5, borderRadius: '50%', background: p.spaceColor, display: 'inline-block' }} />
-                            {p.spaceName}
-                          </span>
-                        </td>
-                        <td style={{ fontWeight: 500, maxWidth: 240, overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.name}</td>
-                        <td><span className="badge badge-blue">{p.domain}</span></td>
-                        <td style={{ color: 'var(--text-muted)' }}>{p.projectManager || '—'}</td>
-                        <td>{p.priority ? <span className="badge badge-gray">P{p.priority}</span> : '—'}</td>
-                        <td>{p.status ? <span className={`badge ${STATUS_COLORS[p.status] ?? 'badge-gray'}`}>{p.status.replace(/^\d-/, '')}</span> : '—'}</td>
-                        <td style={{ color: 'var(--text-muted)', fontSize: 12 }}>{p.startDate ? p.startDate.slice(0, 7) : '—'}</td>
-                        <td style={{ color: 'var(--text-muted)', fontSize: 12 }}>{p.goLive ? p.goLive.slice(0, 7) : '—'}</td>
+          {/* PROJECTS TAB (ED6) */}
+          {activeTab === 'projects' && (() => {
+            const filtered = allProjects.filter((p: any) => {
+              if (search && !p.name.toLowerCase().includes(search.toLowerCase()) && !(p.projectManager ?? '').toLowerCase().includes(search.toLowerCase())) return false;
+              if (fSpace.length && !fSpace.includes(p.spaceId ?? spaces.find(s => s.name === p.spaceName)?.id ?? '')) return false;
+              if (fStatus.length && !fStatus.includes(p.status ?? '')) return false;
+              if (fDomain.length && !fDomain.includes(p.domain ?? '')) return false;
+              if (fPM.length && !fPM.includes(p.projectManager ?? '')) return false;
+              return true;
+            });
+            return (
+              <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+                <div style={{ padding: '10px 16px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <span style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 600 }}>{filtered.length} / {allProjects.length} {t('projects_count')}</span>
+                </div>
+                <div style={{ overflowX: 'auto' }}>
+                  <table className="data-table">
+                    <thead>
+                      <tr>
+                        <th>{t('global_col_space')}</th><th style={{ minWidth: 240 }}>{t('project_name')}</th><th>{t('domain')}</th>
+                        <th>{t('project_manager')}</th><th>{t('priority')}</th><th>{t('status')}</th>
+                        <th>{t('start_date')}</th><th>{t('go_live')}</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {filtered.length === 0 && (
+                        <tr><td colSpan={8} style={{ textAlign: 'center', padding: 32, color: 'var(--text-faint)' }}>{t('no_project')}</td></tr>
+                      )}
+                      {filtered.map((p: any, i: number) => (
+                        <tr key={i}>
+                          <td>
+                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 12, fontWeight: 600, color: p.spaceColor, background: `${p.spaceColor}15`, borderRadius: 20, padding: '2px 8px', whiteSpace: 'nowrap' }}>
+                              <span style={{ width: 5, height: 5, borderRadius: '50%', background: p.spaceColor, display: 'inline-block' }} />
+                              {p.spaceName}
+                            </span>
+                          </td>
+                          <td style={{ fontWeight: 500, maxWidth: 280, overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.name}</td>
+                          <td><span className="badge badge-blue">{p.domain}</span></td>
+                          <td style={{ color: 'var(--text-muted)' }}>{p.projectManager || '—'}</td>
+                          <td>{p.priority ? <span className="badge badge-gray">P{p.priority}</span> : '—'}</td>
+                          <td>{p.status ? <span className={`badge ${STATUS_COLORS[p.status] ?? 'badge-gray'}`}>{p.status.replace(/^\d-/, '')}</span> : '—'}</td>
+                          <td style={{ color: 'var(--text-muted)', fontSize: 12, whiteSpace: 'nowrap' }}>{p.startDate ? p.startDate.slice(0, 7) : '—'}</td>
+                          <td style={{ color: 'var(--text-muted)', fontSize: 12, whiteSpace: 'nowrap' }}>{p.goLive ? p.goLive.slice(0, 7) : '—'}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
-            </div>
-          )}
+            );
+          })()}
 
           {/* GANTT TAB */}
           {activeTab === 'gantt' && (
