@@ -71,21 +71,20 @@ export default function GlobalPortfolio({ spaces, onBack }: Props) {
         </div>
       </div>
 
-      {/* Tabs */}
-      <div style={{ display: 'flex', gap: 4, marginBottom: 24, background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 10, padding: 4, width: 'fit-content' }}>
-        {[
-          { id: 'projects', label: t('global_projects_tab') },
-          { id: 'gantt', label: t('global_gantt_tab') },
-        ].map(tab => (
-          <button key={tab.id} onClick={() => setActiveTab(tab.id as any)}
-            className={`btn ${activeTab === tab.id ? 'btn-primary' : 'btn-ghost'}`} style={{ fontSize: 13 }}
-          >{tab.label}</button>
-        ))}
-      </div>
-
-      {/* Filter bar (ED8) */}
+      {/* Tabs + Filter bar */}
       {!loading && (
         <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap', marginBottom: 14 }}>
+          {/* Tab buttons — same style as WorkloadView */}
+          <div style={{ display: 'flex', gap: 4, background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 10, padding: 4, marginRight: 6 }}>
+            {[
+              { id: 'projects', label: t('global_projects_tab') },
+              { id: 'gantt',    label: t('global_gantt_tab') },
+            ].map(tab => (
+              <button key={tab.id} onClick={() => setActiveTab(tab.id as any)}
+                className={`btn ${activeTab === tab.id ? 'btn-primary' : 'btn-ghost'}`} style={{ fontSize: 13 }}
+              >{tab.label}</button>
+            ))}
+          </div>
           {/* Search — projects tab only */}
           {activeTab === 'projects' && (
             <input className="toolbar-select" placeholder={t('search')} value={search}
@@ -132,7 +131,7 @@ export default function GlobalPortfolio({ spaces, onBack }: Props) {
               <option value="year">{t('scale_year')}</option>
             </select>
           )}
-          {(search || fSpace.length || fStatus.length || fDomain.length || fPM.length) && (
+          {!!(search || fSpace.length || fStatus.length || fDomain.length || fPM.length) && (
             <button onClick={() => { setSearch(''); setFSpace([]); setFStatus([]); setFDomain([]); setFPM([]); }}
               style={{ fontSize: 11, color: 'var(--danger)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 600 }}>
               ✕ {t('clear_filters')}
@@ -156,17 +155,19 @@ export default function GlobalPortfolio({ spaces, onBack }: Props) {
               return true;
             });
             return (
-              <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-                <div style={{ padding: '10px 16px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <span style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 600 }}>{filtered.length} / {allProjects.length} {t('projects_count')}</span>
-                </div>
-                <div style={{ overflowX: 'auto' }}>
+              <div className="card card-table" style={{ padding: 0, overflow: 'hidden' }}>
+                <div className="utbl-wrap" style={{ maxHeight: 'calc(100vh - 180px)' }}>
                   <table className="data-table">
                     <thead>
                       <tr>
-                        <th>{t('global_col_space')}</th><th style={{ minWidth: 240 }}>{t('project_name')}</th><th>{t('domain')}</th>
-                        <th>{t('project_manager')}</th><th>{t('priority')}</th><th>{t('status')}</th>
-                        <th>{t('start_date')}</th><th>{t('go_live')}</th>
+                        <th className="sticky-left" style={{ minWidth: 260 }}>{t('project_name')}</th>
+                        <th>{t('global_col_space')}</th>
+                        <th>{t('domain')}</th>
+                        <th>{t('project_manager')}</th>
+                        <th style={{ textAlign: 'center' }}>{t('priority')}</th>
+                        <th>{t('status')}</th>
+                        <th>{t('start_date')}</th>
+                        <th>{t('go_live')}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -175,19 +176,19 @@ export default function GlobalPortfolio({ spaces, onBack }: Props) {
                       )}
                       {filtered.map((p: any, i: number) => (
                         <tr key={i}>
+                          <td className="sticky-left" style={{ fontWeight: 600 }}>{p.name}</td>
                           <td>
                             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 12, fontWeight: 600, color: p.spaceColor, background: `${p.spaceColor}15`, borderRadius: 20, padding: '2px 8px', whiteSpace: 'nowrap' }}>
                               <span style={{ width: 5, height: 5, borderRadius: '50%', background: p.spaceColor, display: 'inline-block' }} />
                               {p.spaceName}
                             </span>
                           </td>
-                          <td style={{ fontWeight: 500, maxWidth: 280, overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.name}</td>
-                          <td><span className="badge badge-blue">{p.domain}</span></td>
-                          <td style={{ color: 'var(--text-muted)' }}>{p.projectManager || '—'}</td>
-                          <td>{p.priority ? <span className="badge badge-gray">P{p.priority}</span> : '—'}</td>
-                          <td>{p.status ? <span className={`badge ${STATUS_COLORS[p.status] ?? 'badge-gray'}`}>{p.status.replace(/^\d-/, '')}</span> : '—'}</td>
-                          <td style={{ color: 'var(--text-muted)', fontSize: 12, whiteSpace: 'nowrap' }}>{p.startDate ? p.startDate.slice(0, 7) : '—'}</td>
-                          <td style={{ color: 'var(--text-muted)', fontSize: 12, whiteSpace: 'nowrap' }}>{p.goLive ? p.goLive.slice(0, 7) : '—'}</td>
+                          <td>{p.domain || <span style={{ color: 'var(--text-faint)' }}>—</span>}</td>
+                          <td>{p.projectManager || <span style={{ color: 'var(--text-faint)' }}>—</span>}</td>
+                          <td style={{ textAlign: 'center' }}>{p.priority ? `P${p.priority}` : <span style={{ color: 'var(--text-faint)' }}>—</span>}</td>
+                          <td>{p.status ? <span className={`badge ${STATUS_COLORS[p.status] ?? 'badge-gray'}`}>{p.status.replace(/^\d-/, '')}</span> : <span style={{ color: 'var(--text-faint)' }}>—</span>}</td>
+                          <td><span style={{ color: 'var(--text-muted)' }}>{p.startDate ? p.startDate.slice(0, 7) : '—'}</span></td>
+                          <td><span style={{ color: 'var(--text-muted)' }}>{p.goLive ? p.goLive.slice(0, 7) : '—'}</span></td>
                         </tr>
                       ))}
                     </tbody>

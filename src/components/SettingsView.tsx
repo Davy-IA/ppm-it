@@ -23,6 +23,7 @@ export default function SettingsView({ data, updateData, spaces, onRefreshSpaces
   const [saved, setSaved] = useState(false);
   const [confirmAction, setConfirmAction] = useState<(() => void) | null>(null);
   const [editingList, setEditingList] = useState<string | null>(null);
+  const [cfDraftOptions, setCfDraftOptions] = useState<string[] | null>(null);
   // E7: Custom fields editing state
   const [editingCf, setEditingCf] = useState<{ id: string; label: string; type: 'text' | 'select'; options: string } | null>(null);
   const [newCf, setNewCf] = useState<{ label: string; type: 'text' | 'select'; options: string }>({ label: '', type: 'text', options: '' });
@@ -434,7 +435,7 @@ export default function SettingsView({ data, updateData, spaces, onRefreshSpaces
                               <td style={{ fontSize: 12, color: 'var(--text-faint)' }}>
                                 {editingCf.type === 'select' ? (
                                   <span style={{ fontSize: 11, color: 'var(--accent)', cursor: 'pointer', fontWeight: 600 }}
-                                    onClick={() => setEditingList('__cf_options__' + cf.id)}>
+                                    onClick={() => { setEditingList('__cf_options__' + cf.id); setCfDraftOptions(cf.options ?? []); }}>
                                     {t('custom_fields_edit_options' as any)} ({editingCf.options?.split(',').filter(Boolean).length ?? 0})
                                   </span>
                                 ) : '—'}
@@ -457,7 +458,7 @@ export default function SettingsView({ data, updateData, spaces, onRefreshSpaces
                               <td>
                                 {cf.type === 'select' ? (
                                   <button className="btn btn-ghost btn-sm" style={{ fontSize: 11 }}
-                                    onClick={() => { setEditingCf({ id: cf.id, label: cf.label, type: cf.type, options: (cf.options ?? []).join(', ') }); setEditingList('__cf_options__' + cf.id); }}>
+                                    onClick={() => { setEditingCf({ id: cf.id, label: cf.label, type: cf.type, options: (cf.options ?? []).join(', ') }); setEditingList('__cf_options__' + cf.id); setCfDraftOptions(cf.options ?? []); }}>
                                     {t('custom_fields_edit_options' as any)} ({(cf.options ?? []).length})
                                   </button>
                                 ) : <span style={{ color: 'var(--text-faint)', fontSize: 12 }}>—</span>}
@@ -483,6 +484,7 @@ export default function SettingsView({ data, updateData, spaces, onRefreshSpaces
                             if (field.type === 'select') {
                               setEditingCf({ id: field.id, label: field.label, type: 'select', options: '' });
                               setEditingList('__cf_options__' + field.id);
+                              setCfDraftOptions([]);
                             }
                           }}>{t('custom_fields_add' as any)}</button>
                         </td>
@@ -495,10 +497,11 @@ export default function SettingsView({ data, updateData, spaces, onRefreshSpaces
                     const cfId = editingList.replace('__cf_options__', '');
                     const cf = customFields.find(f => f.id === cfId);
                     if (!cf) return null;
-                    const opts = cf.options ?? [];
+                    const draft = cfDraftOptions ?? cf.options ?? [];
+                    const closePopup = () => { setEditingList(null); setCfDraftOptions(null); };
                     return (
                       <>
-                        <div style={{ position: 'fixed', inset: 0, background: 'rgba(15,17,30,0.5)', zIndex: 998 }} onClick={() => setEditingList(null)} />
+                        <div style={{ position: 'fixed', inset: 0, background: 'rgba(15,17,30,0.5)', zIndex: 998 }} onClick={closePopup} />
                         <div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 999,
                           background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 14,
                           boxShadow: '0 12px 40px rgba(0,0,0,0.2)', width: 400, maxHeight: '75vh', display: 'flex', flexDirection: 'column' }}>
@@ -507,35 +510,29 @@ export default function SettingsView({ data, updateData, spaces, onRefreshSpaces
                               <div style={{ fontWeight: 700, fontSize: 15 }}>{cf.label}</div>
                               <div style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 2 }}>{t('custom_fields_options_col' as any)}</div>
                             </div>
-                            <button className="btn-icon" onClick={() => setEditingList(null)}>✕</button>
+                            <button className="btn-icon" onClick={closePopup}>✕</button>
                           </div>
                           <div style={{ padding: '16px 22px', overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
-                            {opts.map((v, i) => (
+                            {draft.map((v, i) => (
                               <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                                 <input className="input" value={v} style={{ flex: 1 }}
-                                  onChange={e => {
-                                    const n = [...opts]; n[i] = e.target.value;
-                                    const updated = customFields.map(f => f.id === cfId ? { ...f, options: n } : f);
-                                    saveCustomFields(updated);
-                                  }} />
+                                  onChange={e => { const n = [...draft]; n[i] = e.target.value; setCfDraftOptions(n); }} />
                                 <button className="btn-icon" style={{ flexShrink: 0, color: 'var(--danger)' }}
-                                  onClick={() => {
-                                    const n = opts.filter((_, j) => j !== i);
-                                    const updated = customFields.map(f => f.id === cfId ? { ...f, options: n } : f);
-                                    saveCustomFields(updated);
-                                  }}>
+                                  onClick={() => setCfDraftOptions(draft.filter((_, j) => j !== i))}>
                                   <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 3.5h9M5 3.5V2.5h3v1M10.5 3.5l-.7 7H3.2l-.7-7" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg>
                                 </button>
                               </div>
                             ))}
                           </div>
-                          <div style={{ padding: '12px 22px', borderTop: '1px solid var(--border)' }}>
-                            <button className="btn btn-ghost btn-sm" style={{ width: '100%' }}
+                          <div style={{ padding: '12px 22px', borderTop: '1px solid var(--border)', display: 'flex', gap: 8 }}>
+                            <button className="btn btn-ghost btn-sm" style={{ flex: 1 }}
+                              onClick={() => setCfDraftOptions([...draft, ''])}>{t('add_value')}</button>
+                            <button className="btn btn-primary btn-sm"
                               onClick={() => {
-                                const n = [...opts, ''];
-                                const updated = customFields.map(f => f.id === cfId ? { ...f, options: n } : f);
+                                const updated = customFields.map(f => f.id === cfId ? { ...f, options: draft.filter(Boolean) } : f);
                                 saveCustomFields(updated);
-                              }}>{t('add_value')}</button>
+                                closePopup();
+                              }}>{t('save')}</button>
                           </div>
                         </div>
                       </>
@@ -544,77 +541,6 @@ export default function SettingsView({ data, updateData, spaces, onRefreshSpaces
                 </div>
               );
             })()}
-
-            {/* ED1: Hidden nav items per space */}
-            {!isGlobal && (() => {
-              const NAV_TOGGLEABLE = [
-                { id: 'projects', labelKey: 'nav_projects' },
-                { id: 'gantt', labelKey: 'nav_planning' },
-                { id: 'tasks', labelKey: 'nav_tasks' },
-                { id: 'staff', labelKey: 'nav_staff' },
-                { id: 'workload', labelKey: 'nav_workload' },
-                { id: 'dashboard', labelKey: 'nav_dashboard' },
-              ];
-              const hidden: string[] = spaceConfig.hiddenNavItems ?? [];
-              return (
-                <div className="card" style={{ marginBottom: 20 }}>
-                  <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 4 }}>{t('settings_nav_visibility' as any)}</div>
-                  <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 14 }}>{t('settings_nav_visibility_desc' as any)}</div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                    {NAV_TOGGLEABLE.map(item => {
-                      const isHidden = hidden.includes(item.id);
-                      return (
-                        <button key={item.id} onClick={() => {
-                          const newHidden = isHidden ? hidden.filter(h => h !== item.id) : [...hidden, item.id];
-                          const newConfig = { ...spaceConfig, hiddenNavItems: newHidden };
-                          saveSelectedSpaceConfig(newConfig);
-                        }} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', borderRadius: 8,
-                          border: `2px solid ${isHidden ? 'var(--border)' : 'var(--accent)'}`,
-                          background: isHidden ? 'var(--bg3)' : 'var(--accent-subtle)', cursor: 'pointer', textAlign: 'left' }}>
-                          <div style={{ width: 16, height: 16, borderRadius: 3, border: `2px solid ${isHidden ? 'var(--border)' : 'var(--accent)'}`,
-                            background: isHidden ? 'transparent' : 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            {!isHidden && <svg width="9" height="9" viewBox="0 0 9 9" fill="none"><path d="M1.5 4.5l2 2 4-4" stroke="white" strokeWidth="1.5" strokeLinecap="round"/></svg>}
-                          </div>
-                          <span style={{ fontSize: 13, fontWeight: 500, color: isHidden ? 'var(--text-faint)' : 'var(--text)' }}>{t(item.labelKey as any)}</span>
-                          {isHidden && <span className="badge badge-gray" style={{ fontSize: 10, marginLeft: 'auto' }}>Masqué</span>}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              );
-            })()}
-
-            {/* ED4: Year range (global setting) */}
-            {isGlobal && isAdmin && (
-              <div className="card" style={{ marginBottom: 20 }}>
-                <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 4 }}>{t('settings_year_range' as any)}</div>
-                <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 14 }}>{t('settings_year_range_desc' as any)}</div>
-                <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
-                  <div>
-                    <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>{t('settings_year_start' as any)}</label>
-                    <select className="input" value={(settings as any).startYear ?? new Date().getFullYear()}
-                      onChange={e => { updateSettings({ startYear: Number(e.target.value) } as any); showSaved(); }}
-                      style={{ width: 100 }}>
-                      {Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - 3 + i).map(y => (
-                        <option key={y} value={y}>{y}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div style={{ color: 'var(--text-faint)', alignSelf: 'flex-end', paddingBottom: 6 }}>→</div>
-                  <div>
-                    <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>{t('settings_year_end' as any)}</label>
-                    <select className="input" value={(settings as any).endYear ?? new Date().getFullYear() + 2}
-                      onChange={e => { updateSettings({ endYear: Number(e.target.value) } as any); showSaved(); }}
-                      style={{ width: 100 }}>
-                      {Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - 1 + i).map(y => (
-                        <option key={y} value={y}>{y}</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-              </div>
-            )}
 
             {/* Inline edit modal for selected list */}
             {editingList && !editingList.startsWith('__cf_options__') && (() => {
