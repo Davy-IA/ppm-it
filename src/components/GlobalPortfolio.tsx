@@ -15,14 +15,18 @@ export default function GlobalPortfolio({ spaces, onBack }: Props) {
   const locale = settings.locale ?? 'fr';
   const [allData, setAllData] = useState<Record<string, SpaceData>>({});
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'projects' | 'gantt'>('projects');
-  // Filters (ED8)
+  const [viewMode, setViewMode] = useState<'list' | 'gantt'>('list');
+  const [showFilters, setShowFilters] = useState(false);
+  const [showColsDrop, setShowColsDrop] = useState(false);
+  const [openDrop, setOpenDrop] = useState<string | null>(null);
+  const [colVisible, setColVisible] = useState<Record<string, boolean>>({});
+  // Filters
   const [fSpace, setFSpace] = useState<string[]>([]);
   const [fStatus, setFStatus] = useState<string[]>([]);
   const [fDomain, setFDomain] = useState<string[]>([]);
   const [fPM, setFPM] = useState<string[]>([]);
   const [search, setSearch] = useState('');
-  // Gantt time scale (ED7)
+  // Gantt time scale
   const [ganttTimeScale, setGanttTimeScale] = useState<'week' | 'month' | 'semester' | 'year'>('month');
 
   useEffect(() => {
@@ -49,15 +53,71 @@ export default function GlobalPortfolio({ spaces, onBack }: Props) {
     '5-Completed': 'badge-purple', '6-Aborted': 'badge-red',
   };
 
+  const ALL_COLS = [
+    { id: 'space',          label: t('global_col_space') },
+    { id: 'domain',         label: t('domain') },
+    { id: 'projectManager', label: t('project_manager') },
+    { id: 'priority',       label: t('priority') },
+    { id: 'status',         label: t('status') },
+    { id: 'startDate',      label: t('start_date') },
+    { id: 'goLive',         label: t('go_live') },
+  ];
+  const visibleCols = ALL_COLS.filter(c => colVisible[c.id] !== false);
+  const activeFilterCount = fSpace.length + fStatus.length + fDomain.length + fPM.length;
+
+  const domains = Array.from(new Set(allProjects.map((p: any) => p.domain).filter(Boolean))).sort() as string[];
+  const pms = Array.from(new Set(allProjects.map((p: any) => p.projectManager).filter(Boolean))).sort() as string[];
+
+  const filterDefs = [
+    { key: 'space',  label: t('global_col_space') as string,  items: spaces.map(s => ({ val: s.id, label: s.name })),                         fState: fSpace,  fSet: setFSpace },
+    { key: 'status', label: t('all_statuses') as string,      items: ['1-To arbitrate','2-Validated','3-In progress','4-Frozen','5-Completed','6-Aborted'].map(s => ({ val: s, label: s.replace(/^\d-/,'') })), fState: fStatus, fSet: setFStatus },
+    { key: 'domain', label: t('all_domains') as string,       items: domains.map(d => ({ val: d, label: d })),                                 fState: fDomain, fSet: setFDomain },
+    { key: 'pm',     label: t('project_manager') as string,   items: pms.map(p => ({ val: p, label: p })),                                     fState: fPM,     fSet: setFPM },
+  ] as const;
+
+  const renderFilterDrop = (fd: typeof filterDefs[number]) => {
+    const isOpen = openDrop === fd.key;
+    const active = fd.fState.length > 0;
+    return (
+      <div key={fd.key} style={{ position: 'relative' }}>
+        <button className={`toolbar-btn${active ? ' active' : ''}`} onClick={() => setOpenDrop(isOpen ? null : fd.key)}
+          style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+          {fd.label}
+          {active && <span style={{ background: 'var(--accent)', color: '#fff', borderRadius: 10, padding: '1px 5px', fontSize: 10, fontWeight: 700 }}>{fd.fState.length}</span>}
+          <svg width="8" height="8" viewBox="0 0 8 8" fill="none"><path d={isOpen ? 'M1 5l3-3 3 3' : 'M1 3l3 3 3-3'} stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg>
+        </button>
+        {isOpen && (
+          <>
+            <div style={{ position: 'fixed', inset: 0, zIndex: 49 }} onClick={() => setOpenDrop(null)} />
+            <div style={{ position: 'absolute', left: 0, top: 'calc(100% + 4px)', background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 10, boxShadow: '0 8px 24px rgba(124,92,191,0.15)', zIndex: 50, overflow: 'hidden', minWidth: 180 }}>
+              {fd.items.map((item: any) => {
+                const checked = (fd.fState as string[]).includes(item.val);
+                return (
+                  <button key={item.val} onClick={() => { fd.fSet(checked ? (fd.fState as string[]).filter(v => v !== item.val) : [...(fd.fState as string[]), item.val]); }}
+                    style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '8px 14px', border: 'none', background: checked ? 'var(--accent-subtle)' : 'none', color: checked ? 'var(--accent)' : 'var(--text)', cursor: 'pointer', fontSize: 13, fontFamily: 'inherit', textAlign: 'left' as const }}>
+                    <div style={{ width: 14, height: 14, borderRadius: 3, border: `2px solid ${checked ? 'var(--accent)' : 'var(--border)'}`, background: checked ? 'var(--accent)' : 'transparent', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      {checked && <svg width="8" height="8" viewBox="0 0 8 8" fill="none"><path d="M1 4l2 2 4-4" stroke="white" strokeWidth="1.5" strokeLinecap="round"/></svg>}
+                    </div>
+                    {item.label}
+                  </button>
+                );
+              })}
+            </div>
+          </>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', padding: '24px 32px' }}>
       {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 28 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
           <button onClick={onBack} className="btn btn-ghost btn-sm">{t('back_to_spaces')}</button>
           <div>
             <h1 style={{ fontSize: 22, fontWeight: 800, letterSpacing: '-0.03em' }}>🌐 {t('global_portfolio')}</h1>
-            <p style={{ color: 'var(--text-muted)', fontSize: 13, marginTop: 2 }}>{t('global_portfolio_subtitle2')}aces · {allProjects.length} projets · {allStaff.length} ressources</p>
+            <p style={{ color: 'var(--text-muted)', fontSize: 13, marginTop: 2 }}>{allProjects.length} projets · {allStaff.length} ressources</p>
           </div>
         </div>
         {/* Space legend */}
@@ -71,124 +131,150 @@ export default function GlobalPortfolio({ spaces, onBack }: Props) {
         </div>
       </div>
 
-      {/* Tabs + Filter bar */}
-      {!loading && (
-        <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap', marginBottom: 14 }}>
-          {/* Tab buttons — same style as WorkloadView */}
-          <div style={{ display: 'flex', gap: 4, background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 10, padding: 4, marginRight: 6 }}>
-            {[
-              { id: 'projects', label: t('global_projects_tab') },
-              { id: 'gantt',    label: t('global_gantt_tab') },
-            ].map(tab => (
-              <button key={tab.id} onClick={() => setActiveTab(tab.id as any)}
-                className={`btn ${activeTab === tab.id ? 'btn-primary' : 'btn-ghost'}`} style={{ fontSize: 13 }}
-              >{tab.label}</button>
-            ))}
-          </div>
-          {/* Search — projects tab only */}
-          {activeTab === 'projects' && (
-            <input className="toolbar-select" placeholder={t('search')} value={search}
-              onChange={e => setSearch(e.target.value)} style={{ maxWidth: 200 }} />
-          )}
-          {/* Space filter */}
-          <select className="toolbar-select" value={fSpace[0] ?? ''} onChange={e => setFSpace(e.target.value ? [e.target.value] : [])}>
-            <option value="">{t('global_col_space')} — {t('all')}</option>
-            {spaces.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-          </select>
-          {/* Status filter */}
-          <select className="toolbar-select" value={fStatus[0] ?? ''} onChange={e => setFStatus(e.target.value ? [e.target.value] : [])}>
-            <option value="">{t('all_statuses')}</option>
-            {['1-To arbitrate','2-Validated','3-In progress','4-Frozen','5-Completed','6-Aborted'].map(s => (
-              <option key={s} value={s}>{s.replace(/^\d-/, '')}</option>
-            ))}
-          </select>
-          {/* Domain filter — projects tab only */}
-          {activeTab === 'projects' && (() => {
-            const domains = Array.from(new Set(allProjects.map((p: any) => p.domain).filter(Boolean))).sort();
-            return (
-              <select className="toolbar-select" value={fDomain[0] ?? ''} onChange={e => setFDomain(e.target.value ? [e.target.value] : [])}>
-                <option value="">{t('all_domains')}</option>
-                {domains.map((d: any) => <option key={d} value={d}>{d}</option>)}
-              </select>
-            );
-          })()}
-          {/* PM filter — projects tab only */}
-          {activeTab === 'projects' && (() => {
-            const pms = Array.from(new Set(allProjects.map((p: any) => p.projectManager).filter(Boolean))).sort();
-            return (
-              <select className="toolbar-select" value={fPM[0] ?? ''} onChange={e => setFPM(e.target.value ? [e.target.value] : [])}>
-                <option value="">{t('project_manager')} — {t('all')}</option>
-                {pms.map((pm: any) => <option key={pm} value={pm}>{pm}</option>)}
-              </select>
-            );
-          })()}
-          {/* Time scale — gantt tab only (ED7) */}
-          {activeTab === 'gantt' && (
-            <select className="toolbar-select" value={ganttTimeScale} onChange={e => setGanttTimeScale(e.target.value as any)}>
-              <option value="week">{t('scale_week')}</option>
-              <option value="month">{t('scale_month')}</option>
-              <option value="semester">{t('scale_semester')}</option>
-              <option value="year">{t('scale_year')}</option>
-            </select>
-          )}
-          {!!(search || fSpace.length || fStatus.length || fDomain.length || fPM.length) && (
-            <button onClick={() => { setSearch(''); setFSpace([]); setFStatus([]); setFDomain([]); setFPM([]); }}
-              style={{ fontSize: 11, color: 'var(--danger)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 600 }}>
-              ✕ {t('clear_filters')}
+      {/* Toolbar — identical mechanics to ProjectsView */}
+      <div className="page-sticky-header" style={{ marginBottom: 0 }}>
+        <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+          {/* Search */}
+          <input className="toolbar-select" placeholder={t('search')} value={search}
+            onChange={e => setSearch(e.target.value)} style={{ maxWidth: 200 }} />
+          {/* Filtres */}
+          <button className={`toolbar-btn${showFilters || activeFilterCount > 0 ? ' active' : ''}`}
+            onClick={() => setShowFilters(v => !v)}
+            style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M1 3h10M3 6h6M5 9h2" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg>
+            Filtres
+            {activeFilterCount > 0 && <span style={{ background: 'var(--accent)', color: '#fff', borderRadius: 10, padding: '1px 5px', fontSize: 10, fontWeight: 700 }}>{activeFilterCount}</span>}
+            <svg width="8" height="8" viewBox="0 0 8 8" fill="none"><path d={showFilters ? 'M1 5l3-3 3 3' : 'M1 3l3 3 3-3'} stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          </button>
+          {/* View toggle */}
+          <div style={{ display: 'flex', gap: 2 }}>
+            <button onClick={() => setViewMode('list')} className={`toolbar-btn${viewMode === 'list' ? ' primary' : ''}`}>
+              <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><rect x="1" y="1" width="11" height="2" rx="1" fill="currentColor"/><rect x="1" y="5" width="11" height="2" rx="1" fill="currentColor"/><rect x="1" y="9" width="11" height="2" rx="1" fill="currentColor"/></svg>
+              {t('view_list')}
             </button>
+            <button onClick={() => setViewMode('gantt')} className={`toolbar-btn${viewMode === 'gantt' ? ' primary' : ''}`}>
+              <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><rect x="1" y="1" width="5" height="3" rx="1" fill="currentColor" opacity="0.5"/><rect x="1" y="5" width="8" height="3" rx="1" fill="currentColor"/><rect x="1" y="9" width="6" height="3" rx="1" fill="currentColor" opacity="0.7"/></svg>
+              {t('view_gantt')}
+            </button>
+          </div>
+          {/* Colonnes (list only) */}
+          {viewMode === 'list' && (
+            <div style={{ position: 'relative' }}>
+              <button className={`toolbar-btn${showColsDrop ? ' active' : ''}`} onClick={() => setShowColsDrop(v => !v)}
+                style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><rect x="1" y="1" width="3" height="11" rx="1" fill="currentColor" opacity="0.6"/><rect x="5" y="1" width="3" height="11" rx="1" fill="currentColor"/><rect x="9" y="1" width="3" height="11" rx="1" fill="currentColor" opacity="0.6"/></svg>
+                Colonnes
+              </button>
+              {showColsDrop && (
+                <>
+                  <div style={{ position: 'fixed', inset: 0, zIndex: 3999 }} onClick={() => setShowColsDrop(false)} />
+                  <div style={{ position: 'absolute', left: 0, top: 'calc(100% + 4px)', background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 10, boxShadow: 'var(--shadow)', zIndex: 4000, minWidth: 200, animation: 'dropIn .15s ease' }}>
+                    {ALL_COLS.map(col => {
+                      const isVis = colVisible[col.id] !== false;
+                      return (
+                        <div key={col.id}
+                          style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 14px', cursor: 'pointer', fontSize: 12, color: isVis ? 'var(--text)' : 'var(--text-faint)' }}
+                          onClick={() => setColVisible(v => ({ ...v, [col.id]: !isVis }))}>
+                          <input type="checkbox" checked={isVis} onChange={() => {}} onClick={e => e.stopPropagation()}
+                            style={{ accentColor: 'var(--accent)', width: 14, height: 14, cursor: 'pointer', flexShrink: 0 }} />
+                          <span style={{ flex: 1 }}>{col.label as string}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+          {/* Gantt scale (gantt only) */}
+          {viewMode === 'gantt' && (
+            <div style={{ position: 'relative' }}>
+              <button onClick={() => setOpenDrop(openDrop === 'gscale' ? null : 'gscale')} className="toolbar-btn"
+                style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M1 6h10M1 3h10M1 9h6" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg>
+                {ganttTimeScale === 'week' ? String(t('scale_week')) : ganttTimeScale === 'month' ? String(t('scale_month')) : ganttTimeScale === 'semester' ? String(t('scale_semester')) : String(t('scale_year'))}
+                <svg width="8" height="8" viewBox="0 0 8 8" fill="none"><path d="M1 3l3 3 3-3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              </button>
+              {openDrop === 'gscale' && (
+                <>
+                  <div style={{ position: 'fixed', inset: 0, zIndex: 49 }} onClick={() => setOpenDrop(null)} />
+                  <div style={{ position: 'absolute', left: 0, top: 'calc(100% + 4px)', background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 10, boxShadow: '0 8px 24px rgba(124,92,191,0.15)', zIndex: 50, overflow: 'hidden', minWidth: 140 }}>
+                    {(['week','month','semester','year'] as const).map(scale => (
+                      <button key={scale} onClick={() => { setGanttTimeScale(scale); setOpenDrop(null); }}
+                        style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '9px 14px', border: 'none', background: ganttTimeScale === scale ? 'var(--accent-subtle)' : 'none', color: ganttTimeScale === scale ? 'var(--accent)' : 'var(--text)', cursor: 'pointer', fontSize: 13, fontWeight: ganttTimeScale === scale ? 700 : 400, fontFamily: 'inherit', textAlign: 'left' as const }}>
+                        {ganttTimeScale === scale && <span style={{ color: 'var(--accent)', fontSize: 10 }}>✓</span>}
+                        {scale === 'week' ? String(t('scale_week')) : scale === 'month' ? String(t('scale_month')) : scale === 'semester' ? String(t('scale_semester')) : String(t('scale_year'))}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
           )}
         </div>
-      )}
+        {/* Filters row */}
+        {showFilters && (
+          <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap', marginTop: 6, paddingTop: 6, borderTop: '1px solid var(--border)' }}>
+            {filterDefs.map(renderFilterDrop)}
+            {(activeFilterCount > 0 || search) && (
+              <button onClick={() => { setSearch(''); setFSpace([]); setFStatus([]); setFDomain([]); setFPM([]); }}
+                style={{ fontSize: 11, color: 'var(--danger)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 600, whiteSpace: 'nowrap' }}>
+                ✕ {t('clear_filters')}
+              </button>
+            )}
+          </div>
+        )}
+      </div>
 
       {loading ? (
         <div style={{ textAlign: 'center', padding: 60, color: 'var(--text-faint)' }}>{t('global_loading')}</div>
       ) : (
         <>
-          {/* PROJECTS TAB (ED6) */}
-          {activeTab === 'projects' && (() => {
+          {/* LIST VIEW */}
+          {viewMode === 'list' && (() => {
             const filtered = allProjects.filter((p: any) => {
               if (search && !p.name.toLowerCase().includes(search.toLowerCase()) && !(p.projectManager ?? '').toLowerCase().includes(search.toLowerCase())) return false;
-              if (fSpace.length && !fSpace.includes(p.spaceId ?? spaces.find(s => s.name === p.spaceName)?.id ?? '')) return false;
+              if (fSpace.length && !fSpace.includes(p.spaceId)) return false;
               if (fStatus.length && !fStatus.includes(p.status ?? '')) return false;
               if (fDomain.length && !fDomain.includes(p.domain ?? '')) return false;
               if (fPM.length && !fPM.includes(p.projectManager ?? '')) return false;
               return true;
             });
             return (
-              <div className="card card-table" style={{ padding: 0, overflow: 'hidden' }}>
-                <div className="utbl-wrap" style={{ maxHeight: 'calc(100vh - 180px)' }}>
+              <div className="card card-table" style={{ padding: 0, overflow: 'hidden', marginTop: 20 }}>
+                <div className="utbl-wrap" style={{ maxHeight: 'calc(100vh - 148px)' }}>
                   <table className="data-table">
                     <thead>
                       <tr>
                         <th className="sticky-left" style={{ minWidth: 260 }}>{t('project_name')}</th>
-                        <th>{t('global_col_space')}</th>
-                        <th>{t('domain')}</th>
-                        <th>{t('project_manager')}</th>
-                        <th style={{ textAlign: 'center' }}>{t('priority')}</th>
-                        <th>{t('status')}</th>
-                        <th>{t('start_date')}</th>
-                        <th>{t('go_live')}</th>
+                        {visibleCols.map(col => (
+                          <th key={col.id} style={{ textAlign: col.id === 'priority' ? 'center' : undefined }}>{col.label as string}</th>
+                        ))}
                       </tr>
                     </thead>
                     <tbody>
                       {filtered.length === 0 && (
-                        <tr><td colSpan={8} style={{ textAlign: 'center', padding: 32, color: 'var(--text-faint)' }}>{t('no_project')}</td></tr>
+                        <tr><td colSpan={1 + visibleCols.length} style={{ textAlign: 'center', padding: 32, color: 'var(--text-faint)' }}>{t('no_project')}</td></tr>
                       )}
                       {filtered.map((p: any, i: number) => (
                         <tr key={i}>
                           <td className="sticky-left" style={{ fontWeight: 600 }}>{p.name}</td>
-                          <td>
-                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 12, fontWeight: 600, color: p.spaceColor, background: `${p.spaceColor}15`, borderRadius: 20, padding: '2px 8px', whiteSpace: 'nowrap' }}>
-                              <span style={{ width: 5, height: 5, borderRadius: '50%', background: p.spaceColor, display: 'inline-block' }} />
-                              {p.spaceName}
-                            </span>
-                          </td>
-                          <td>{p.domain || <span style={{ color: 'var(--text-faint)' }}>—</span>}</td>
-                          <td>{p.projectManager || <span style={{ color: 'var(--text-faint)' }}>—</span>}</td>
-                          <td style={{ textAlign: 'center' }}>{p.priority ? `P${p.priority}` : <span style={{ color: 'var(--text-faint)' }}>—</span>}</td>
-                          <td>{p.status ? <span className={`badge ${STATUS_COLORS[p.status] ?? 'badge-gray'}`}>{p.status.replace(/^\d-/, '')}</span> : <span style={{ color: 'var(--text-faint)' }}>—</span>}</td>
-                          <td><span style={{ color: 'var(--text-muted)' }}>{p.startDate ? p.startDate.slice(0, 7) : '—'}</span></td>
-                          <td><span style={{ color: 'var(--text-muted)' }}>{p.goLive ? p.goLive.slice(0, 7) : '—'}</span></td>
+                          {visibleCols.map(col => {
+                            if (col.id === 'space') return (
+                              <td key={col.id}>
+                                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 12, fontWeight: 600, color: p.spaceColor, background: `${p.spaceColor}15`, borderRadius: 20, padding: '2px 8px', whiteSpace: 'nowrap' }}>
+                                  <span style={{ width: 5, height: 5, borderRadius: '50%', background: p.spaceColor, display: 'inline-block' }} />{p.spaceName}
+                                </span>
+                              </td>
+                            );
+                            if (col.id === 'domain') return <td key={col.id}>{p.domain || <span style={{ color: 'var(--text-faint)' }}>—</span>}</td>;
+                            if (col.id === 'projectManager') return <td key={col.id}>{p.projectManager || <span style={{ color: 'var(--text-faint)' }}>—</span>}</td>;
+                            if (col.id === 'priority') return <td key={col.id} style={{ textAlign: 'center' }}>{p.priority ? `P${p.priority}` : <span style={{ color: 'var(--text-faint)' }}>—</span>}</td>;
+                            if (col.id === 'status') return <td key={col.id}>{p.status ? <span className={`badge ${STATUS_COLORS[p.status] ?? 'badge-gray'}`}>{p.status.replace(/^\d-/, '')}</span> : <span style={{ color: 'var(--text-faint)' }}>—</span>}</td>;
+                            if (col.id === 'startDate') return <td key={col.id}><span style={{ color: 'var(--text-muted)' }}>{p.startDate ? p.startDate.slice(0, 7) : '—'}</span></td>;
+                            if (col.id === 'goLive') return <td key={col.id}><span style={{ color: 'var(--text-muted)' }}>{p.goLive ? p.goLive.slice(0, 7) : '—'}</span></td>;
+                            return <td key={col.id} />;
+                          })}
                         </tr>
                       ))}
                     </tbody>
@@ -198,8 +284,8 @@ export default function GlobalPortfolio({ spaces, onBack }: Props) {
             );
           })()}
 
-          {/* GANTT TAB (ED7) — visual bars like PortfolioGantt */}
-          {activeTab === 'gantt' && (() => {
+          {/* GANTT VIEW */}
+          {viewMode === 'gantt' && (() => {
             const localeStr = ({ fr: 'fr-FR', en: 'en-US', pt: 'pt-BR', zh: 'zh-CN' } as Record<string,string>)[locale] ?? 'fr-FR';
             function db(a: string, b: string) { return Math.round((new Date(b).getTime() - new Date(a).getTime()) / 86400000); }
 
