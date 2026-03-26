@@ -85,7 +85,7 @@ export default function SpaceSelector({ spaces, onSelect, appName }: Props) {
           ))}
 
           {/* Global portfolio */}
-          {user && ['superadmin', 'admin', 'global'].includes(user.role) && (
+          {user && (user as any).hasGlobalAccess && (
             <button onClick={() => onSelect({ id: '__global__', name: t('global_portfolio'), description: t('global_portfolio_subtitle'), color: '#f59e0b', icon: '🌐' })}
               style={{
                 background: 'linear-gradient(135deg, rgba(245,158,11,0.08), rgba(245,158,11,0.04))',
@@ -100,7 +100,7 @@ export default function SpaceSelector({ spaces, onSelect, appName }: Props) {
               <div style={{ fontWeight: 700, fontSize: 15, color: 'var(--text)', marginBottom: 4 }}>{t('global_portfolio')}</div>
               <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{t('global_portfolio_subtitle')}</div>
               <div style={{ marginTop: 14, fontSize: 11, color: '#f59e0b', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>
-                <span className="badge badge-yellow" style={{ fontSize: 10 }}>{user?.role === 'superadmin' ? 'Super Admin' : user?.role === 'admin' ? 'Admin' : 'CODIR'}</span>
+                <span className="badge badge-yellow" style={{ fontSize: 10 }}>{user?.role === 'superadmin' ? 'Super Admin' : user?.role === 'admin' ? 'Admin' : t('global_portfolio')}</span>
               </div>
             </button>
           )}

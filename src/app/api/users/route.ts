@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
 
   const { data: users } = await supabaseAdmin
     .from('users')
-    .select('id, email, first_name, last_name, role, active, last_login, created_at')
+    .select('id, email, first_name, last_name, role, active, last_login, created_at, has_global_access')
     .order('created_at');
 
   // Get space memberships
@@ -56,6 +56,7 @@ export async function POST(req: NextRequest) {
       first_name: body.firstName,
       last_name: body.lastName,
       role: body.role,
+      has_global_access: body.hasGlobalAccess ?? false,
     })
     .select()
     .single();
@@ -86,6 +87,7 @@ export async function PUT(req: NextRequest) {
     last_name: body.lastName,
     role: body.role,
     active: body.active,
+    has_global_access: body.hasGlobalAccess ?? false,
   };
   if (body.password) updates.password_hash = await hashPassword(body.password);
 

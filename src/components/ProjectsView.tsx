@@ -410,6 +410,7 @@ export default function ProjectsView({ data, updateData, setView, onNavigateToPl
                         <div key={colId}
                           draggable
                           onDragStart={() => setDragColId(colId)}
+                          onDragEnd={() => setDragColId(null)}
                           onDragOver={e => e.preventDefault()}
                           onDrop={() => {
                             if (!dragColId || dragColId === colId) return;

@@ -17,6 +17,7 @@ export interface SessionUser {
   role: UserRole;
   spaceIds: string[];
   avatar?: string;
+  hasGlobalAccess?: boolean;
 }
 
 export async function hashPassword(password: string): Promise<string> {
@@ -50,12 +51,14 @@ export async function getSessionUser(token: string): Promise<SessionUser | null>
 
   const { data: user } = await supabaseAdmin
     .from('users')
-    .select('id, email, first_name, last_name, role, active, avatar')
+    .select('id, email, first_name, last_name, role, active, avatar, has_global_access')
     .eq('id', userId)
     .eq('active', true)
     .single();
 
   if (!user) return null;
+
+  const hasGlobalAccess = (user.has_global_access ?? false) || ['superadmin', 'admin', 'global'].includes(user.role);
 
   // Get space access
   let spaceIds: string[] = [];
@@ -80,6 +83,7 @@ export async function getSessionUser(token: string): Promise<SessionUser | null>
     role: user.role,
     spaceIds,
     avatar: user.avatar ?? undefined,
+    hasGlobalAccess,
   };
 }
 
@@ -100,6 +104,8 @@ export async function loginUser(email: string, password: string): Promise<{ toke
   await supabaseAdmin.from('users').update({ last_login: new Date().toISOString() }).eq('id', user.id);
 
   const token = await createToken(user.id);
+
+  const hasGlobalAccess = (user.has_global_access ?? false) || ['superadmin', 'admin', 'global'].includes(user.role);
 
   let spaceIds: string[] = [];
   if (['superadmin', 'admin', 'global'].includes(user.role)) {
@@ -122,6 +128,7 @@ export async function loginUser(email: string, password: string): Promise<{ toke
       role: user.role,
       spaceIds,
       avatar: user.avatar ?? undefined,
+      hasGlobalAccess,
     },
   };
 }
