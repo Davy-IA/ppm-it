@@ -16,6 +16,7 @@ export interface SessionUser {
   lastName: string;
   role: UserRole;
   spaceIds: string[];
+  avatar?: string;
 }
 
 export async function hashPassword(password: string): Promise<string> {
@@ -49,7 +50,7 @@ export async function getSessionUser(token: string): Promise<SessionUser | null>
 
   const { data: user } = await supabaseAdmin
     .from('users')
-    .select('id, email, first_name, last_name, role, active')
+    .select('id, email, first_name, last_name, role, active, avatar')
     .eq('id', userId)
     .eq('active', true)
     .single();
@@ -78,6 +79,7 @@ export async function getSessionUser(token: string): Promise<SessionUser | null>
     lastName: user.last_name,
     role: user.role,
     spaceIds,
+    avatar: user.avatar ?? undefined,
   };
 }
 
@@ -119,6 +121,7 @@ export async function loginUser(email: string, password: string): Promise<{ toke
       lastName: user.last_name,
       role: user.role,
       spaceIds,
+      avatar: user.avatar ?? undefined,
     },
   };
 }

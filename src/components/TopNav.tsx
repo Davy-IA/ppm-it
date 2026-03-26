@@ -114,6 +114,7 @@ export default function TopNav({ view, setView, saving, data, currentSpace, onCh
   const [showProfile, setShowProfile] = useState(false);
 
   const isSpaceAdmin = user?.role === 'space_admin';
+  const spaceHiddenNavItems: string[] = (data as any)?.spaceConfig?.hiddenNavItems ?? [];
   const NAV_ITEMS = isSpaceAdmin
     ? [{ id: 'settings', labelKey: 'nav_settings', icon: Icons.settings }]
     : [
@@ -125,7 +126,7 @@ export default function TopNav({ view, setView, saving, data, currentSpace, onCh
         ...(settings.budgetUrl ? [{ id: 'budget', labelKey: 'nav_budget', icon: Icons.budget, external: settings.budgetUrl }] : []),
         { id: 'dashboard', labelKey: 'nav_dashboard', icon: Icons.dashboard },
         ...(user?.role !== 'member' ? [{ id: 'settings', labelKey: 'nav_settings', icon: Icons.settings }] : []),
-      ];
+      ].filter(item => !spaceHiddenNavItems.includes(item.id));
 
   const currentLocale = LOCALES.find(l => l.code === settings.locale);
 
@@ -185,7 +186,7 @@ export default function TopNav({ view, setView, saving, data, currentSpace, onCh
                     )}
                   </button>
                 ))}
-                {user && ['superadmin', 'admin', 'global'].includes(user.role) && (
+                {user && (user.role !== 'space_admin') && spaces.filter(s => s.id !== '__global__').length > 1 && (
                   <button
                     className={`topnav-dropdown-item ${currentSpace?.id === '__global__' ? 'active' : ''}`}
                     style={{ borderTop: '1px solid var(--border)', marginTop: 4, paddingTop: 10 }}
