@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { AppData, Project, DOMAINS, REQUEST_TYPES, STATUSES, DEPARTMENTS, COUNTRIES, SPONSORS } from '@/types';
 import { v4 as uuid } from 'uuid';
 import { useSettings } from '@/lib/context';
+import { useAuth } from '@/lib/auth-context';
 import ConfirmDialog from './ConfirmDialog';
 
 interface Props { data: AppData; updateData: (d: AppData) => void; setView?: (v: string) => void; onNavigateToPlanning?: (projectId: string, openNew?: boolean) => void; }
@@ -70,6 +71,8 @@ export default function ProjectsView({ data, updateData, setView, onNavigateToPl
     .filter(f => f.length > 0).length;
   const [confirmAction, setConfirmAction] = useState<(() => void) | null>(null);
   const { t, settings } = useSettings();
+  const { user } = useAuth();
+  const canEditCols = ['admin', 'superadmin', 'space_admin'].includes((user as any)?.role ?? '');
 
   // Use space-level overrides if defined, else fall back to global settings, then hardcoded defaults
   const sc = (data as any).spaceConfig ?? {};
@@ -383,8 +386,8 @@ export default function ProjectsView({ data, updateData, setView, onNavigateToPl
             </button>
           </div>
 
-          {/* E8: Columns button (list only) */}
-          {viewMode === 'list' && (
+          {/* E8: Columns button (list only, admin/space_admin only) */}
+          {viewMode === 'list' && canEditCols && (
             <div style={{ position: 'relative' }}>
               <button className={`toolbar-btn${showColsDrop ? ' active' : ''}`}
                 onClick={() => setShowColsDrop(v => !v)}
@@ -497,18 +500,18 @@ export default function ProjectsView({ data, updateData, setView, onNavigateToPl
                   <th className="sticky-left" style={{ minWidth: 300 }}>{t('project_name')}</th>
                   {visibleCols.map(col => (
                     <th key={col.id}
-                      style={{ minWidth: col.minWidth, textAlign: col.textAlign as any, cursor: 'grab', userSelect: 'none', opacity: dragColId === col.id ? 0.4 : 1 }}
-                      draggable
-                      onDragStart={() => setDragColId(col.id)}
-                      onDragOver={e => e.preventDefault()}
-                      onDragEnd={() => setDragColId(null)}
-                      onDrop={() => {
+                      style={{ minWidth: col.minWidth, textAlign: col.textAlign as any, cursor: canEditCols ? 'grab' : undefined, userSelect: canEditCols ? 'none' : undefined, opacity: dragColId === col.id ? 0.4 : 1 }}
+                      draggable={canEditCols}
+                      onDragStart={canEditCols ? () => setDragColId(col.id) : undefined}
+                      onDragOver={canEditCols ? e => e.preventDefault() : undefined}
+                      onDragEnd={canEditCols ? () => setDragColId(null) : undefined}
+                      onDrop={canEditCols ? () => {
                         if (!dragColId || dragColId === col.id) return;
                         const order = [...effectiveOrder];
                         const from = order.indexOf(dragColId); const to = order.indexOf(col.id);
                         order.splice(from, 1); order.splice(to, 0, dragColId);
                         saveColOrder(order); setDragColId(null);
-                      }}
+                      } : undefined}
                     >
                       {col.isCustom ? col.labelKey : t(col.labelKey as any) as string}
                     </th>

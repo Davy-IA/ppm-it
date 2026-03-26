@@ -4,13 +4,13 @@ import { useSettings } from '@/lib/context';
 import { useAuth } from '@/lib/auth-context';
 
 interface Space { id: string; name: string; color: string; icon: string; }
-interface Project { id: string; name: string; domain: string; status: string | null; priority: number | null; projectManager: string; goLive: string | null; startDate: string | null; }
+interface Project { id: string; name: string; domain: string; requestType: string; leadDept: string; sponsor: string; status: string | null; priority: number | null; complexity: number | null; projectManager: string; goLive: string | null; startDate: string | null; hypercare: string | null; customFields?: Record<string, string>; }
 interface SpaceData { projects: Project[]; staff: any[]; workloads: any[]; allocations: any[]; ganttPhases: any[]; }
 
 interface Props { spaces: Space[]; onBack: () => void; }
 
 export default function GlobalPortfolio({ spaces, onBack }: Props) {
-  const { token } = useAuth();
+  const { token, user } = useAuth();
   const { settings, t } = useSettings();
   const locale = settings.locale ?? 'fr';
   const [allData, setAllData] = useState<Record<string, SpaceData>>({});
@@ -19,7 +19,15 @@ export default function GlobalPortfolio({ spaces, onBack }: Props) {
   const [showFilters, setShowFilters] = useState(false);
   const [showColsDrop, setShowColsDrop] = useState(false);
   const [openDrop, setOpenDrop] = useState<string | null>(null);
-  const [colVisible, setColVisible] = useState<Record<string, boolean>>({});
+  const [colVisible, setColVisible] = useState<Record<string, boolean>>(() => {
+    try { const s = localStorage.getItem('ppm-global-col-visible'); if (s) return JSON.parse(s); } catch {}
+    return {};
+  });
+  const [colOrder, setColOrder] = useState<string[]>(() => {
+    try { const s = localStorage.getItem('ppm-global-col-order'); if (s) return JSON.parse(s); } catch {}
+    return [];
+  });
+  const [dragColId, setDragColId] = useState<string | null>(null);
   // Filters
   const [fSpace, setFSpace] = useState<string[]>([]);
   const [fStatus, setFStatus] = useState<string[]>([]);
@@ -53,16 +61,30 @@ export default function GlobalPortfolio({ spaces, onBack }: Props) {
     '5-Completed': 'badge-purple', '6-Aborted': 'badge-red',
   };
 
+  const globalCustomFields: { id: string; label: string; type: 'text' | 'select'; options?: string[] }[] = (settings as any).customFields ?? [];
   const ALL_COLS = [
-    { id: 'space',          label: t('global_col_space') },
-    { id: 'domain',         label: t('domain') },
-    { id: 'projectManager', label: t('project_manager') },
-    { id: 'priority',       label: t('priority') },
-    { id: 'status',         label: t('status') },
-    { id: 'startDate',      label: t('start_date') },
-    { id: 'goLive',         label: t('go_live') },
+    { id: 'space',          label: String(t('global_col_space')),   isCustom: false },
+    { id: 'domain',         label: String(t('domain')),             isCustom: false },
+    { id: 'requestType',    label: String(t('type')),               isCustom: false },
+    { id: 'leadDept',       label: String(t('lead_dept')),          isCustom: false },
+    { id: 'sponsor',        label: String(t('field_sponsor')),      isCustom: false },
+    { id: 'projectManager', label: String(t('project_manager')),    isCustom: false },
+    { id: 'priority',       label: String(t('priority')),           isCustom: false },
+    { id: 'complexity',     label: String(t('complexity')),         isCustom: false },
+    { id: 'status',         label: String(t('status')),             isCustom: false },
+    { id: 'startDate',      label: String(t('start_date')),         isCustom: false },
+    { id: 'goLive',         label: String(t('go_live')),            isCustom: false },
+    { id: 'hypercare',      label: String(t('hypercare_date')),     isCustom: false },
+    ...globalCustomFields.map(cf => ({ id: `cf_${cf.id}`, label: cf.label, isCustom: true, cfId: cf.id })),
   ];
-  const visibleCols = ALL_COLS.filter(c => colVisible[c.id] !== false);
+  const allColIds = ALL_COLS.map(c => c.id);
+  const saveColOrder = (order: string[]) => { setColOrder(order); localStorage.setItem('ppm-global-col-order', JSON.stringify(order)); };
+  const saveColVisible = (vis: Record<string, boolean>) => { setColVisible(vis); localStorage.setItem('ppm-global-col-visible', JSON.stringify(vis)); };
+  const effectiveColOrder = colOrder.length > 0
+    ? [...colOrder.filter(id => allColIds.includes(id)), ...allColIds.filter(id => !colOrder.includes(id))]
+    : allColIds;
+  const visibleCols = effectiveColOrder.map(id => ALL_COLS.find(c => c.id === id)!).filter(c => c && colVisible[c.id] !== false);
+  const canEditCols = ['admin', 'superadmin', 'space_admin'].includes((user as any)?.role ?? '');
   const activeFilterCount = fSpace.length + fStatus.length + fDomain.length + fPM.length;
 
   const domains = Array.from(new Set(allProjects.map((p: any) => p.domain).filter(Boolean))).sort() as string[];
@@ -157,8 +179,8 @@ export default function GlobalPortfolio({ spaces, onBack }: Props) {
               {t('view_gantt')}
             </button>
           </div>
-          {/* Colonnes (list only) */}
-          {viewMode === 'list' && (
+          {/* Colonnes (list only, admin/space_admin only) */}
+          {viewMode === 'list' && canEditCols && (
             <div style={{ position: 'relative' }}>
               <button className={`toolbar-btn${showColsDrop ? ' active' : ''}`} onClick={() => setShowColsDrop(v => !v)}
                 style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
@@ -168,16 +190,39 @@ export default function GlobalPortfolio({ spaces, onBack }: Props) {
               {showColsDrop && (
                 <>
                   <div style={{ position: 'fixed', inset: 0, zIndex: 3999 }} onClick={() => setShowColsDrop(false)} />
-                  <div style={{ position: 'absolute', left: 0, top: 'calc(100% + 4px)', background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 10, boxShadow: 'var(--shadow)', zIndex: 4000, minWidth: 200, animation: 'dropIn .15s ease' }}>
-                    {ALL_COLS.map(col => {
-                      const isVis = colVisible[col.id] !== false;
+                  <div style={{ position: 'absolute', left: 0, top: 'calc(100% + 4px)', background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 10, boxShadow: 'var(--shadow)', zIndex: 4000, minWidth: 220, maxHeight: 380, overflowY: 'auto', animation: 'dropIn .15s ease' }}>
+                    <div style={{ padding: '8px 14px', fontSize: 11, color: 'var(--text-faint)', fontWeight: 600, borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span>COLONNES</span>
+                      <button style={{ fontSize: 11, color: 'var(--accent)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}
+                        onClick={() => { saveColOrder([]); saveColVisible({}); }}>
+                        Réinitialiser
+                      </button>
+                    </div>
+                    {effectiveColOrder.filter(id => ALL_COLS.find(c => c.id === id)).map(colId => {
+                      const col = ALL_COLS.find(c => c.id === colId)!;
+                      const isVis = colVisible[colId] !== false;
                       return (
-                        <div key={col.id}
-                          style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 14px', cursor: 'pointer', fontSize: 12, color: isVis ? 'var(--text)' : 'var(--text-faint)' }}
-                          onClick={() => setColVisible(v => ({ ...v, [col.id]: !isVis }))}>
-                          <input type="checkbox" checked={isVis} onChange={() => {}} onClick={e => e.stopPropagation()}
+                        <div key={colId}
+                          draggable
+                          onDragStart={() => setDragColId(colId)}
+                          onDragEnd={() => setDragColId(null)}
+                          onDragOver={e => e.preventDefault()}
+                          onDrop={() => {
+                            if (!dragColId || dragColId === colId) return;
+                            const order = [...effectiveColOrder];
+                            const from = order.indexOf(dragColId); const to = order.indexOf(colId);
+                            order.splice(from, 1); order.splice(to, 0, dragColId);
+                            saveColOrder(order); setDragColId(null);
+                          }}
+                          style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 14px', cursor: 'grab', fontSize: 12, fontFamily: 'var(--font)', color: isVis ? 'var(--text)' : 'var(--text-faint)', userSelect: 'none' }}
+                          onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--bg3)'}
+                          onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'none'}>
+                          <span style={{ color: 'var(--text-faint)', fontSize: 14, lineHeight: 1 }}>⠿</span>
+                          <input type="checkbox" checked={isVis}
+                            onChange={() => saveColVisible({ ...colVisible, [colId]: !isVis })}
+                            onClick={e => e.stopPropagation()}
                             style={{ accentColor: 'var(--accent)', width: 14, height: 14, cursor: 'pointer', flexShrink: 0 }} />
-                          <span style={{ flex: 1 }}>{col.label as string}</span>
+                          <span style={{ flex: 1 }}>{col.label}</span>
                         </div>
                       );
                     })}
@@ -248,7 +293,20 @@ export default function GlobalPortfolio({ spaces, onBack }: Props) {
                       <tr>
                         <th className="sticky-left" style={{ minWidth: 260 }}>{t('project_name')}</th>
                         {visibleCols.map(col => (
-                          <th key={col.id} style={{ textAlign: col.id === 'priority' ? 'center' : undefined }}>{col.label as string}</th>
+                          <th key={col.id}
+                            style={{ textAlign: col.id === 'priority' || col.id === 'complexity' ? 'center' : undefined, cursor: canEditCols ? 'grab' : undefined, userSelect: canEditCols ? 'none' : undefined, opacity: dragColId === col.id ? 0.4 : 1 }}
+                            draggable={canEditCols}
+                            onDragStart={canEditCols ? () => setDragColId(col.id) : undefined}
+                            onDragOver={canEditCols ? e => e.preventDefault() : undefined}
+                            onDragEnd={canEditCols ? () => setDragColId(null) : undefined}
+                            onDrop={canEditCols ? () => {
+                              if (!dragColId || dragColId === col.id) return;
+                              const order = [...effectiveColOrder];
+                              const from = order.indexOf(dragColId); const to = order.indexOf(col.id);
+                              order.splice(from, 1); order.splice(to, 0, dragColId);
+                              saveColOrder(order); setDragColId(null);
+                            } : undefined}
+                          >{col.label}</th>
                         ))}
                       </tr>
                     </thead>
@@ -260,6 +318,7 @@ export default function GlobalPortfolio({ spaces, onBack }: Props) {
                         <tr key={i}>
                           <td className="sticky-left" style={{ fontWeight: 600 }}>{p.name}</td>
                           {visibleCols.map(col => {
+                            const dash = <span style={{ color: 'var(--text-faint)' }}>—</span>;
                             if (col.id === 'space') return (
                               <td key={col.id}>
                                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 12, fontWeight: 600, color: p.spaceColor, background: `${p.spaceColor}15`, borderRadius: 20, padding: '2px 8px', whiteSpace: 'nowrap' }}>
@@ -267,12 +326,21 @@ export default function GlobalPortfolio({ spaces, onBack }: Props) {
                                 </span>
                               </td>
                             );
-                            if (col.id === 'domain') return <td key={col.id}>{p.domain || <span style={{ color: 'var(--text-faint)' }}>—</span>}</td>;
-                            if (col.id === 'projectManager') return <td key={col.id}>{p.projectManager || <span style={{ color: 'var(--text-faint)' }}>—</span>}</td>;
-                            if (col.id === 'priority') return <td key={col.id} style={{ textAlign: 'center' }}>{p.priority ? `P${p.priority}` : <span style={{ color: 'var(--text-faint)' }}>—</span>}</td>;
-                            if (col.id === 'status') return <td key={col.id}>{p.status ? <span className={`badge ${STATUS_COLORS[p.status] ?? 'badge-gray'}`}>{p.status.replace(/^\d-/, '')}</span> : <span style={{ color: 'var(--text-faint)' }}>—</span>}</td>;
+                            if (col.id === 'domain') return <td key={col.id}>{p.domain || dash}</td>;
+                            if (col.id === 'requestType') return <td key={col.id}>{p.requestType || dash}</td>;
+                            if (col.id === 'leadDept') return <td key={col.id}>{p.leadDept || dash}</td>;
+                            if (col.id === 'sponsor') return <td key={col.id}>{p.sponsor || dash}</td>;
+                            if (col.id === 'projectManager') return <td key={col.id}>{p.projectManager || dash}</td>;
+                            if (col.id === 'priority') return <td key={col.id} style={{ textAlign: 'center' }}>{p.priority ? `P${p.priority}` : dash}</td>;
+                            if (col.id === 'complexity') return <td key={col.id} style={{ textAlign: 'center' }}>{p.complexity ? `C${p.complexity}` : dash}</td>;
+                            if (col.id === 'status') return <td key={col.id}>{p.status ? <span className={`badge ${STATUS_COLORS[p.status] ?? 'badge-gray'}`}>{p.status.replace(/^\d-/, '')}</span> : dash}</td>;
                             if (col.id === 'startDate') return <td key={col.id}><span style={{ color: 'var(--text-muted)' }}>{p.startDate ? p.startDate.slice(0, 7) : '—'}</span></td>;
                             if (col.id === 'goLive') return <td key={col.id}><span style={{ color: 'var(--text-muted)' }}>{p.goLive ? p.goLive.slice(0, 7) : '—'}</span></td>;
+                            if (col.id === 'hypercare') return <td key={col.id}><span style={{ color: 'var(--text-muted)' }}>{p.hypercare ? p.hypercare.slice(0, 7) : '—'}</span></td>;
+                            if ((col as any).isCustom && (col as any).cfId) {
+                              const val = p.customFields?.[(col as any).cfId] ?? '';
+                              return <td key={col.id}>{val || dash}</td>;
+                            }
                             return <td key={col.id} />;
                           })}
                         </tr>
