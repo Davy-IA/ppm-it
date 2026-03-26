@@ -42,6 +42,10 @@ ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar TEXT;
 -- 3. Add has_global_access to users
 ALTER TABLE users ADD COLUMN IF NOT EXISTS has_global_access BOOLEAN DEFAULT FALSE;
 
+-- 4. Fix users_role_check constraint to include space_admin
+ALTER TABLE users DROP CONSTRAINT IF EXISTS users_role_check;
+ALTER TABLE users ADD CONSTRAINT users_role_check CHECK (role IN ('superadmin', 'admin', 'global', 'member', 'space_admin'));
+
 -- 2. Create password reset tokens table
 CREATE TABLE IF NOT EXISTS password_reset_tokens (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
