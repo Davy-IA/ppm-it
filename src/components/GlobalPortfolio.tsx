@@ -1,7 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useSettings } from '@/lib/context';
-import { formatMonth, formatDate, formatDateTime } from '@/lib/locale-utils';
 import { useAuth } from '@/lib/auth-context';
 
 interface Space { id: string; name: string; color: string; icon: string; }
@@ -43,7 +42,6 @@ export default function GlobalPortfolio({ spaces, onBack }: Props) {
 
   const allProjects = spaces.flatMap(s => (allData[s.id]?.projects ?? []).map(p => ({ ...p, spaceName: s.name, spaceColor: s.color, spaceId: s.id })));
   const allStaff = spaces.flatMap(s => (allData[s.id]?.staff ?? []).map(st => ({ ...st, spaceName: s.name })));
-  const allGantt = spaces.flatMap(s => (allData[s.id]?.ganttPhases ?? []).map(g => ({ ...g, spaceName: s.name, spaceColor: s.color })));
 
   const STATUS_COLORS: Record<string, string> = {
     '1-To arbitrate': 'badge-gray', '2-Validated': 'badge-blue',
