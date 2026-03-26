@@ -212,6 +212,37 @@ export default function SettingsView({ data, updateData, spaces, onRefreshSpaces
               </div>
             </div>
           </div>
+
+          {/* EE1: Year range — moved here from Lists tab */}
+          {isAdmin && (
+            <div className="card" style={{ gridColumn: '1 / -1' }}>
+              <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 4 }}>{t('settings_year_range' as any)}</div>
+              <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 14 }}>{t('settings_year_range_desc' as any)}</div>
+              <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
+                <div>
+                  <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>{t('settings_year_start' as any)}</label>
+                  <select className="input" value={(settings as any).startYear ?? new Date().getFullYear()}
+                    onChange={e => { updateSettings({ startYear: Number(e.target.value) } as any); showSaved(); }}
+                    style={{ width: 100 }}>
+                    {Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - 3 + i).map(y => (
+                      <option key={y} value={y}>{y}</option>
+                    ))}
+                  </select>
+                </div>
+                <div style={{ color: 'var(--text-faint)', alignSelf: 'flex-end', paddingBottom: 6 }}>→</div>
+                <div>
+                  <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>{t('settings_year_end' as any)}</label>
+                  <select className="input" value={(settings as any).endYear ?? new Date().getFullYear() + 2}
+                    onChange={e => { updateSettings({ endYear: Number(e.target.value) } as any); showSaved(); }}
+                    style={{ width: 100 }}>
+                    {Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - 1 + i).map(y => (
+                      <option key={y} value={y}>{y}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -513,77 +544,6 @@ export default function SettingsView({ data, updateData, spaces, onRefreshSpaces
                 </div>
               );
             })()}
-
-            {/* ED1: Hidden nav items per space */}
-            {!isGlobal && (() => {
-              const NAV_TOGGLEABLE = [
-                { id: 'projects', labelKey: 'nav_projects' },
-                { id: 'gantt', labelKey: 'nav_planning' },
-                { id: 'tasks', labelKey: 'nav_tasks' },
-                { id: 'staff', labelKey: 'nav_staff' },
-                { id: 'workload', labelKey: 'nav_workload' },
-                { id: 'dashboard', labelKey: 'nav_dashboard' },
-              ];
-              const hidden: string[] = spaceConfig.hiddenNavItems ?? [];
-              return (
-                <div className="card" style={{ marginBottom: 20 }}>
-                  <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 4 }}>{t('settings_nav_visibility' as any)}</div>
-                  <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 14 }}>{t('settings_nav_visibility_desc' as any)}</div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                    {NAV_TOGGLEABLE.map(item => {
-                      const isHidden = hidden.includes(item.id);
-                      return (
-                        <button key={item.id} onClick={() => {
-                          const newHidden = isHidden ? hidden.filter(h => h !== item.id) : [...hidden, item.id];
-                          const newConfig = { ...spaceConfig, hiddenNavItems: newHidden };
-                          saveSelectedSpaceConfig(newConfig);
-                        }} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', borderRadius: 8,
-                          border: `2px solid ${isHidden ? 'var(--border)' : 'var(--accent)'}`,
-                          background: isHidden ? 'var(--bg3)' : 'var(--accent-subtle)', cursor: 'pointer', textAlign: 'left' }}>
-                          <div style={{ width: 16, height: 16, borderRadius: 3, border: `2px solid ${isHidden ? 'var(--border)' : 'var(--accent)'}`,
-                            background: isHidden ? 'transparent' : 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            {!isHidden && <svg width="9" height="9" viewBox="0 0 9 9" fill="none"><path d="M1.5 4.5l2 2 4-4" stroke="white" strokeWidth="1.5" strokeLinecap="round"/></svg>}
-                          </div>
-                          <span style={{ fontSize: 13, fontWeight: 500, color: isHidden ? 'var(--text-faint)' : 'var(--text)' }}>{t(item.labelKey as any)}</span>
-                          {isHidden && <span className="badge badge-gray" style={{ fontSize: 10, marginLeft: 'auto' }}>Masqué</span>}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              );
-            })()}
-
-            {/* ED4: Year range (global setting) */}
-            {isGlobal && isAdmin && (
-              <div className="card" style={{ marginBottom: 20 }}>
-                <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 4 }}>{t('settings_year_range' as any)}</div>
-                <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 14 }}>{t('settings_year_range_desc' as any)}</div>
-                <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
-                  <div>
-                    <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>{t('settings_year_start' as any)}</label>
-                    <select className="input" value={(settings as any).startYear ?? new Date().getFullYear()}
-                      onChange={e => { updateSettings({ startYear: Number(e.target.value) } as any); showSaved(); }}
-                      style={{ width: 100 }}>
-                      {Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - 3 + i).map(y => (
-                        <option key={y} value={y}>{y}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div style={{ color: 'var(--text-faint)', alignSelf: 'flex-end', paddingBottom: 6 }}>→</div>
-                  <div>
-                    <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>{t('settings_year_end' as any)}</label>
-                    <select className="input" value={(settings as any).endYear ?? new Date().getFullYear() + 2}
-                      onChange={e => { updateSettings({ endYear: Number(e.target.value) } as any); showSaved(); }}
-                      style={{ width: 100 }}>
-                      {Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - 1 + i).map(y => (
-                        <option key={y} value={y}>{y}</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-              </div>
-            )}
 
             {/* Inline edit modal for selected list */}
             {editingList && !editingList.startsWith('__cf_options__') && (() => {

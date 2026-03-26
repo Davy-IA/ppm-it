@@ -11,6 +11,15 @@ interface Props { spaces: Space[]; onRefresh: () => void; }
 const SPACE_COLORS = ['#7C5CBF','#10b981','#f59e0b','#ef4444','#8b5cf6','#06b6d4','#f97316','#ec4899'];
 const SPACE_ICONS = ['◈','◉','▦','◎','▣','🏪','🏭','💼','📦','🌐','🔧','💻'];
 
+const NAV_TOGGLEABLE = [
+  { id: 'projects',  labelKey: 'nav_projects' as const },
+  { id: 'gantt',     labelKey: 'nav_planning' as const },
+  { id: 'tasks',     labelKey: 'nav_tasks' as const },
+  { id: 'staff',     labelKey: 'nav_staff' as const },
+  { id: 'workload',  labelKey: 'nav_workload' as const },
+  { id: 'dashboard', labelKey: 'nav_dashboard' as const },
+];
+
 export default function SpacesManager({ spaces, onRefresh }: Props) {
   const [alertMessage, setAlertMessage] = useState<string | null>(null);
   const [confirmAction, setConfirmAction] = useState<(() => void) | null>(null);
@@ -19,6 +28,19 @@ export default function SpacesManager({ spaces, onRefresh }: Props) {
   const [editing, setEditing] = useState<Partial<Space> | null>(null);
   const [isNew, setIsNew] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState<Space | null>(null);
+  const [existingSpaceData, setExistingSpaceData] = useState<any>(null);
+  const [hiddenNavItems, setHiddenNavItems] = useState<string[]>([]);
+
+  const openEdit = async (space: Space) => {
+    setEditing({ ...space });
+    setIsNew(false);
+    setExistingSpaceData(null);
+    setHiddenNavItems([]);
+    const r = await fetch(`/api/spaces/${space.id}/data`, { headers: { Authorization: `Bearer ${token}` } });
+    const d = r.ok ? await r.json() : {};
+    setExistingSpaceData(d);
+    setHiddenNavItems(d?.spaceConfig?.hiddenNavItems ?? []);
+  };
 
   const save = async () => {
     if (!editing?.name) return;
@@ -28,8 +50,20 @@ export default function SpacesManager({ spaces, onRefresh }: Props) {
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
       body: JSON.stringify(editing),
     });
-    if (r.ok) { onRefresh(); setEditing(null); }
-    else { const d = await r.json(); setAlertMessage(d.error || 'Erreur'); }
+    if (!r.ok) { const d = await r.json(); setAlertMessage(d.error || 'Erreur'); return; }
+
+    // Save spaceConfig (nav visibility) for existing spaces
+    if (!isNew && editing?.id) {
+      const newData = { ...(existingSpaceData ?? {}), spaceConfig: { ...(existingSpaceData?.spaceConfig ?? {}), hiddenNavItems } };
+      await fetch(`/api/spaces/${editing.id}/data`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify(newData),
+      });
+    }
+
+    onRefresh();
+    setEditing(null);
   };
 
   const toggleActive = async (space: Space) => {
@@ -70,7 +104,7 @@ export default function SpacesManager({ spaces, onRefresh }: Props) {
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, justifyContent: 'space-between' }}>
               <span className={`badge ${space.active ? 'badge-green' : 'badge-gray'}`}>{space.active ? t('space_active') : t('space_inactive')}</span>
               <div style={{ display: 'flex', gap: 6 }}>
-                <button className="btn btn-ghost btn-sm" onClick={() => { setEditing({ ...space }); setIsNew(false); }}>{t('edit_btn')}</button>
+                <button className="btn btn-ghost btn-sm" onClick={() => openEdit(space)}>{t('edit_btn')}</button>
                 <button className="btn btn-ghost btn-sm" onClick={() => toggleActive(space)}>{space.active ? t('deactivate') : t('activate')}</button>
                 <button className="btn btn-danger btn-sm" onClick={() => setConfirmDelete(space)}><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 3.5h9M5 3.5V2.5h3v1M10.5 3.5l-.7 7H3.2l-.7-7" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg></button>
               </div>
@@ -108,6 +142,25 @@ export default function SpacesManager({ spaces, onRefresh }: Props) {
                   {SPACE_ICONS.map(icon => <button key={icon} onClick={() => setEditing({ ...editing, icon })} style={{ width: 36, height: 36, borderRadius: 8, background: editing.icon === icon ? 'var(--accent-subtle)' : 'var(--bg3)', border: editing.icon === icon ? '2px solid var(--accent)' : '2px solid var(--border)', cursor: 'pointer', fontSize: 18 }}>{icon}</button>)}
                 </div>
               </div>
+              {!isNew && (
+                <div>
+                  <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: 8 }}>Navigation visible</label>
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                    {NAV_TOGGLEABLE.map(item => {
+                      const hidden = hiddenNavItems.includes(item.id);
+                      return (
+                        <button
+                          key={item.id}
+                          onClick={() => setHiddenNavItems(hidden ? hiddenNavItems.filter(x => x !== item.id) : [...hiddenNavItems, item.id])}
+                          style={{ padding: '4px 10px', borderRadius: 6, fontSize: 12, fontWeight: 600, cursor: 'pointer', background: hidden ? 'var(--bg3)' : 'var(--accent-subtle)', border: hidden ? '1.5px solid var(--border)' : '1.5px solid var(--accent)', color: hidden ? 'var(--text-muted)' : 'var(--accent)', textDecoration: hidden ? 'line-through' : 'none' }}
+                        >
+                          {t(item.labelKey)}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
             <div style={{ padding: '16px 24px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
               <button className="btn btn-ghost" onClick={() => setEditing(null)}>{t('cancel')}</button>
