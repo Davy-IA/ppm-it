@@ -18,6 +18,7 @@ export interface Task {
   deadline: string | null;
   isMilestone: boolean;
   subtasks: SubTask[];
+  hidden?: boolean;
 }
 
 export interface Partner {
