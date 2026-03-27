@@ -51,7 +51,7 @@ export async function getSessionUser(token: string): Promise<SessionUser | null>
 
   const { data: user } = await supabaseAdmin
     .from('users')
-    .select('id, email, first_name, last_name, role, active, avatar, has_global_access')
+    .select('*')
     .eq('id', userId)
     .eq('active', true)
     .single();
