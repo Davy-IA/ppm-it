@@ -99,6 +99,22 @@ export default function App() {
 
   if (!user) return <LoginScreen />;
 
+  if (!spacesReady || spacesLoading) {
+    return <div style={{ height: '100vh', background: 'var(--bg-gradient)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-faint)', fontSize: 14 }}>⏳ Chargement…</div>;
+  }
+
+  if (spacesReady && spaces.length === 0) {
+    return <div style={{ height: '100vh', background: 'var(--bg-gradient)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, color: 'var(--text-muted)', fontSize: 14 }}>
+      <span style={{ fontSize: 32 }}>🔒</span>
+      <span style={{ fontWeight: 700 }}>Aucun espace accessible</span>
+      <span style={{ color: 'var(--text-faint)', fontSize: 13 }}>Contactez un administrateur pour obtenir l&apos;accès.</span>
+      <button style={{ marginTop: 8, fontSize: 12, color: 'var(--accent)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}
+        onClick={() => { localStorage.removeItem('ppm_token'); window.location.reload(); }}>
+        Se déconnecter
+      </button>
+    </div>;
+  }
+
   if (!currentSpace) {
     return <div style={{ height: '100vh', background: 'var(--bg-gradient)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-faint)', fontSize: 14 }}>⏳ Chargement…</div>;
   }
