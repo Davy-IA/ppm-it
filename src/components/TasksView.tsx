@@ -176,12 +176,23 @@ function TaskModal({ task: initial, isNew, phases, projects, staff, t, onSave, o
               <label style={labelStyle}>{t('task_deadline')}</label>
               <input type="date" className="input" value={form.deadline ?? ''} onChange={e => set({ deadline: e.target.value || null })} />
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 22 }}>
-              <input type="checkbox" id="cb-milestone" checked={form.isMilestone} onChange={e => set({ isMilestone: e.target.checked })}
-                style={{ width: 15, height: 15, accentColor: 'var(--warning)', cursor: 'pointer' }} />
-              <label htmlFor="cb-milestone" style={{ fontSize: 12.5, color: 'var(--text)', fontFamily: 'var(--font)', cursor: 'pointer', userSelect: 'none' }}>
-                {t('task_milestone_label')}
-              </label>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 22 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <input type="checkbox" id="cb-milestone" checked={form.isMilestone} onChange={e => set({ isMilestone: e.target.checked })}
+                  style={{ width: 15, height: 15, accentColor: 'var(--warning)', cursor: 'pointer' }} />
+                <label htmlFor="cb-milestone" style={{ fontSize: 12.5, color: 'var(--text)', fontFamily: 'var(--font)', cursor: 'pointer', userSelect: 'none' }}>
+                  {t('task_milestone_label')}
+                </label>
+              </div>
+              {form.status === 'done' && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <input type="checkbox" id="cb-hidden" checked={form.hidden ?? false} onChange={e => set({ hidden: e.target.checked })}
+                    style={{ width: 15, height: 15, accentColor: 'var(--success)', cursor: 'pointer' }} />
+                  <label htmlFor="cb-hidden" style={{ fontSize: 12.5, color: 'var(--text)', fontFamily: 'var(--font)', cursor: 'pointer', userSelect: 'none' }}>
+                    {t('task_hide_label')}
+                  </label>
+                </div>
+              )}
             </div>
           </div>
 
@@ -282,6 +293,8 @@ export default function TasksView({ data, updateData, spaces, currentSpaceId }: 
   const [milestoneProject, setMilestoneProject] = useState<string>('');
   // Kanban view project filter
   const [kanbanProject, setKanbanProject] = useState<string>(firstProjectId);
+  // Kanban drag-drop state
+  const [kanbanDragTaskId, setKanbanDragTaskId] = useState<string | null>(null);
 
   // Task CRUD state
   const [tasks, setTasks] = useState<Task[]>((data as any).tasks ?? []);
@@ -816,68 +829,65 @@ export default function TasksView({ data, updateData, spaces, currentSpaceId }: 
       done:        { bg: 'var(--success-subtle)', color: 'var(--success)',    border: 'var(--success)' },
     };
     const projId = kanbanProject || (data.projects[0]?.id ?? '');
-    const phasesForProj = data.ganttPhases.filter(p => p.projectId === projId);
-    const projTasks = tasks.filter(t => t.projectId === projId);
+    // Filter out hidden tasks
+    const projTasks = tasks.filter(t => t.projectId === projId && !t.hidden);
 
     const renderKanbanCard = (task: Task) => {
+      const phase = data.ganttPhases.find(p => p.id === task.phaseId);
+      const subphase = phase?.subphases.find(sp => sp.id === task.subphaseId);
       const owner = data.staff.find(s => s.id === task.ownerId);
       const isOverdue = task.deadline && task.status !== 'done' && new Date(task.deadline) < new Date();
+      const isDone = task.status === 'done';
       return (
         <div key={task.id}
+          draggable
+          onDragStart={e => { e.stopPropagation(); setKanbanDragTaskId(task.id); }}
+          onDragEnd={() => setKanbanDragTaskId(null)}
           onClick={() => { setEditingTask(task); setIsNew(false); }}
-          style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 8, padding: '9px 11px', cursor: 'pointer', marginBottom: 6, display: 'flex', flexDirection: 'column', gap: 6 }}
+          style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 8, padding: '9px 11px', cursor: 'grab', marginBottom: 6, display: 'flex', flexDirection: 'column', gap: 4, userSelect: 'none' }}
           onMouseEnter={e => (e.currentTarget as HTMLElement).style.boxShadow = '0 2px 8px rgba(124,92,191,0.12)'}
           onMouseLeave={e => (e.currentTarget as HTMLElement).style.boxShadow = 'none'}>
-          <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)', lineHeight: 1.4, fontFamily: 'var(--font)' }}>
-            {task.isMilestone && <span style={{ marginRight: 4, color: 'var(--accent)' }}>◆</span>}
-            {task.title}
-          </span>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            {owner && <Avatar staff={owner} size={18} />}
-            {task.deadline && (
-              <span style={{ fontSize: 10, color: isOverdue ? 'var(--danger)' : 'var(--text-faint)', fontFamily: 'var(--font)', fontWeight: isOverdue ? 700 : 400 }}>
-                {task.deadline.slice(0, 10)}
-              </span>
-            )}
-            {task.subtasks?.length > 0 && (
-              <span style={{ fontSize: 10, color: 'var(--text-faint)', fontFamily: 'var(--font)', marginLeft: 'auto' }}>
-                {task.subtasks.filter(s => s.status === 'done').length}/{task.subtasks.length}
-              </span>
+          {/* Phase / subphase header + hide checkbox (EJ1 + EJ3) */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 4 }}>
+            <span style={{ fontSize: 10, color: 'var(--text-faint)', fontFamily: 'var(--font)', lineHeight: 1.3, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {phase?.name ?? ''}{subphase ? ` / ${subphase.name}` : ''}
+            </span>
+            {isDone && (
+              <input type="checkbox" title={t('task_hide')}
+                checked={false}
+                onClick={e => { e.stopPropagation(); saveTasks(tasks.map(tt => tt.id === task.id ? { ...tt, hidden: true } : tt)); }}
+                onChange={() => {}}
+                style={{ width: 13, height: 13, accentColor: 'var(--success)', cursor: 'pointer', flexShrink: 0 }} />
             )}
           </div>
+          {/* Owner avatar + task title (EJ1) */}
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 6 }}>
+            {owner && <div style={{ flexShrink: 0, marginTop: 1 }}><Avatar staff={owner} size={18} /></div>}
+            <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)', lineHeight: 1.4, fontFamily: 'var(--font)', flex: 1 }}>
+              {task.isMilestone && <span style={{ marginRight: 4, color: 'var(--accent)' }}>◆</span>}
+              {task.title}
+            </span>
+          </div>
+          {/* Deadline + subtasks count (EJ1) */}
+          {(task.deadline || (task.subtasks?.length ?? 0) > 0) && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              {task.deadline && (
+                <span style={{ fontSize: 10, color: isOverdue ? 'var(--danger)' : 'var(--text-faint)', fontFamily: 'var(--font)', fontWeight: isOverdue ? 700 : 400 }}>
+                  {task.deadline.slice(0, 10)}
+                </span>
+              )}
+              {(task.subtasks?.length ?? 0) > 0 && (
+                <span style={{ fontSize: 10, color: 'var(--text-faint)', fontFamily: 'var(--font)', marginLeft: 'auto' }}>
+                  {task.subtasks.filter(s => s.status === 'done').length}/{task.subtasks.length}
+                </span>
+              )}
+            </div>
+          )}
         </div>
       );
     };
 
-    const renderKanbanSection = (label: string, color: string, sectionTasks: Task[]) => (
-      <div style={{ marginBottom: 16 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 4px 10px', fontFamily: 'var(--font)', fontWeight: 700, fontSize: 12, color: 'var(--text-muted)', textTransform: 'uppercase' as const, letterSpacing: '0.05em' }}>
-          <span style={{ width: 8, height: 8, borderRadius: '50%', background: color, flexShrink: 0, display: 'inline-block' }} />
-          {label}
-          {sectionTasks.length > 0 && <span style={{ background: 'var(--bg3)', color: 'var(--text-faint)', borderRadius: 10, padding: '0 6px', fontSize: 10 }}>{sectionTasks.length}</span>}
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
-          {STATUSES.map(status => {
-            const colTasks = sectionTasks.filter(t => t.status === status);
-            const sc = STATUS_COLORS_K[status];
-            return (
-              <div key={status} style={{ background: 'var(--bg2)', borderRadius: 10, padding: 10, minHeight: 60 }}>
-                <div style={{ fontSize: 10, fontWeight: 700, color: sc.color, textTransform: 'uppercase' as const, letterSpacing: '0.05em', marginBottom: 8, fontFamily: 'var(--font)', borderBottom: `2px solid ${sc.border}`, paddingBottom: 6 }}>
-                  {STATUS_LABELS[status]}
-                  {colTasks.length > 0 && <span style={{ marginLeft: 5, background: sc.bg, border: `1px solid ${sc.border}`, color: sc.color, borderRadius: 10, padding: '0 5px', fontSize: 10 }}>{colTasks.length}</span>}
-                </div>
-                {colTasks.length === 0
-                  ? <div style={{ fontSize: 11, color: 'var(--text-faint)', fontFamily: 'var(--font)', textAlign: 'center', padding: '8px 0' }}>—</div>
-                  : colTasks.map(task => renderKanbanCard(task))
-                }
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    );
-
-    if (phasesForProj.length === 0 || projTasks.length === 0) {
+    if (projTasks.length === 0) {
       return (
         <div style={{ padding: '40px 24px', textAlign: 'center' }}>
           <p style={{ color: 'var(--text-muted)', fontFamily: 'var(--font)', fontSize: 13 }}>{t('no_tasks_for_project')}</p>
@@ -885,24 +895,31 @@ export default function TasksView({ data, updateData, spaces, currentSpaceId }: 
       );
     }
 
+    // Single flat 4-column kanban — no section headers (EJ1)
     return (
-      <div>
-        {phasesForProj.map(phase => {
-          const phaseTasks = projTasks.filter(t => t.phaseId === phase.id && !t.subphaseId);
-          const allPhaseTasks = projTasks.filter(t => t.phaseId === phase.id);
-          if (allPhaseTasks.length === 0) return null;
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
+        {STATUSES.map(status => {
+          const colTasks = projTasks.filter(t => t.status === status);
+          const sc = STATUS_COLORS_K[status];
+          const isDropTarget = kanbanDragTaskId !== null;
           return (
-            <div key={phase.id}>
-              {renderKanbanSection(phase.name, phase.color, phaseTasks)}
-              {phase.subphases.map(sp => {
-                const spTasks = projTasks.filter(t => t.phaseId === phase.id && t.subphaseId === sp.id);
-                if (spTasks.length === 0) return null;
-                return (
-                  <div key={sp.id} style={{ marginLeft: 20 }}>
-                    {renderKanbanSection(`↳ ${sp.name}`, phase.color, spTasks)}
-                  </div>
-                );
-              })}
+            <div key={status}
+              onDragOver={e => { if (isDropTarget) e.preventDefault(); }}
+              onDrop={e => {
+                e.preventDefault();
+                if (!kanbanDragTaskId) return;
+                saveTasks(tasks.map(tt => tt.id === kanbanDragTaskId ? { ...tt, status } : tt));
+                setKanbanDragTaskId(null);
+              }}
+              style={{ background: isDropTarget ? 'var(--accent-subtle)' : 'var(--bg2)', borderRadius: 10, padding: 10, minHeight: 120, transition: 'background 0.15s' }}>
+              <div style={{ fontSize: 10, fontWeight: 700, color: sc.color, textTransform: 'uppercase' as const, letterSpacing: '0.05em', marginBottom: 8, fontFamily: 'var(--font)', borderBottom: `2px solid ${sc.border}`, paddingBottom: 6 }}>
+                {STATUS_LABELS[status]}
+                {colTasks.length > 0 && <span style={{ marginLeft: 5, background: sc.bg, border: `1px solid ${sc.border}`, color: sc.color, borderRadius: 10, padding: '0 5px', fontSize: 10 }}>{colTasks.length}</span>}
+              </div>
+              {colTasks.length === 0
+                ? <div style={{ fontSize: 11, color: 'var(--text-faint)', fontFamily: 'var(--font)', textAlign: 'center', padding: '8px 0' }}>—</div>
+                : colTasks.map(task => renderKanbanCard(task))
+              }
             </div>
           );
         })}
@@ -923,9 +940,6 @@ export default function TasksView({ data, updateData, spaces, currentSpaceId }: 
             </button>
             <button className={`toolbar-btn${tab === 'by_resource' ? ' primary' : ''}`} onClick={() => setTab('by_resource')}>
               {t('task_tab_by_resource')}
-            </button>
-            <button className={`toolbar-btn${tab === 'milestones' ? ' primary' : ''}`} onClick={() => setTab('milestones')}>
-              {t('task_tab_milestones')}
             </button>
             <button className={`toolbar-btn${tab === 'kanban' ? ' primary' : ''}`} onClick={() => setTab('kanban')}
               style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
@@ -1004,9 +1018,12 @@ export default function TasksView({ data, updateData, spaces, currentSpaceId }: 
             </button>
           )}
 
-          <div style={{ marginLeft: 'auto' }}>
+          <div style={{ marginLeft: 'auto', display: 'flex', gap: 6, alignItems: 'center' }}>
+            <button className={`toolbar-btn${tab === 'milestones' ? ' primary' : ''}`} onClick={() => setTab('milestones')}>
+              {t('task_tab_milestones')}
+            </button>
             <button className="toolbar-btn primary" onClick={() => {
-              const projId = tab === 'by_project' ? selectedProject : (resourceProjects[0] ?? data.projects[0]?.id ?? '');
+              const projId = tab === 'by_project' ? selectedProject : tab === 'kanban' ? kanbanProject : (resourceProjects[0] ?? data.projects[0]?.id ?? '');
               setEditingTask({
                 id: uuid(),
                 projectId: projId,
@@ -1021,7 +1038,7 @@ export default function TasksView({ data, updateData, spaces, currentSpaceId }: 
               });
               setIsNew(true);
             }}>
-              + {t('task_new')}
+              {t('task_new')}
             </button>
           </div>
 
