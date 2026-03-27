@@ -84,6 +84,7 @@ function TaskModal({ task: initial, isNew, phases, projects, staff, t, onSave, o
     deadline: initial.deadline ?? null,
     isMilestone: initial.isMilestone ?? false,
     subtasks: initial.subtasks ?? [],
+    hidden: initial.hidden ?? false,
   });
 
   const subphasesForPhase = phases.find(p => p.id === form.phaseId)?.subphases ?? [];
