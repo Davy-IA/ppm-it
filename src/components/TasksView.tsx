@@ -189,7 +189,7 @@ function TaskModal({ task: initial, isNew, phases, projects, staff, t, onSave, o
                   <input type="checkbox" id="cb-hidden" checked={form.hidden ?? false} onChange={e => set({ hidden: e.target.checked })}
                     style={{ width: 15, height: 15, accentColor: 'var(--success)', cursor: 'pointer' }} />
                   <label htmlFor="cb-hidden" style={{ fontSize: 12.5, color: 'var(--text)', fontFamily: 'var(--font)', cursor: 'pointer', userSelect: 'none' }}>
-                    {t('task_hide_label')}
+                    {form.hidden ? t('task_show_in_kanban') : t('task_hide_label')}
                   </label>
                 </div>
               )}
