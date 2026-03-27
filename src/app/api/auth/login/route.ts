@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
     }
 
-    const res = NextResponse.json({ user: result.user });
+    const res = NextResponse.json({ user: result.user, token: result.token });
     res.cookies.set('ppm_token', result.token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
